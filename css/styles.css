@@ -1,1 +1,209 @@
-  
+  @charset "UTF-8";
+/* ==========================================================================
+   BASE STYLESHEET
+   ========================================================================== */
+
+:root {
+    /* Primary Palette */
+    --bg-color: #0a0a0a;
+    --surface-color: #121212;
+    --border-color: #2a2a2a;
+    --text-main: #e0e0e0;
+    --text-muted: #888888;
+    --accent: #ffffff;
+    --status-active: #4ade80;
+    
+    /* Typography System */
+    --font-mono: 'Courier New', Courier, monospace;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ==========================================
+   LAYOUT RESET
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    max-width: 100%; 
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    text-size-adjust: 100%; 
+}
+
+.terminal-container {
+    width: 100%;
+    max-width: 800px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    padding: 3rem;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow-wrap: break-word; 
+}
+
+/* ==========================================
+   HEADER & NAVIGATION
+   ========================================== */
+.system-header {
+    margin-bottom: 4rem;
+    user-select: none; 
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-links a:hover,
+.nav-links a:focus {
+    color: var(--accent);
+    outline: none;
+}
+
+.nav-links a:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 4px;
+}
+
+/* ==========================================
+   CORE CONTENT
+   ========================================== */
+.intro-module h1 {
+    font-size: 2.2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+}
+
+.status-indicator {
+    font-family: var(--font-mono);
+    color: var(--status-active);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    user-select: none;
+}
+
+.status-indicator::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--status-active);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+.summary-text {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 90%;
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 3.5rem 0;
+}
+
+/* ==========================================
+   SPECIFICATIONS GRID
+   ========================================== */
+.specs-module h2 {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: normal;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.spec-card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    padding: 1.75rem;
+    border-radius: 4px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.spec-card:hover {
+    border-color: #555;
+    transform: translateY(-2px);
+}
+
+.spec-card h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.spec-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+.system-footer {
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: left;
+    user-select: none;
+}
+
+/* ==========================================
+   RESPONSIVE CONTAINMENT
+   ========================================== */
+@media (max-width: 650px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .terminal-container {
+        padding: 2rem 1.5rem;
+    }
+    
+    .intro-module h1 {
+        font-size: 1.8rem;
+    }
+}
