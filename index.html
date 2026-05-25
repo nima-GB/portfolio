@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overview</title>
-    <meta name="description" content="Professional portfolio and technical overview.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Overview Telemetry</title>
+    <meta name="description" content="Professional portfolio, technical overview, and live SIGINT telemetry matrix.">
 
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
     <meta name="referrer" content="no-referrer">
@@ -15,13 +15,15 @@
 </head>
 <body>
 
+    <div class="hud-overlay"></div>
+
     <div class="terminal-container">
         <header class="system-header">
             <nav aria-label="Primary Navigation">
                 <ul class="nav-links">
                     <li><a href="#profile">01 // Profile</a></li>
                     <li><a href="#competencies">02 // Competencies</a></li>
-                    <li><a href="#telemetry">03 // Telemetry</a></li>
+                    <li><a href="#telemetry">03 // C2_Matrix</a></li>
                 </ul>
             </nav>
         </header>
@@ -66,28 +68,107 @@
             <section id="telemetry" aria-labelledby="telemetry-heading" class="specs-module">
                 <h2 id="telemetry-heading">SIGINT & Advanced Cyber Operations</h2>
                 
-                <div class="grid-layout" style="margin-bottom: 1.5rem;">
-                    <article class="spec-card dark-card">
-                        <h3>Quantum-State WAF & IPS/IDS</h3>
-                        <p>Autonomous Intrusion Detection and Prevention Systems coupled with a next-generation Web Application Firewall. Real-time threat eradication utilizing predictive zero-day heuristics.</p>
-                    </article>
-                    
-                    <article class="spec-card dark-card">
-                        <h3>SECaaS & Edge Defense</h3>
-                        <p>Distributed Security-as-a-Service architecture. Deep packet inspection and signal intelligence (SIGINT) analysis ensure total node isolation against coordinated cyber-kinetic events.</p>
-                    </article>
-                </div>
-
-                <div class="telemetry-terminal">
-                    <div class="telemetry-header">
-                        > INITIALIZING LIVE TELEMETRY MATRIX...
+                <div class="c2-shell">
+                    <div class="panel">
+                        <div class="header-bar">
+                            <span id="core-banner">NEGARIX // GLOBAL_SIGINT_C2</span>
+                            <span><span class="live-pulse">● COMMS_LINK</span> // SECURE</span>
+                        </div>
+                        <div class="telemetry-meta">
+                            <div>COORD: <span id="geo-telemetry">00.0000° N, 00.0000° E</span></div>
+                            <div>SYS_EPOCH: <span id="sys-epoch">0000000000</span></div>
+                            <div>AIR_GAP: <span class="tac-green">ISOLATED (CSP_ENFORCED)</span></div>
+                        </div>
                     </div>
-                    <div class="telemetry-line">> QUANTUM CRYPTOGRAPHY LATTICE: <span class="telemetry-accent">[LOCKED]</span></div>
-                    <div class="telemetry-line">> IPS/IDS SENSOR GRID: <span class="telemetry-active">[ACTIVE & ENFORCING]</span></div>
-                    <div class="telemetry-line">> INBOUND SIGINT PACKET ANALYSIS: <span class="telemetry-accent">[SCANNING OBFUSCATED VECTORS...]</span></div>
-                    <div class="telemetry-line">> NEURAL WAF ANOMALY DETECTOR: <span class="telemetry-active">[0 THREATS DETECTED]</span></div>
-                    <div class="telemetry-footer">
-                        // ENDPOINT SECURE. UNAUTHORIZED SURVEILLANCE WILL BE INTERCEPTED.
+
+                    <div class="theater-matrix">
+                        
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span>📡 RF_SPECTRUM_RECEIVER</span>
+                                <span class="tac-cyan" id="freq-fhs">433.92 MHz</span>
+                            </div>
+                            
+                            <div class="spectrum-container" id="spectrum-display"></div>
+                            
+                            <div class="panel-header alert-header">
+                                <span>⚠️ BROADCAST_INTERCEPT_STREAM</span>
+                            </div>
+                            <div class="sigint-stream" id="packet-stream"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">🌐 GLOBAL_INFRASTRUCTURE_NODES</div>
+                            <div class="node-cluster">
+                                <div class="node-widget">
+                                    <div class="node-name">LOND-NODE-01</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">WASH-NODE-04</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">TOKY-NODE-09</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">SYDN-NODE-02</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                            </div>
+
+                            <div class="panel-header radar-header">🎯 PASSIVE_SCANNER_TARGETING</div>
+                            <div class="radar-display">
+                                <div class="radar-sweep"></div>
+                                <div class="reticle"></div>
+                                <div class="radar-azimuth">
+                                    AZIMUTH: <span id="radar-azi">312°</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel flex-col-between">
+                            <div>
+                                <div class="panel-header">🛡️ ZERO-TRUST_PERIMETER_ENFORCEMENT</div>
+                                <table class="infra-grid">
+                                    <thead>
+                                        <tr>
+                                            <th>DEFENSE VECTOR</th>
+                                            <th>PROTOCOL ARCHITECTURE</th>
+                                            <th>STATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>TRANSPORT MATRIX</td>
+                                            <td>MTA-STS / TLS 1.3 STRICT</td>
+                                            <td class="secured-vector">[ ENFORCE ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>CRYPTOGRAPHIC CORE</td>
+                                            <td>DKIM KEYSETS (RSA-2048)</td>
+                                            <td class="secured-vector">[ ALIGNED ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>SPOOF ISOLATION</td>
+                                            <td>SPF + DMARC POLICIES</td>
+                                            <td class="secured-vector">[ ISOLATED ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ISSUANCE CONTROL</td>
+                                            <td>CAA ANTI-WILDCARD GUARD</td>
+                                            <td class="secured-vector">[ ANCHORED ]</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="decryption-status">
+                                DECRYPTION SYSTEM STATUS: INTEGRATED ENGINE RUNNING EXTENDED ASYMMETRIC SEEDS. ZERO PACKET ESCAPE VALUE DETECTED. AUTHORIZED TELEMETRY TERMINALS ONLY.
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -97,6 +178,8 @@
             <p>&copy; 2026 Negarandeh. All rights reserved. Operations secured.</p>
         </footer>
     </div>
+
+    <script src="/js/c2-matrix.js"></script>
 
 </body>
 </html>
