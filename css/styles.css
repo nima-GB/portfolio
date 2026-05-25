@@ -1,40 +1,38 @@
-/* 1. ROOT & GLOBAL RESET */
+/* --- RESET & ROOT --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
     --bg-color: #010408;
     --tac-cyan: #00e5ff;
+    --panel-bg: rgba(2, 10, 18, 0.85);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* 2. BODY - Keep simple to avoid collapsing the layout */
 body {
     background-color: var(--bg-color);
     color: #e0e0e0;
     font-family: 'Courier New', monospace;
     min-height: 100vh;
-    overflow-x: hidden;
-    /* Lockdown */
+    padding: 2rem;
     -webkit-user-select: none;
     user-select: none;
 }
 
-/* 3. BACKGROUND CANVAS */
-#neural-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.4;
+/* --- TELEMETRY PANELS --- */
+.c2-shell { display: flex; flex-direction: column; gap: 1rem; width: 100%; }
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
 
-/* 4. MAIN CONTAINER - Use this to manage your content layout */
-.terminal-container {
-    position: relative;
-    z-index: 10;
-    max-width: 1200px;
-    margin: 0 auto; /* This centers the content */
-    padding: 2rem;
-}
+/* --- FIX FOR TABLES --- */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid rgba(0, 229, 255, 0.2); padding: 8px; text-align: left; font-size: 0.8rem; }
+th { color: var(--tac-cyan); }
 
-/* Add your existing Panel and Table styles below this line */
+/* --- GRID FOR NODES --- */
+.node-cluster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.node-widget { border: 1px solid rgba(0, 229, 255, 0.1); padding: 5px; font-size: 0.7rem; }
+
+/* --- CANVAS --- */
+#neural-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.3; }
