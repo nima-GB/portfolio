@@ -1,0 +1,36 @@
+# ==========================================
+# ROBOTS.TXT - AI & DATA PROTECTION SHIELD
+# ==========================================
+
+# 1. Block aggressive AI Scraping & Data Mining
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+# 2. Allow reputable search engines so your profile is professionally visible
+User-agent: *
+Allow: /
+Disallow: /private/ # Placeholder in case you add hidden assets later
+
+# Friendly note to human developers visiting your source
+# Built with modern HTML5 standards. Focused on privacy and efficiency.
