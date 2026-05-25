@@ -5,8 +5,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
     const randIP = () => `${randInt(10,240)}.${randInt(1,254)}.${randInt(0,254)}.${randInt(1,254)}`;
 
+    // --- PHASE 1: BOOT SEQUENCE ("Ghost in the Machine") ---
+    const bootSequence = document.getElementById('boot-sequence');
+    const bootTerminal = document.getElementById('boot-terminal');
+    const bootLines = [
+        "INITIALIZING QUANTUM LATTICE...",
+        "BYPASSING BIOMETRIC FIREWALL......... [OK]",
+        "DECRYPTING SIGINT SPOOL.............. [OK]",
+        "SYNCING WITH GLOBAL EDGE NODES....... [OK]",
+        "ESTABLISHING SECURE HANDSHAKE........ [OK]",
+        "NEGARIX SENTIENCE ONLINE. SURVEILLANCE ACTIVE."
+    ];
 
-        let lineIndex = 0;
+    let lineIndex = 0;
     function printBootLine() {
         if (lineIndex < bootLines.length) {
             const line = document.createElement('div');
@@ -16,14 +27,13 @@ document.addEventListener("DOMContentLoaded", () => {
             lineIndex++;
             setTimeout(printBootLine, randInt(200, 600));
         } else {
-            // FORCE RELEASE:
-            console.log("Boot sequence complete. Releasing interface.");
-            bootSequence.style.opacity = "0";
             setTimeout(() => {
-                bootSequence.style.display = 'none';
-            }, 1000);
+                bootSequence.classList.add('boot-hidden');
+                setTimeout(() => bootSequence.style.display = 'none', 1000);
+            }, 800);
         }
     }
+    printBootLine();
 
     // --- PHASE 2: QUANTUM ENTANGLEMENT CANVAS ---
     const canvas = document.getElementById('neural-canvas');
