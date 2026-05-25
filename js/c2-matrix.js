@@ -219,3 +219,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 });
+
+// --- PERIMETER PROTECTION: ANTI-INSPECTION ---
+
+// 1. Block right-click (already handled by body tag, but this is a secondary fail-safe)
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// 2. Block Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+U)
+document.addEventListener('keydown', e => {
+    // Prevent F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    // Prevent Ctrl+Shift+I (Inspector) or Ctrl+U (View Source)
+    if (e.ctrlKey && (e.key === 'I' || e.key === 'U' || e.key === 'C')) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// 3. Optional: Detect if DevTools is open and "Scramble" the visual
+// This detects the resize event that happens when DevTools is opened
+window.addEventListener('resize', () => {
+    if ((window.outerWidth - window.innerWidth) > 100 || (window.outerHeight - window.innerHeight) > 100) {
+        document.body.innerHTML = "<div style='color:red; text-align:center; padding-top:20%; font-family:monospace;'>[ACCESS VIOLATION: INSPECTION ATTEMPT DETECTED. PERIMETER LOCKED.]</div>";
+    }
+});
