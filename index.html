@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Overview Telemetry</title>
+    <title>Overview & SIGINT Telemetry</title>
     <meta name="description" content="Professional portfolio, technical overview, and live SIGINT telemetry matrix.">
 
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
@@ -15,9 +15,15 @@
 </head>
 <body>
 
+    <div id="boot-sequence">
+        <div id="boot-terminal"></div>
+    </div>
+
+    <canvas id="neural-canvas"></canvas>
+
     <div class="hud-overlay"></div>
 
-    <div class="terminal-container">
+    <div class="terminal-container" id="main-container">
         <header class="system-header">
             <nav aria-label="Primary Navigation">
                 <ul class="nav-links">
@@ -39,25 +45,21 @@
 
             <section id="competencies" aria-labelledby="competencies-heading" class="specs-module">
                 <h2 id="competencies-heading">Core Competencies</h2>
-                
                 <div class="grid-layout">
-                    <article class="spec-card">
-                        <h3>Systems Architecture</h3>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Systems Architecture</h3>
                         <p>Designing and deploying scalable, zero-dependency infrastructures. Ensuring operational continuity through precise resource allocation and strict environmental controls.</p>
                     </article>
-                    
-                    <article class="spec-card">
-                        <h3>Security & Compliance</h3>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Security & Compliance</h3>
                         <p>Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols to protect digital assets from external vulnerabilities.</p>
                     </article>
-
-                    <article class="spec-card">
-                        <h3>Technical Leadership</h3>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Technical Leadership</h3>
                         <p>Guiding engineering lifecycles from initial concept to production deployment. Bridging the gap between complex technical execution and high-level strategic objectives.</p>
                     </article>
-
-                    <article class="spec-card">
-                        <h3>Network Operations</h3>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Network Operations</h3>
                         <p>Managing DNS routing, domain integrity (DMARC/SPF configurations), and maintaining high-performance global edge server deployments.</p>
                     </article>
                 </div>
@@ -67,7 +69,6 @@
 
             <section id="telemetry" aria-labelledby="telemetry-heading" class="specs-module">
                 <h2 id="telemetry-heading">SIGINT & Advanced Cyber Operations</h2>
-                
                 <div class="c2-shell">
                     <div class="panel">
                         <div class="header-bar">
@@ -82,15 +83,12 @@
                     </div>
 
                     <div class="theater-matrix">
-                        
                         <div class="panel">
                             <div class="panel-header">
                                 <span>📡 RF_SPECTRUM_RECEIVER</span>
                                 <span class="tac-cyan" id="freq-fhs">433.92 MHz</span>
                             </div>
-                            
                             <div class="spectrum-container" id="spectrum-display"></div>
-                            
                             <div class="panel-header alert-header">
                                 <span>⚠️ BROADCAST_INTERCEPT_STREAM</span>
                             </div>
@@ -117,7 +115,6 @@
                                     <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
                                 </div>
                             </div>
-
                             <div class="panel-header radar-header">🎯 PASSIVE_SCANNER_TARGETING</div>
                             <div class="radar-display">
                                 <div class="radar-sweep"></div>
@@ -164,11 +161,14 @@
                                 </table>
                             </div>
                             
-                            <div class="decryption-status">
-                                DECRYPTION SYSTEM STATUS: INTEGRATED ENGINE RUNNING EXTENDED ASYMMETRIC SEEDS. ZERO PACKET ESCAPE VALUE DETECTED. AUTHORIZED TELEMETRY TERMINALS ONLY.
+                            <div class="sentient-cli-wrapper">
+                                <div class="cli-input-row">
+                                    <span class="cli-prompt">></span>
+                                    <input type="text" id="sentient-input" class="cli-input" placeholder="AWAITING NEURAL COMMAND..." autocomplete="off">
+                                </div>
+                                <div id="cli-response" class="cli-response"></div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>
