@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "NEGARIX SENTIENCE ONLINE. SURVEILLANCE ACTIVE."
     ];
 
-    let lineIndex = 0;
+        let lineIndex = 0;
     function printBootLine() {
         if (lineIndex < bootLines.length) {
             const line = document.createElement('div');
@@ -27,13 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
             lineIndex++;
             setTimeout(printBootLine, randInt(200, 600));
         } else {
+            // FORCE RELEASE:
+            console.log("Boot sequence complete. Releasing interface.");
+            bootSequence.style.opacity = "0";
             setTimeout(() => {
-                bootSequence.classList.add('boot-hidden');
-                setTimeout(() => bootSequence.style.display = 'none', 1000);
-            }, 800);
+                bootSequence.style.display = 'none';
+            }, 1000);
         }
     }
-    printBootLine();
 
     // --- PHASE 2: QUANTUM ENTANGLEMENT CANVAS ---
     const canvas = document.getElementById('neural-canvas');
