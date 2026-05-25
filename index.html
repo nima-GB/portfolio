@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Negarandeh | Overview & SIGINT Telemetry</title>
+    <meta name="description" content="Professional portfolio, technical overview, and live SIGINT telemetry matrix.">
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
+
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <div id="boot-sequence">
+        <div id="boot-terminal"></div>
+    </div>
+
+    <canvas id="neural-canvas"></canvas>
+
+    <div class="hud-overlay"></div>
+
+    <div class="terminal-container" id="main-container">
+        <header class="system-header">
+            <nav aria-label="Primary Navigation">
+                <ul class="nav-links">
+                    <li><a href="#profile">01 // Profile</a></li>
+                    <li><a href="#competencies">02 // Competencies</a></li>
+                    <li><a href="#telemetry">03 // C2_Matrix</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main id="profile" class="system-core">
+            <section aria-labelledby="profile-heading" class="intro-module">
+                <h1 id="profile-heading">Negarandeh</h1>
+                <p class="status-indicator">Status: Active Operations & Engineering</p>
+                <p class="summary-text">Specializing in secure infrastructure, systems architecture, and technical alignment. Focused on delivering high-availability environments and resilient operational frameworks with a low-signature footprint.</p>
+            </section>
+
+            <hr class="divider">
+
+            <section id="competencies" aria-labelledby="competencies-heading" class="specs-module">
+                <h2 id="competencies-heading">Core Competencies</h2>
+                <div class="grid-layout">
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Systems Architecture</h3>
+                        <p>Designing and deploying scalable, zero-dependency infrastructures. Ensuring operational continuity through precise resource allocation and strict environmental controls.</p>
+                    </article>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Security & Compliance</h3>
+                        <p>Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols to protect digital assets from external vulnerabilities.</p>
+                    </article>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Technical Leadership</h3>
+                        <p>Guiding engineering lifecycles from initial concept to production deployment. Bridging the gap between complex technical execution and high-level strategic objectives.</p>
+                    </article>
+                    <article class="spec-card ghost-card">
+                        <h3 class="glitch-target">Network Operations</h3>
+                        <p>Managing DNS routing, domain integrity (DMARC/SPF configurations), and maintaining high-performance global edge server deployments.</p>
+                    </article>
+                </div>
+            </section>
+
+            <hr class="divider">
+
+            <section id="telemetry" aria-labelledby="telemetry-heading" class="specs-module">
+                <h2 id="telemetry-heading">SIGINT & Advanced Cyber Operations</h2>
+                <div class="c2-shell">
+                    <div class="panel">
+                        <div class="header-bar">
+                            <span id="core-banner">NEGARIX // GLOBAL_SIGINT_C2</span>
+                            <span><span class="live-pulse">● COMMS_LINK</span> // SECURE</span>
+                        </div>
+                        <div class="telemetry-meta">
+                            <div>COORD: <span id="geo-telemetry">00.0000° N, 00.0000° E</span></div>
+                            <div>SYS_EPOCH: <span id="sys-epoch">0000000000</span></div>
+                            <div>AIR_GAP: <span class="tac-green">ISOLATED (CSP_ENFORCED)</span></div>
+                        </div>
+                    </div>
+
+                    <div class="theater-matrix">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span>📡 RF_SPECTRUM_RECEIVER</span>
+                                <span class="tac-cyan" id="freq-fhs">433.92 MHz</span>
+                            </div>
+                            <div class="spectrum-container" id="spectrum-display"></div>
+                            <div class="panel-header alert-header">
+                                <span>⚠️ BROADCAST_INTERCEPT_STREAM</span>
+                            </div>
+                            <div class="sigint-stream" id="packet-stream"></div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">🌐 GLOBAL_INFRASTRUCTURE_NODES</div>
+                            <div class="node-cluster">
+                                <div class="node-widget">
+                                    <div class="node-name">LOND-NODE-01</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">WASH-NODE-04</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">TOKY-NODE-09</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                                <div class="node-widget">
+                                    <div class="node-name">SYDN-NODE-02</div>
+                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
+                                </div>
+                            </div>
+                            <div class="panel-header radar-header">🎯 PASSIVE_SCANNER_TARGETING</div>
+                            <div class="radar-display">
+                                <div class="radar-sweep"></div>
+                                <div class="reticle"></div>
+                                <div class="radar-azimuth">
+                                    AZIMUTH: <span id="radar-azi">312°</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel flex-col-between">
+                            <div>
+                                <div class="panel-header">🛡️ ZERO-TRUST_PERIMETER_ENFORCEMENT</div>
+                                <table class="infra-grid">
+                                    <thead>
+                                        <tr>
+                                            <th>DEFENSE VECTOR</th>
+                                            <th>PROTOCOL ARCHITECTURE</th>
+                                            <th>STATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>TRANSPORT MATRIX</td>
+                                            <td>MTA-STS / TLS 1.3 STRICT</td>
+                                            <td class="secured-vector">[ ENFORCE ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>CRYPTOGRAPHIC CORE</td>
+                                            <td>DKIM KEYSETS (RSA-2048)</td>
+                                            <td class="secured-vector">[ ALIGNED ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>SPOOF ISOLATION</td>
+                                            <td>SPF + DMARC POLICIES</td>
+                                            <td class="secured-vector">[ ISOLATED ]</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ISSUANCE CONTROL</td>
+                                            <td>CAA ANTI-WILDCARD GUARD</td>
+                                            <td class="secured-vector">[ ANCHORED ]</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="sentient-cli-wrapper">
+                                <div class="cli-input-row">
+                                    <span class="cli-prompt">></span>
+                                    <input type="text" id="sentient-input" class="cli-input" placeholder="AWAITING NEURAL COMMAND..." autocomplete="off">
+                                </div>
+                                <div id="cli-response" class="cli-response"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="system-footer">
+            <p>&copy; 2026 Negarandeh. All rights reserved. Operations secured.</p>
+        </footer>
+    </div>
+
+    <script src="/js/c2-matrix.js"></script>
+
+</body>
+</html>
