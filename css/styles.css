@@ -79,3 +79,7 @@
     background-color: transparent;
     backdrop-filter: blur(2px); /* Slight blur for legibility */
 }
+
+* { outline: 1px solid red !important; }
+
+
