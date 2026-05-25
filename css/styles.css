@@ -207,3 +207,55 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* ==========================================
+   TELEMETRY TERMINAL (SIGINT)
+   ========================================== */
+.telemetry-terminal {
+    background-color: #050505;
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.telemetry-header {
+    color: var(--status-active);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.telemetry-header::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--status-active);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+.telemetry-line {
+    color: var(--text-muted);
+}
+
+.telemetry-accent {
+    color: var(--accent);
+}
+
+.telemetry-active {
+    color: var(--status-active);
+}
+
+.telemetry-footer {
+    color: #444;
+    margin-top: 1rem;
+    border-top: 1px dashed #333;
+    padding-top: 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
