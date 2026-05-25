@@ -1,4 +1,5 @@
 @charset "UTF-8";
+
 /* ==========================================================================
     UNIFIED BASE & C2 STYLESHEET
    ========================================================================== */
@@ -28,7 +29,7 @@
 }
 
 /* ==========================================
-   LAYOUT RESET & CRT HUD EFFECT
+   GLOBAL LOCKDOWN & RESET
    ========================================== */
 * {
     box-sizing: border-box;
@@ -38,6 +39,11 @@
 }
 
 body {
+    /* LOCKDOWN: Prevent text selection */
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
     background-color: var(--bg-color);
     color: var(--text-main);
     font-family: var(--font-sans);
@@ -46,7 +52,6 @@ body {
     padding: 2rem 1rem;
     display: flex;
     justify-content: center;
-    text-size-adjust: 100%; 
     background-image: 
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
@@ -55,11 +60,14 @@ body {
     overflow-x: hidden;
 }
 
-/* Vintage CRT Cathode Scanline Simulation Overlay */
+/* ==========================================
+   CRT HUD EFFECT & CONTAINER
+   ========================================== */
 .hud-overlay {
     position: fixed;
     top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
     z-index: 9999;
     background-size: 100% 4px, 4px 100%;
     pointer-events: none;
@@ -68,371 +76,12 @@ body {
 .terminal-container {
     width: 100%;
     max-width: 1200px;
-    background-color: transparent; /* Changed to allow grid through */
+    background-color: transparent;
     padding: 1rem;
     position: relative;
     z-index: 10;
+    backdrop-filter: blur(2px);
 }
 
-/* ==========================================
-   HEADER & NAVIGATION
-   ========================================== */
-.system-header {
-    margin-bottom: 4rem;
-    user-select: none; 
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-    gap: 2rem;
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-}
-
-.nav-links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.nav-links a:hover,
-.nav-links a:focus {
-    color: var(--tac-cyan);
-    text-shadow: 0 0 5px var(--tac-cyan-glow);
-    outline: none;
-}
-
-/* ==========================================
-   CORE CONTENT (PROFESSIONAL MODULES)
-   ========================================== */
-.intro-module h1 {
-    font-size: 2.2rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--accent);
-    letter-spacing: -0.5px;
-}
-
-.status-indicator {
-    font-family: var(--font-mono);
-    color: var(--status-active);
-    font-size: 0.85rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    user-select: none;
-}
-
-.status-indicator::before {
-    content: "";
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background-color: var(--status-active);
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
-}
-
-.summary-text {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-    max-width: 90%;
-}
-
-.divider {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 3.5rem 0;
-}
-
-.specs-module h2 {
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: normal;
-    color: var(--accent);
-    margin-bottom: 2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.grid-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.spec-card {
-    background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
-    padding: 1.75rem;
-    border-radius: 4px;
-    transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.spec-card:hover {
-    border-color: var(--tac-cyan);
-    transform: translateY(-2px);
-    box-shadow: inset 0 0 10px var(--tac-cyan-glow);
-}
-
-.spec-card h3 {
-    font-size: 1rem;
-    color: var(--accent);
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-}
-
-.spec-card p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-/* ==========================================
-   C2 MATRIX STYLES (TACTICAL HUD)
-   ========================================== */
-.c2-shell {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    font-family: var(--font-mono);
-}
-
-.panel {
-    background: var(--panel-bg);
-    border: 1px solid rgba(0, 229, 255, 0.15);
-    padding: 12px;
-    position: relative;
-    box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05);
-}
-
-.panel::before, .panel::after {
-    content: ''; position: absolute; width: 8px; height: 8px; border: 2px solid var(--tac-cyan);
-}
-.panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-.panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
-
-.panel-header {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: var(--tac-amber);
-    border-bottom: 1px dashed rgba(255, 170, 0, 0.3);
-    padding-bottom: 4px;
-    margin-bottom: 8px;
-    letter-spacing: 1px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.alert-header { margin-top: 12px; border-bottom: 1px dashed rgba(255,38,38,0.2); color: var(--tac-red); }
-.radar-header { margin-top: 12px; }
-.flex-col-between { display: flex; flex-direction: column; justify-content: space-between; }
-
-.header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: var(--tac-cyan);
-}
-
-.live-pulse {
-    color: var(--tac-red);
-    animation: beacon 1.2s infinite;
-}
-@keyframes beacon { 0%, 100% { opacity: 1; text-shadow: 0 0 8px var(--tac-red); } 50% { opacity: 0.2; } }
-
-.telemetry-meta {
-    font-size: 0.65rem; margin-top: 6px; color: #7abccf; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px;
-}
-
-.tac-green { color: var(--tac-green); }
-.tac-cyan { color: var(--tac-cyan); }
-
-.theater-matrix {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-
-.spectrum-container {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    height: 70px;
-    padding-top: 10px;
-    border-bottom: 1px solid rgba(0, 229, 255, 0.2);
-}
-.spectrum-bar {
-    width: 4%;
-    background: linear-gradient(to top, rgba(0, 229, 255, 0.1), var(--tac-cyan));
-    height: 20%;
-    transition: height 0.1s ease;
-}
-
-.sigint-stream {
-    height: 180px;
-    overflow-y: hidden;
-    font-size: 0.7rem;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    color: var(--tac-cyan);
-}
-.stream-line { display: flex; justify-content: space-between; white-space: nowrap; }
-
-.node-cluster {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
-.node-widget {
-    background: rgba(0, 229, 255, 0.03);
-    border: 1px solid rgba(0, 229, 255, 0.08);
-    padding: 6px;
-    font-size: 0.7rem;
-}
-.node-name { color: #fff; font-weight: bold; }
-.node-status { color: var(--tac-green); font-size: 0.65rem; margin-top: 2px; }
-.scramble { display: inline-block; }
-
-.radar-display {
-    height: 110px;
-    border: 1px solid rgba(0, 229, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.radar-sweep {
-    position: absolute;
-    width: 100%; height: 100%;
-    background: linear-gradient(rgba(0, 229, 255, 0.15), transparent);
-    top: -100%;
-    animation: sweep 4s linear infinite;
-}
-@keyframes sweep { 0% { top: -100%; } 100% { top: 100%; } }
-.reticle {
-    width: 60px; height: 60px;
-    border: 1px dashed rgba(0, 229, 255, 0.3);
-    border-radius: 50%;
-    position: relative;
-}
-.reticle::before, .reticle::after {
-    content: ''; position: absolute; background: rgba(0, 229, 255, 0.3);
-}
-.reticle::before { top: 50%; left: -15px; right: -15px; height: 1px; }
-.reticle::after { left: 50%; top: -15px; bottom: -15px; width: 1px; }
-.radar-azimuth { position: absolute; top: 4px; left: 6px; font-size: 0.55rem; color: rgba(0, 229, 255, 0.4); }
-
-.infra-grid {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.7rem;
-    margin-top: 5px;
-    color: var(--tac-cyan);
-}
-.infra-grid th, .infra-grid td {
-    border: 1px solid rgba(0, 229, 255, 0.1);
-    padding: 6px 8px;
-    text-align: left;
-}
-.infra-grid th { background: rgba(0, 229, 255, 0.08); color: var(--tac-cyan); }
-.secured-vector { color: var(--tac-green); font-weight: bold; text-shadow: 0 0 4px rgba(0, 255, 102, 0.3); }
-
-.decryption-status {
-    font-size: 0.58rem; line-height: 1.3; color: rgba(0, 229, 255, 0.4); border-top: 1px solid rgba(0, 229, 255, 0.1); padding-top: 8px; margin-top: 15px;
-}
-
-/* ==========================================
-   FOOTER
-   ========================================== */
-.system-footer {
-    margin-top: 5rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-color);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: left;
-    user-select: none;
-}
-
-/* ==========================================
-   RESPONSIVE CONTAINMENT
-   ========================================== */
-@media (max-width: 650px) {
-    .grid-layout, .theater-matrix {
-        grid-template-columns: 1fr;
-    }
-}
-@media (min-width: 992px) {
-    .theater-matrix { grid-template-columns: 1.2fr 1fr 1fr; }
-}
-
-
-/* Quantum Canvas Background */
-#neural-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: 0;
-    pointer-events: none; /* Prevents blocking clicks */
-    opacity: 0.4;
-}
-
-/* Sentient Command Line */
-.sentient-cli-wrapper {
-    margin-top: 15px;
-    border-top: 1px solid rgba(0, 229, 255, 0.2);
-    padding-top: 10px;
-    font-family: var(--font-mono);
-}
-.cli-input-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.cli-prompt {
-    color: var(--tac-cyan);
-    font-weight: bold;
-}
-.cli-input {
-    background: transparent;
-    border: none;
-    color: var(--tac-cyan);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    flex-grow: 1;
-    outline: none;
-    text-transform: uppercase;
-}
-.cli-input::placeholder {
-    color: rgba(0, 229, 255, 0.3);
-}
-.cli-response {
-    color: var(--tac-red);
-    font-size: 0.7rem;
-    margin-top: 8px;
-    min-height: 1.2em;
-    text-shadow: 0 0 4px rgba(255, 56, 56, 0.5);
-}
-
-/* Make main container transparent to show canvas */
-#main-container {
-    background-color: transparent;
-    backdrop-filter: blur(2px); /* Slight blur for legibility */
-}
-
-
-
+/* [KEEP THE REST OF YOUR EXISTING CSS HERE: HEADER, INTRO, SPECS, C2 MATRIX, ETC] */
+/* Ensure you paste your existing CSS from .system-header down to the end of the file */
