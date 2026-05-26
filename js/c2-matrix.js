@@ -84,9 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
             constructor() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.4;
-                this.vy = (Math.random() - 0.5) * 0.4;
-                this.radius = Math.random() * 1.2 + 0.5;
+                this.vx = (Math.random() - 0.5) * 0.6; // Faster movement
+                this.vy = (Math.random() - 0.5) * 0.6;
+                this.radius = Math.random() * 1.5 + 0.8; // Larger nodes
             }
             update() {
                 this.x += this.vx;
@@ -97,13 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
+                ctx.fillStyle = 'rgba(0, 229, 255, 0.8)'; // Brighter cyan
                 ctx.fill();
             }
         }
 
-        // Initialize node distribution count density pool limits
-        const particlePoolSize = Math.min(80, Math.floor((width * height) / 18000));
+        // Initialize node distribution count density pool limits (Increased density)
+        const particlePoolSize = Math.min(100, Math.floor((width * height) / 15000));
         for (let i = 0; i < particlePoolSize; i++) {
             particles.push(new NodeParticle());
         }
@@ -120,24 +120,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     let dy = particles[i].y - particles[j].y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (dist < 115) {
+                    if (dist < 130) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / 115) * 0.25})`;
-                        ctx.lineWidth = 0.5;
+                        ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / 130) * 0.6})`; // Brighter/thicker connecting lines
+                        ctx.lineWidth = 0.8;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
                         ctx.stroke();
                     }
                 }
 
+                // Mouse interaction glow enhancement
                 if (mouse.x !== null) {
                     let dx = particles[i].x - mouse.x;
                     let dy = particles[i].y - mouse.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 140) {
+                    if (dist < 160) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(57, 255, 20, ${(1 - dist / 140) * 0.35})`;
-                        ctx.lineWidth = 0.75;
+                        ctx.strokeStyle = `rgba(57, 255, 20, ${(1 - dist / 160) * 0.8})`;
+                        ctx.lineWidth = 1.2;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(mouse.x, mouse.y);
                         ctx.stroke();
