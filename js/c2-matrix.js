@@ -5,13 +5,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
     const randIP = () => `${randInt(10,240)}.${randInt(1,254)}.${randInt(0,254)}.${randInt(1,254)}`;
 
+    // Global Interactive Color States (Allows live updates to affect canvas rendering maps)
+    let currentThemeColor = 'rgba(0, 229, 255, 0.8)';
+    let currentLineColor = 'rgba(0, 229, 255, '; 
+
     // --- PHASE 1: DYSTOPIAN QUANTUM AI BOOT SEQUENCE (10-SECOND LOCKDOWN) ---
     const bootSequence = document.getElementById('boot-sequence');
     const bootTerminal = document.getElementById('boot-terminal');
     
     const bootLines = [
-        "CRITICAL ALERT: AUTHORITARIAN SECURITY PROTOCOLS ENFORCED.",
-        "CONNECTING TO NEGARIX DEEPMIND CONTEXT GRID...",
+        "CRITICAL ALERT: AUTH> ZULU DELTA OMEGA SECURITY PROTOCOLS ENFORCED.",
+        "CONNECTING TO LAYER DEEPMIND CONTEXT GRID...",
         "INITIALIZING 2048-QUBIT QUANTUM ENCRYPTION LATTICE......... [ENGAGED]",
         "ISOLATING HUMAN ELEMENT FROM LOGICAL NODE CHAINS........... [COMPLETE]",
         "PURGING BIOMETRIC RESIDUE FROM CURRENT SECTOR.............. [CLEARED]",
@@ -27,15 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     let lineIndex = 0;
-    
-    // Controlled timing allocation to reach ~10 seconds of terminal feedback
     function printBootLine() {
         if (bootSequence && bootTerminal) {
             if (lineIndex < bootLines.length) {
                 const line = document.createElement('div');
                 line.className = 'boot-line';
                 
-                // Add stylized warning tags to specific authoritarian/quantum lines
                 if (bootLines[lineIndex].includes("ALERT") || bootLines[lineIndex].includes("WARNING")) {
                     line.style.color = "var(--tac-red)";
                     line.style.textShadow = "0 0 6px rgba(255, 51, 51, 0.6)";
@@ -45,19 +46,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 
                 bootTerminal.appendChild(line);
-                
-                // Autoscroll terminal if lines exceed container boundaries
                 bootTerminal.scrollTop = bootTerminal.scrollHeight;
-                
                 lineIndex++;
                 
-                // Carefully paced delays to smooth out across an 8.8 second print span
                 let delay = randInt(500, 750); 
-                if (lineIndex === 3 || lineIndex === 7 || lineIndex === 12) delay = 950; // Emulate "processing computational loads"
+                if (lineIndex === 3 || lineIndex === 7 || lineIndex === 12) delay = 950; 
                 
                 setTimeout(printBootLine, delay);
             } else {
-                // Buffer hold before initiating visual terminal fade out (Brings total loop to exactly 10s)
                 setTimeout(() => {
                     bootSequence.classList.add('boot-hidden');
                     setTimeout(() => {
@@ -72,18 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- ANTI-INSPECTION FALCON INTERCEPTORS ---
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12') {
-            e.preventDefault();
-            return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-            e.preventDefault();
-            return false;
-        }
-        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) {
-            e.preventDefault();
-            return false;
-        }
+        if (e.key === 'F12') e.preventDefault();
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) e.preventDefault();
+        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) e.preventDefault();
     });
 
     // --- PHASE 2: CANVAS QUANTUM CONNECTIVE GEOMETRY ---
@@ -123,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 229, 255, 0.8)'; 
+                ctx.fillStyle = currentThemeColor; // Dynamic theme ingestion
                 ctx.fill();
             }
         }
@@ -147,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     if (dist < 130) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / 130) * 0.6})`; 
+                        ctx.strokeStyle = `${currentLineColor}${(1 - dist / 130) * 0.6})`; 
                         ctx.lineWidth = 0.8;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -216,26 +203,114 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     setInterval(loopNodeCipherScramble, 6000);
 
-    // --- PHASE 4: REACTION PROCESSING FOR INTERACTIVE SHELL (CLI) ---
+    // --- PHASE 4: EXTENDED COMMAND LINE INTERFACE (CLI) ENGINE ---
     const cliInput = document.getElementById('sentient-input');
     const cliRes = document.getElementById('cli-response');
     
+    // Command History Memory Pool
+    let cmdHistory = [];
+    let historyIdx = -1;
+
+    // Encrypted Terminal File System Map
+    const fakeFS = {
+        "SYSTEM.LOG": "> ACTIVE NODE CORES: 32x LOGICAL ARRAYS // AGENT_SIG: NEGARIX // OPERATIONAL DEGRADATION: 0.00%",
+        "NETWORK.CFG": "> GATEWAY_ROUTING: 10.240.1.1 // MAPPED TUNNELS: 4 ENCRYPTED CORES (LOND, WASH, TOKY, SYDN)",
+        "MANIFEST.DB": "> CLASSIFIED STRUCT EXTRACTION SUITE ENGAGED. ENFORCING TLS 1.3 MATRIX COMPLIANCE."
+    };
+    
     if (cliInput && cliRes) {
         cliInput.addEventListener('keydown', (e) => {
+            
+            // History Traversal Logic (Up Arrow)
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (cmdHistory.length > 0) {
+                    if (historyIdx === -1) historyIdx = cmdHistory.length - 1;
+                    else if (historyIdx > 0) historyIdx--;
+                    cliInput.value = cmdHistory[historyIdx];
+                }
+            }
+            
+            // History Traversal Logic (Down Arrow)
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIdx !== -1) {
+                    if (historyIdx < cmdHistory.length - 1) {
+                        historyIdx++;
+                        cliInput.value = cmdHistory[historyIdx];
+                    } else {
+                        historyIdx = -1;
+                        cliInput.value = '';
+                    }
+                }
+            }
+
+            // Command Verification Processing (Enter Execution Key)
             if (e.key === 'Enter' && cliInput.value.trim() !== '') {
-                const cmd = cliInput.value.toUpperCase().trim();
+                const rawInput = cliInput.value.trim();
+                const args = rawInput.split(' ');
+                const cmd = args[0].toUpperCase();
+                const param = args[1] ? args[1].toUpperCase() : null;
+
+                // Catalog inputs into storage arrays
+                cmdHistory.push(rawInput);
+                if (cmdHistory.length > 15) cmdHistory.shift(); 
+                historyIdx = -1; // Reset indices
+                
                 cliInput.value = '';
                 cliRes.innerText = '';
                 
                 setTimeout(() => {
-                    if (['WHOAMI', 'SUDO', 'ROOT', 'ACCESS'].includes(cmd)) {
-                        new CrypticScrambler(cliRes, `> CRITICAL LOCK: ACCESS CONTROL IS MANDATORY. IDENTITY IS HIDDEN.`, 20);
-                    } else if (cmd === 'PING') {
-                        new CrypticScrambler(cliRes, `> TELEMETRY INTERCEPTED. ECHO CONVERTED AND DROPPED TO /DEV/NULL.`, 20);
-                    } else if (cmd === 'CLEAR') {
-                        cliRes.innerText = '';
-                    } else {
-                        new CrypticScrambler(cliRes, `> INTEGRITY SYSTEM REJECT: INTERPRETER DISALLOWED OPERATION ON [${cmd}]`, 20);
+                    switch(cmd) {
+                        case 'HELP':
+                            new CrypticScrambler(cliRes, `> AVAILABLE INSTRUCTIONS: HELP, PING, LS, CAT [FILE], THEME [GREEN/AMBER/DEFAULT], CLEAR`, 12);
+                            break;
+                        case 'LS':
+                            new CrypticScrambler(cliRes, `> FILES DETECTED: SYSTEM.LOG, NETWORK.CFG, MANIFEST.DB`, 15);
+                            break;
+                        case 'CAT':
+                            if (!param) {
+                                new CrypticScrambler(cliRes, `> PARAMETER REQUIRED. SYSTEM USAGE STACK EXAMPLE: 'CAT SYSTEM.LOG'`, 15);
+                            } else if (fakeFS[param]) {
+                                new CrypticScrambler(cliRes, fakeFS[param], 12);
+                            } else {
+                                new CrypticScrambler(cliRes, `> FILE DATA CORRUPTED OR ACCESS NOT PRIVILEGED TO MATRIX USER.`, 15);
+                            }
+                            break;
+                        case 'THEME':
+                            if (param === 'GREEN') {
+                                document.documentElement.style.setProperty('--tac-cyan', '#39ff14');
+                                currentThemeColor = 'rgba(57, 255, 20, 0.8)';
+                                currentLineColor = 'rgba(57, 255, 20, ';
+                                new CrypticScrambler(cliRes, `> COGNITIVE PARADIGM FLIPPED: EXECUTING DEFCON TERMINAL REDIRECT.`, 15);
+                            } else if (param === 'AMBER') {
+                                document.documentElement.style.setProperty('--tac-cyan', '#ffb000');
+                                currentThemeColor = 'rgba(255, 176, 0, 0.8)';
+                                currentLineColor = 'rgba(255, 176, 0, ';
+                                new CrypticScrambler(cliRes, `> COGNITIVE PARADIGM FLIPPED: APPORTIONING HISTORIC MONOCHROME FILTERS.`, 15);
+                            } else if (param === 'DEFAULT') {
+                                document.documentElement.style.setProperty('--tac-cyan', '#00e5ff');
+                                currentThemeColor = 'rgba(0, 229, 255, 0.8)';
+                                currentLineColor = 'rgba(0, 229, 255, ';
+                                new CrypticScrambler(cliRes, `> SYSTEM SHIFT SUCCESSFUL: STABILIZING COLD CYAN MATRIX ASSIGNMENTS.`, 15);
+                            } else {
+                                new CrypticScrambler(cliRes, `> EXTENSION PARAMETER INVAL: CHOOSE BETWEEN [GREEN / AMBER / DEFAULT]`, 15);
+                            }
+                            break;
+                        case 'PING':
+                            new CrypticScrambler(cliRes, `> TELEMETRY INTERCEPTED. ECHO CONVERTED AND DROPPED TO /DEV/NULL.`, 20);
+                            break;
+                        case 'CLEAR':
+                            cliRes.innerText = '';
+                            break;
+                        case 'WHOAMI':
+                        case 'SUDO':
+                        case 'ROOT':
+                        case 'ACCESS':
+                            new CrypticScrambler(cliRes, `> CRITICAL LOCK: ACCESS CONTROL IS MANDATORY. IDENTITY IS HIDDEN.`, 20);
+                            break;
+                        default:
+                            new CrypticScrambler(cliRes, `> INTEGRITY SYSTEM REJECT: INTERPRETER DISALLOWED OPERATION ON [${cmd}]`, 20);
                     }
                 }, 250);
             }
