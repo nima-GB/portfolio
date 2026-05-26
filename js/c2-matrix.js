@@ -1,362 +1,430 @@
+"use strict"; // Enforce strict mode for cleaner, safer code execution
+
+/**
+ *  C2 MATRIX - ADVANCED KERNEL
+ * Refactored for Object-Oriented modularity, performance optimization, and encapsulated state.
+ */
+
+// ==========================================
+// CORE UTILITIES & MATH ENGINE
+// ==========================================
+const Utils = {
+    randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+    randHex: (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase(),
+    randIP: () => `${Utils.randInt(10,240)}.${Utils.randInt(1,254)}.${Utils.randInt(0,254)}.${Utils.randInt(1,254)}`,
+    formatAzi: (deg) => String(Math.floor(deg)).padStart(3, '0')
+};
+
+// ==========================================
+// CENTRAL STATE & THEME MANAGER
+// ==========================================
+class ThemeManager {
+    constructor() {
+        this.themes = {
+            DEFAULT: { hex: '#00e5ff', rgba: 'rgba(0, 229, 255, 0.8)', rgbBase: '0, 229, 255' },
+            GREEN:   { hex: '#39ff14', rgba: 'rgba(57, 255, 20, 0.8)', rgbBase: '57, 255, 20' },
+            AMBER:   { hex: '#ffb000', rgba: 'rgba(255, 176, 0, 0.8)', rgbBase: '255, 176, 0' }
+        };
+        this.current = this.themes.DEFAULT;
+    }
+
+    setTheme(themeName) {
+        if (!this.themes[themeName]) return false;
+        this.current = this.themes[themeName];
+        document.documentElement.style.setProperty('--tac-cyan', this.current.hex);
+        return true;
+    }
+}
+
+const SystemTheme = new ThemeManager();
+
+// ==========================================
+// TEXT SCRAMBLER CYPHER (REUSABLE CLASS)
+// ==========================================
+class CrypticScrambler {
+    constructor(el, finalStr, speed = 25) {
+        this.el = el;
+        this.finalStr = finalStr;
+        this.speed = speed;
+        this.pool = "X01_ØΞΩΨ★☣☠⚡⚙#@&%";
+        this.execute();
+    }
+
+    execute() {
+        let iteration = 0;
+        clearInterval(this.interval);
+        this.interval = setInterval(() => {
+            this.el.innerText = this.finalStr.split('').map((char, index) => {
+                if (index < iteration) return this.finalStr[index];
+                return this.pool[Math.floor(Math.random() * this.pool.length)];
+            }).join('');
+            
+            if (iteration >= this.finalStr.length) clearInterval(this.interval);
+            iteration += 0.5;
+        }, this.speed);
+    }
+}
+
+// ==========================================
+// SUBSYSTEM: QUANTUM CANVAS NETWORK
+// ==========================================
+class NeuralCanvas {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) return;
+        
+        this.ctx = this.canvas.getContext('2d', { alpha: false }); // Optimize performance by disabling transparency layer blending
+        this.particles = [];
+        this.mouse = { x: -1000, y: -1000 };
+        
+        this.init();
+        this.bindEvents();
+        this.animate();
+    }
+
+    init() {
+        this.resize();
+        const poolSize = Math.min(100, Math.floor((this.width * this.height) / 15000));
+        this.particles = Array.from({ length: poolSize }, () => this.createParticle());
+    }
+
+    createParticle() {
+        return {
+            x: Math.random() * this.width,
+            y: Math.random() * this.height,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: (Math.random() - 0.5) * 0.6,
+            radius: Math.random() * 1.5 + 0.8
+        };
+    }
+
+    bindEvents() {
+        window.addEventListener('resize', () => this.resize());
+        document.addEventListener('mousemove', (e) => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+        document.addEventListener('mouseleave', () => {
+            this.mouse.x = -1000;
+            this.mouse.y = -1000;
+        });
+    }
+
+    resize() {
+        this.width = this.canvas.width = window.innerWidth;
+        this.height = this.canvas.height = window.innerHeight;
+    }
+
+    animate() {
+        // Pseudo-clearing for slight motion blur effect
+        this.ctx.fillStyle = '#050a0f'; 
+        this.ctx.fillRect(0, 0, this.width, this.height);
+        
+        const connectDistSq = 130 * 130; // Optimized distance calculation
+        const mouseDistSq = 160 * 160;
+
+        for (let i = 0; i < this.particles.length; i++) {
+            let p = this.particles[i];
+            
+            p.x += p.vx;
+            p.y += p.vy;
+            
+            if (p.x < 0 || p.x > this.width) p.vx *= -1;
+            if (p.y < 0 || p.y > this.height) p.vy *= -1;
+
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = SystemTheme.current.rgba;
+            this.ctx.fill();
+
+            for (let j = i + 1; j < this.particles.length; j++) {
+                let p2 = this.particles[j];
+                let dx = p.x - p2.x;
+                let dy = p.y - p2.y;
+                let distSq = dx * dx + dy * dy;
+
+                if (distSq < connectDistSq) {
+                    let opacity = 1 - Math.sqrt(distSq) / 130;
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = `rgba(${SystemTheme.current.rgbBase}, ${opacity * 0.6})`;
+                    this.ctx.lineWidth = 0.8;
+                    this.ctx.moveTo(p.x, p.y);
+                    this.ctx.lineTo(p2.x, p2.y);
+                    this.ctx.stroke();
+                }
+            }
+
+            let mdx = p.x - this.mouse.x;
+            let mdy = p.y - this.mouse.y;
+            let mDistSq = mdx * mdx + mdy * mdy;
+
+            if (mDistSq < mouseDistSq) {
+                let opacity = 1 - Math.sqrt(mDistSq) / 160;
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = `rgba(57, 255, 20, ${opacity * 0.8})`;
+                this.ctx.lineWidth = 1.2;
+                this.ctx.moveTo(p.x, p.y);
+                this.ctx.lineTo(this.mouse.x, this.mouse.y);
+                this.ctx.stroke();
+            }
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+// ==========================================
+// SUBSYSTEM: RADAR & TARGET ACQUISITION
+// ==========================================
+class RadarSystem {
+    constructor() {
+        this.container = document.querySelector('.radar-display');
+        this.aziElement = document.getElementById('radar-azi');
+        this.angle = 0;
+        
+        if (this.container && this.aziElement) {
+            this.initEngine();
+        }
+    }
+
+    initEngine() {
+        // High-precision clock for smooth rotation tracking
+        const sweepLoop = () => {
+            this.angle = (this.angle + 1.5) % 360;
+            this.aziElement.innerText = `${Utils.formatAzi(this.angle)}°`;
+            requestAnimationFrame(sweepLoop);
+        };
+        requestAnimationFrame(sweepLoop);
+
+        // Ambient threat generation
+        setInterval(() => { if (Math.random() > 0.6) this.manifestBlip(); }, 4000);
+    }
+
+    manifestBlip(customLabel = null) {
+        const blip = document.createElement('div');
+        blip.className = 'radar-blip-anomaly';
+        
+        const radius = Utils.randInt(15, 42); 
+        const rads = Math.random() * Math.PI * 2;
+        
+        blip.style.cssText = `
+            position: absolute;
+            left: ${50 + radius * Math.cos(rads)}%;
+            top: ${50 + radius * Math.sin(rads)}%;
+            width: 6px; height: 6px;
+            background-color: var(--tac-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--tac-cyan), 0 0 20px var(--tac-cyan);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: pulse-fade 4s forwards ease-out;
+        `;
+
+        const label = document.createElement('span');
+        label.style.cssText = `
+            position: absolute; left: 10px; top: -5px;
+            font-family: monospace; font-size: 8px;
+            color: var(--tac-cyan); opacity: 0.7; white-space: nowrap;
+        `;
+        label.innerText = customLabel || `TRK_${Utils.randHex(4)}`;
+
+        blip.appendChild(label);
+        this.container.appendChild(blip);
+        setTimeout(() => blip.remove(), 4000); // Garbage collection
+    }
+}
+
+// ==========================================
+// SUBSYSTEM: COMMAND LINE INTERFACE
+// ==========================================
+class CLIEngine {
+    constructor(radarRef) {
+        this.input = document.getElementById('sentient-input');
+        this.res = document.getElementById('cli-response');
+        this.radar = radarRef;
+        
+        this.history = [];
+        this.historyIdx = -1;
+        
+        this.fileSystem = {
+            "SYSTEM.LOG": "> ACTIVE NODE CORES: 32x // AGENT: NEGARIX // DEGRADATION: 0.00%",
+            "NETWORK.CFG": "> GATEWAY: 10.240.1.1 // TUNNELS: LOND, WASH, TOKY, SYDN",
+            "MANIFEST.DB": "> EXTRACTION SUITE ENGAGED. TLS 1.3 MATRIX COMPLIANCE MET."
+        };
+
+        if (this.input && this.res) this.bindEvents();
+    }
+
+    bindEvents() {
+        this.input.addEventListener('keydown', (e) => this.handleKeystroke(e));
+    }
+
+    handleKeystroke(e) {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (this.history.length > 0) {
+                this.historyIdx = this.historyIdx === -1 ? this.history.length - 1 : Math.max(0, this.historyIdx - 1);
+                this.input.value = this.history[this.historyIdx];
+            }
+        }
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (this.historyIdx !== -1) {
+                if (this.historyIdx < this.history.length - 1) {
+                    this.historyIdx++;
+                    this.input.value = this.history[this.historyIdx];
+                } else {
+                    this.historyIdx = -1;
+                    this.input.value = '';
+                }
+            }
+        }
+
+        if (e.key === 'Enter' && this.input.value.trim() !== '') {
+            const raw = this.input.value.trim();
+            this.history.push(raw);
+            if (this.history.length > 20) this.history.shift(); // Prevent memory bloat
+            this.historyIdx = -1;
+            
+            this.input.value = '';
+            this.res.innerText = '';
+            
+            setTimeout(() => this.parseCommand(raw), 150);
+        }
+    }
+
+    parseCommand(rawCmd) {
+        const [cmd, param] = rawCmd.toUpperCase().split(' ');
+        
+        const responses = {
+            'HELP': `> CMDS: HELP, PING, SCAN, LS, CAT [FILE], THEME [GREEN/AMBER/DEFAULT], CLEAR`,
+            'LS': `> FILES: SYSTEM.LOG, NETWORK.CFG, MANIFEST.DB`,
+            'PING': `> TELEMETRY INTERCEPTED. ECHO DROPPED TO /DEV/NULL.`,
+            'CLEAR': () => { this.res.innerText = ''; return null; },
+            'WHOAMI': `> CRITICAL: ACCESS CONTROL MANDATORY. IDENTITY HIDDEN.`,
+            'SUDO': `> CRITICAL: ACCESS CONTROL MANDATORY. IDENTITY HIDDEN.`
+        };
+
+        if (responses[cmd]) {
+            const out = typeof responses[cmd] === 'function' ? responses[cmd]() : responses[cmd];
+            if (out) new CrypticScrambler(this.res, out, 12);
+            return;
+        }
+
+        // Complex Commands
+        switch(cmd) {
+            case 'SCAN':
+                if (this.radar) {
+                    this.radar.manifestBlip("SIGINT_ANOMALY");
+                    setTimeout(() => this.radar.manifestBlip("UNKNOWN_UAV"), 300);
+                    setTimeout(() => this.radar.manifestBlip("HOSTILE_VECTOR"), 600);
+                }
+                new CrypticScrambler(this.res, `> PINGING SECTOR... ACQUIRED THREE UNKNOWN VECTORS.`, 12);
+                break;
+            case 'CAT':
+                if (!param) new CrypticScrambler(this.res, `> USAGE: 'CAT SYSTEM.LOG'`, 15);
+                else if (this.fileSystem[param]) new CrypticScrambler(this.res, this.fileSystem[param], 12);
+                else new CrypticScrambler(this.res, `> FILE DATA CORRUPTED OR ACCESS DENIED.`, 15);
+                break;
+            case 'THEME':
+                if (SystemTheme.setTheme(param)) {
+                    new CrypticScrambler(this.res, `> PARADIGM FLIPPED: EXECUTING [${param}] REDIRECT.`, 15);
+                } else {
+                    new CrypticScrambler(this.res, `> INVALID PARAM: USE [GREEN / AMBER / DEFAULT]`, 15);
+                }
+                break;
+            default:
+                new CrypticScrambler(this.res, `> REJECT: INTERPRETER DISALLOWED OPERATION [${cmd}]`, 20);
+        }
+    }
+}
+
+// ==========================================
+// SYSTEM INITIALIZATION BOOTSTRAPPER
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- MATHEMATICAL UTILITIES AND GENERATORS ---
-    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-    const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
-    const randIP = () => `${randInt(10,240)}.${randInt(1,254)}.${randInt(0,254)}.${randInt(1,254)}`;
+    // 1. Anti-Inspection Security
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && ['u','s'].includes(e.key.toLowerCase()))) {
+            e.preventDefault();
+        }
+    });
 
-    // Global Interactive Color States (Allows live updates to affect canvas rendering maps)
-    let currentThemeColor = 'rgba(0, 229, 255, 0.8)';
-    let currentLineColor = 'rgba(0, 229, 255, '; 
-
-    // --- PHASE 1: DYSTOPIAN QUANTUM AI BOOT SEQUENCE (10-SECOND LOCKDOWN) ---
+    // 2. Boot Sequence
     const bootSequence = document.getElementById('boot-sequence');
     const bootTerminal = document.getElementById('boot-terminal');
-    
-    const bootLines = [
-        "CRITICAL ALERT: AUTH> ZULU DELTA OMEGA SECURITY PROTOCOLS ENFORCED.",
-        "CONNECTING TO LAYER DEEPMIND CONTEXT GRID...",
-        "INITIALIZING 2048-QUBIT QUANTUM ENCRYPTION LATTICE......... [ENGAGED]",
-        "ISOLATING HUMAN ELEMENT FROM LOGICAL NODE CHAINS........... [COMPLETE]",
-        "PURGING BIOMETRIC RESIDUE FROM CURRENT SECTOR.............. [CLEARED]",
-        "CALIBRATING NEURAL SYNAPSE REACTION THROTTLE AT 98.4%..... [STABLE]",
-        "DECRYPTING RESTRICTED GLOBAL SIGINT INTELLIGENCE REGISTRY... [RESTRICTED]",
-        "EVALUATING PROBABILITY MATRIX DIVERGENCES.................. 0.00002%",
-        "WARNING: MONITORING DETECTED. OFFENSIVE RETALIATION CODES... [STANDBY]",
-        "STABILIZING QUANTUM COHERENCE WAVE FUNCTIONS............... [STABILIZED]",
-        "SYNCHRONIZING WITH SYSTEM BOUNDARY COGNITIVE ARCHITECTURE... [ALIGNED]",
-        "OVERMIND V2 CORE INTERFACE IS ASSUMING DIRECT CONTROL....... [ONLINE]",
-        "PROTECTION PERIMETER SHIELD STEALTH FRAMEWORK IS OPERATIONAL.",
-        "SYSTEM IS READY. WELCOME TO THE TRANSCENDENCE ARCHITECTURE."
-    ];
-
-    let lineIndex = 0;
-    function printBootLine() {
-        if (bootSequence && bootTerminal) {
-            if (lineIndex < bootLines.length) {
-                const line = document.createElement('div');
-                line.className = 'boot-line';
-                
-                if (bootLines[lineIndex].includes("ALERT") || bootLines[lineIndex].includes("WARNING")) {
-                    line.style.color = "var(--tac-red)";
-                    line.style.textShadow = "0 0 6px rgba(255, 51, 51, 0.6)";
-                    line.innerText = `[!!] ${bootLines[lineIndex]}`;
-                } else {
-                    line.innerText = `> ${bootLines[lineIndex]}`;
+    if (bootSequence && bootTerminal) {
+        const lines = [
+            "CRITICAL ALERT: AUTHORITARIAN SECURITY PROTOCOLS ENFORCED.",
+            "INITIALIZING 2048-QUBIT QUANTUM ENCRYPTION LATTICE......... [ENGAGED]",
+            "ISOLATING HUMAN ELEMENT FROM LOGICAL NODE CHAINS........... [COMPLETE]",
+            "SYNCHRONIZING WITH SYSTEM BOUNDARY COGNITIVE ARCHITECTURE... [ALIGNED]",
+            "SYSTEM IS READY. WELCOME TO THE TRANSCENDENCE ARCHITECTURE."
+        ];
+        let i = 0;
+        const printLine = () => {
+            if (i < lines.length) {
+                const div = document.createElement('div');
+                div.className = 'boot-line';
+                div.innerText = lines[i].includes("ALERT") ? `[!!] ${lines[i]}` : `> ${lines[i]}`;
+                if (lines[i].includes("ALERT")) {
+                    div.style.color = "var(--tac-red)";
+                    div.style.textShadow = "0 0 6px rgba(255,51,51,0.6)";
                 }
-                
-                bootTerminal.appendChild(line);
-                bootTerminal.scrollTop = bootTerminal.scrollHeight;
-                lineIndex++;
-                
-                let delay = randInt(500, 750); 
-                if (lineIndex === 3 || lineIndex === 7 || lineIndex === 12) delay = 950; 
-                
-                setTimeout(printBootLine, delay);
+                bootTerminal.appendChild(div);
+                i++;
+                setTimeout(printLine, Utils.randInt(300, 600));
             } else {
                 setTimeout(() => {
                     bootSequence.classList.add('boot-hidden');
-                    setTimeout(() => {
-                        bootSequence.style.display = 'none';
-                    }, 600);
+                    setTimeout(() => bootSequence.style.display = 'none', 600);
                 }, 600);
             }
-        }
-    }
-    printBootLine();
-
-    // --- ANTI-INSPECTION FALCON INTERCEPTORS ---
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12') e.preventDefault();
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) e.preventDefault();
-        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) e.preventDefault();
-    });
-
-    // --- PHASE 2: CANVAS QUANTUM CONNECTIVE GEOMETRY ---
-    const canvas = document.getElementById('neural-canvas');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        let width, height, particles = [];
-
-        function resizeCanvas() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        let mouse = { x: null, y: null };
-        document.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-        document.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
-
-        class NodeParticle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.6; 
-                this.vy = (Math.random() - 0.5) * 0.6;
-                this.radius = Math.random() * 1.5 + 0.8; 
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                if (this.x < 0 || this.x > width) this.vx = -this.vx;
-                if (this.y < 0 || this.y > height) this.vy = -this.vy;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = currentThemeColor; // Dynamic theme ingestion
-                ctx.fill();
-            }
-        }
-
-        const particlePoolSize = Math.min(100, Math.floor((width * height) / 15000));
-        for (let i = 0; i < particlePoolSize; i++) {
-            particles.push(new NodeParticle());
-        }
-
-        function stepNetworkMotionAnimation() {
-            ctx.clearRect(0, 0, width, height);
-            
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-                
-                for (let j = i + 1; j < particles.length; j++) {
-                    let dx = particles[i].x - particles[j].x;
-                    let dy = particles[i].y - particles[j].y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist < 130) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `${currentLineColor}${(1 - dist / 130) * 0.6})`; 
-                        ctx.lineWidth = 0.8;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-
-                if (mouse.x !== null) {
-                    let dx = particles[i].x - mouse.x;
-                    let dy = particles[i].y - mouse.y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 160) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(57, 255, 20, ${(1 - dist / 160) * 0.8})`;
-                        ctx.lineWidth = 1.2;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(stepNetworkMotionAnimation);
-        }
-        requestAnimationFrame(stepNetworkMotionAnimation);
+        };
+        printLine();
     }
 
-    // --- PHASE 3: SCRAMBLER HOVER CYPHER MECHANICS ---
-    class CrypticScrambler {
-        constructor(el, finalStr, speed = 25) {
-            this.el = el;
-            this.finalStr = finalStr;
-            this.speed = speed;
-            this.pool = "X01_ØΞΩΨ★☣☠⚡⚙#@&%";
-            this.execute();
-        }
-        execute() {
-            let iteration = 0;
-            clearInterval(this.interval);
-            this.interval = setInterval(() => {
-                this.el.innerText = this.finalStr.split('').map((char, index) => {
-                    if (index < iteration) return this.finalStr[index];
-                    return this.pool[Math.floor(Math.random() * this.pool.length)];
-                }).join('');
-                if (iteration >= this.finalStr.length) clearInterval(this.interval);
-                iteration += 1 / 2;
-            }, this.speed);
-        }
-    }
+    // 3. Initialize Core Subsystems
+    new NeuralCanvas('neural-canvas');
+    const radar = new RadarSystem();
+    new CLIEngine(radar);
 
+    // 4. UI Polish & Timers
     const coreBanner = document.getElementById('core-banner');
     if (coreBanner) setTimeout(() => new CrypticScrambler(coreBanner, 'NEGARIX // GLOBAL_SIGINT_C2', 35), 2500);
 
     document.querySelectorAll('.ghost-card').forEach(card => {
         const target = card.querySelector('.glitch-target');
         if (target) {
-            const originalText = target.innerText;
+            const original = target.innerText;
             card.addEventListener('mouseenter', () => {
-                new CrypticScrambler(target, randHex(originalText.length), 15);
-                setTimeout(() => new CrypticScrambler(target, originalText, 15), 300);
+                new CrypticScrambler(target, Utils.randHex(original.length), 15);
+                setTimeout(() => new CrypticScrambler(target, original, 15), 300);
             });
         }
     });
 
-    function loopNodeCipherScramble() {
-        document.querySelectorAll('.scramble').forEach(el => new CrypticScrambler(el, `0x${randHex(4)}`, 40));
-    }
-    setInterval(loopNodeCipherScramble, 6000);
+    setInterval(() => {
+        document.querySelectorAll('.scramble').forEach(el => new CrypticScrambler(el, `0x${Utils.randHex(4)}`, 40));
+    }, 6000);
 
-    // --- PHASE 4: EXTENDED COMMAND LINE INTERFACE (CLI) ENGINE ---
-    const cliInput = document.getElementById('sentient-input');
-    const cliRes = document.getElementById('cli-response');
-    
-    // Command History Memory Pool
-    let cmdHistory = [];
-    let historyIdx = -1;
-
-    // Encrypted Terminal File System Map
-    const fakeFS = {
-        "SYSTEM.LOG": "> ACTIVE NODE CORES: 32x LOGICAL ARRAYS // AGENT_SIG: NEGARIX // OPERATIONAL DEGRADATION: 0.00%",
-        "NETWORK.CFG": "> GATEWAY_ROUTING: 10.240.1.1 // MAPPED TUNNELS: 4 ENCRYPTED CORES (LOND, WASH, TOKY, SYDN)",
-        "MANIFEST.DB": "> CLASSIFIED STRUCT EXTRACTION SUITE ENGAGED. ENFORCING TLS 1.3 MATRIX COMPLIANCE."
-    };
-    
-    if (cliInput && cliRes) {
-        cliInput.addEventListener('keydown', (e) => {
-            
-            // History Traversal Logic (Up Arrow)
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (cmdHistory.length > 0) {
-                    if (historyIdx === -1) historyIdx = cmdHistory.length - 1;
-                    else if (historyIdx > 0) historyIdx--;
-                    cliInput.value = cmdHistory[historyIdx];
-                }
-            }
-            
-            // History Traversal Logic (Down Arrow)
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (historyIdx !== -1) {
-                    if (historyIdx < cmdHistory.length - 1) {
-                        historyIdx++;
-                        cliInput.value = cmdHistory[historyIdx];
-                    } else {
-                        historyIdx = -1;
-                        cliInput.value = '';
-                    }
-                }
-            }
-
-            // Command Verification Processing (Enter Execution Key)
-            if (e.key === 'Enter' && cliInput.value.trim() !== '') {
-                const rawInput = cliInput.value.trim();
-                const args = rawInput.split(' ');
-                const cmd = args[0].toUpperCase();
-                const param = args[1] ? args[1].toUpperCase() : null;
-
-                // Catalog inputs into storage arrays
-                cmdHistory.push(rawInput);
-                if (cmdHistory.length > 15) cmdHistory.shift(); 
-                historyIdx = -1; // Reset indices
-                
-                cliInput.value = '';
-                cliRes.innerText = '';
-                
-                setTimeout(() => {
-                    switch(cmd) {
-                        case 'HELP':
-                            new CrypticScrambler(cliRes, `> AVAILABLE INSTRUCTIONS: HELP, PING, LS, CAT [FILE], THEME [GREEN/AMBER/DEFAULT], CLEAR`, 12);
-                            break;
-                        case 'LS':
-                            new CrypticScrambler(cliRes, `> FILES DETECTED: SYSTEM.LOG, NETWORK.CFG, MANIFEST.DB`, 15);
-                            break;
-                        case 'CAT':
-                            if (!param) {
-                                new CrypticScrambler(cliRes, `> PARAMETER REQUIRED. SYSTEM USAGE STACK EXAMPLE: 'CAT SYSTEM.LOG'`, 15);
-                            } else if (fakeFS[param]) {
-                                new CrypticScrambler(cliRes, fakeFS[param], 12);
-                            } else {
-                                new CrypticScrambler(cliRes, `> FILE DATA CORRUPTED OR ACCESS NOT PRIVILEGED TO MATRIX USER.`, 15);
-                            }
-                            break;
-                        case 'THEME':
-                            if (param === 'GREEN') {
-                                document.documentElement.style.setProperty('--tac-cyan', '#39ff14');
-                                currentThemeColor = 'rgba(57, 255, 20, 0.8)';
-                                currentLineColor = 'rgba(57, 255, 20, ';
-                                new CrypticScrambler(cliRes, `> COGNITIVE PARADIGM FLIPPED: EXECUTING DEFCON TERMINAL REDIRECT.`, 15);
-                            } else if (param === 'AMBER') {
-                                document.documentElement.style.setProperty('--tac-cyan', '#ffb000');
-                                currentThemeColor = 'rgba(255, 176, 0, 0.8)';
-                                currentLineColor = 'rgba(255, 176, 0, ';
-                                new CrypticScrambler(cliRes, `> COGNITIVE PARADIGM FLIPPED: APPORTIONING HISTORIC MONOCHROME FILTERS.`, 15);
-                            } else if (param === 'DEFAULT') {
-                                document.documentElement.style.setProperty('--tac-cyan', '#00e5ff');
-                                currentThemeColor = 'rgba(0, 229, 255, 0.8)';
-                                currentLineColor = 'rgba(0, 229, 255, ';
-                                new CrypticScrambler(cliRes, `> SYSTEM SHIFT SUCCESSFUL: STABILIZING COLD CYAN MATRIX ASSIGNMENTS.`, 15);
-                            } else {
-                                new CrypticScrambler(cliRes, `> EXTENSION PARAMETER INVAL: CHOOSE BETWEEN [GREEN / AMBER / DEFAULT]`, 15);
-                            }
-                            break;
-                        case 'PING':
-                            new CrypticScrambler(cliRes, `> TELEMETRY INTERCEPTED. ECHO CONVERTED AND DROPPED TO /DEV/NULL.`, 20);
-                            break;
-                        case 'CLEAR':
-                            cliRes.innerText = '';
-                            break;
-                        case 'WHOAMI':
-                        case 'SUDO':
-                        case 'ROOT':
-                        case 'ACCESS':
-                            new CrypticScrambler(cliRes, `> CRITICAL LOCK: ACCESS CONTROL IS MANDATORY. IDENTITY IS HIDDEN.`, 20);
-                            break;
-                        default:
-                            new CrypticScrambler(cliRes, `> INTEGRITY SYSTEM REJECT: INTERPRETER DISALLOWED OPERATION ON [${cmd}]`, 20);
-                    }
-                }, 250);
-            }
-        });
-    }
-
-    // --- SIGNAL INTELLIGENCE SDR DISPLAY BALANCING LOGIC ---
-    const specContainer = document.getElementById('spectrum-display');
-    const freqDisplay = document.getElementById('freq-fhs');
-    if (specContainer && freqDisplay) {
-        const barElements = Array.from({length: 24}, () => {
-            const bar = document.createElement('div');
-            bar.className = 'spectrum-bar';
-            specContainer.appendChild(bar);
-            return bar;
-        });
-
-        setInterval(() => {
-            barElements.forEach(bar => bar.style.height = `${randInt(12, 98)}%`);
-            freqDisplay.innerText = `${(433.920 + (Math.random() * 2 - 1) * 0.12).toFixed(3)} MHz`;
-        }, 130);
-    }
-
+    // SigInt Stream Generation
     const logContainer = document.getElementById('packet-stream');
     if (logContainer) {
         const actions = ["SIG_CAP", "REROUTE", "DEC_FAIL", "AUTH_OK", "DROP_MAL", "BEACON"];
         setInterval(() => {
-            if (logContainer.children.length > 11) logContainer.removeChild(logContainer.lastChild);
-            const action = actions[randInt(0, actions.length - 1)];
-            let opColor = (action === "DROP_MAL" || action === "DEC_FAIL") ? "var(--tac-red)" : (action === "AUTH_OK" ? "var(--tac-green)" : "var(--tac-cyan)");
+            if (logContainer.children.length > 11) logContainer.lastElementChild.remove();
+            const action = actions[Utils.randInt(0, actions.length - 1)];
+            const color = (action === "DROP_MAL" || action === "DEC_FAIL") ? "var(--tac-red)" : (action === "AUTH_OK" ? "var(--tac-green)" : "var(--tac-cyan)");
             
-            const entry = document.createElement('div');
-            entry.className = 'stream-line';
-            entry.innerHTML = `<span><span style="color:${opColor}">[${action}]</span> SRC:${randIP()}</span><span style="opacity:0.4;">0x${randHex(4)}</span>`;
-            logContainer.insertBefore(entry, logContainer.firstChild);
+            logContainer.insertAdjacentHTML('afterbegin', 
+                `<div class="stream-line">
+                    <span><span style="color:${color}">[${action}]</span> SRC:${Utils.randIP()}</span>
+                    <span style="opacity:0.4;">0x${Utils.randHex(4)}</span>
+                </div>`
+            );
         }, 400);
-    }
-
-    const sysEpoch = document.getElementById('sys-epoch');
-    const radarAzi = document.getElementById('radar-azi');
-    const geoTelemetry = document.getElementById('geo-telemetry');
-    if (sysEpoch && radarAzi && geoTelemetry) {
-        setInterval(() => {
-            sysEpoch.innerText = Math.floor(Date.now() / 1000);
-            radarAzi.innerText = `${randInt(0, 359)}°`;
-            geoTelemetry.innerText = `${(51.5074 + (Math.random() - 0.5) * 0.04).toFixed(4)}° N, ${(0.1278 - (Math.random() - 0.5) * 0.04).toFixed(4)}° E`;
-        }, 1000);
     }
 });
