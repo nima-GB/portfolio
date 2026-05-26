@@ -62,9 +62,9 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 1;
+    z-index: 0;
     pointer-events: none;
-    opacity: 0.45;
+    opacity: 0.85; /* Boosted visibility for the AI geometry */
 }
 
 /* Vintage Cathode Tube Overlay Grid Lines */
@@ -168,14 +168,23 @@ body {
     letter-spacing: 1px;
 }
 
+/* Live Breathing Status Indicator */
 .status-indicator::before {
     content: "";
     display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     background-color: var(--status-active);
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--status-active);
+    box-shadow: 0 0 10px var(--status-active);
+    animation: statusBlink 1.5s infinite ease-in-out;
+    margin-right: 4px;
+}
+
+/* Keyframes to make the light pulse */
+@keyframes statusBlink {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px var(--status-active); }
+    50% { opacity: 0.3; transform: scale(0.8); box-shadow: 0 0 2px var(--status-active); }
 }
 
 .summary-text {
