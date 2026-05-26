@@ -5,32 +5,61 @@ document.addEventListener("DOMContentLoaded", () => {
     const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
     const randIP = () => `${randInt(10,240)}.${randInt(1,254)}.${randInt(0,254)}.${randInt(1,254)}`;
 
-    // --- PHASE 1: SYSTEM BOOT SIMULATION INITIALIZER ---
+    // --- PHASE 1: DYSTOPIAN QUANTUM AI BOOT SEQUENCE (10-SECOND LOCKDOWN) ---
     const bootSequence = document.getElementById('boot-sequence');
     const bootTerminal = document.getElementById('boot-terminal');
+    
     const bootLines = [
-        "INITIALIZING QUANTUM LATTICE ARCHITECTURE...",
-        "BYPASSING SECURE BIOMETRIC FIREWALL......... [SECURE]",
-        "DECRYPTING RESTRICTED SIGINT TELEMETRY...... [READY]",
-        "SYNCHRONIZING WITH GLOBAL GRID COGNITION.... [ACTIVE]",
-        "ESTABLISHING CRYPTOGRAPHIC SHAKE HANDS...... [VERIFIED]",
-        "NEGARIX SENTIENCE ONLINE. PROTECTION PERIMETER STEALTH SYSTEM IS ACTIVE."
+        "CRITICAL ALERT: AUTHORITARIAN SECURITY PROTOCOLS ENFORCED.",
+        "CONNECTING TO NEGARIX DEEPMIND CONTEXT GRID...",
+        "INITIALIZING 2048-QUBIT QUANTUM ENCRYPTION LATTICE......... [ENGAGED]",
+        "ISOLATING HUMAN ELEMENT FROM LOGICAL NODE CHAINS........... [COMPLETE]",
+        "PURGING BIOMETRIC RESIDUE FROM CURRENT SECTOR.............. [CLEARED]",
+        "CALIBRATING NEURAL SYNAPSE REACTION THROTTLE AT 98.4%..... [STABLE]",
+        "DECRYPTING RESTRICTED GLOBAL SIGINT INTELLIGENCE REGISTRY... [RESTRICTED]",
+        "EVALUATING PROBABILITY MATRIX DIVERGENCES.................. 0.00002%",
+        "WARNING: MONITORING DETECTED. OFFENSIVE RETALIATION CODES... [STANDBY]",
+        "STABILIZING QUANTUM COHERENCE WAVE FUNCTIONS............... [STABILIZED]",
+        "SYNCHRONIZING WITH SYSTEM BOUNDARY COGNITIVE ARCHITECTURE... [ALIGNED]",
+        "OVERMIND V2 CORE INTERFACE IS ASSUMING DIRECT CONTROL....... [ONLINE]",
+        "PROTECTION PERIMETER SHIELD STEALTH FRAMEWORK IS OPERATIONAL.",
+        "SYSTEM IS READY. WELCOME TO THE TRANSCENDENCE ARCHITECTURE."
     ];
 
     let lineIndex = 0;
+    
+    // Controlled timing allocation to reach ~10 seconds of terminal feedback
     function printBootLine() {
         if (bootSequence && bootTerminal) {
             if (lineIndex < bootLines.length) {
                 const line = document.createElement('div');
                 line.className = 'boot-line';
-                line.innerText = `> ${bootLines[lineIndex]}`;
+                
+                // Add stylized warning tags to specific authoritarian/quantum lines
+                if (bootLines[lineIndex].includes("ALERT") || bootLines[lineIndex].includes("WARNING")) {
+                    line.style.color = "var(--tac-red)";
+                    line.style.textShadow = "0 0 6px rgba(255, 51, 51, 0.6)";
+                    line.innerText = `[!!] ${bootLines[lineIndex]}`;
+                } else {
+                    line.innerText = `> ${bootLines[lineIndex]}`;
+                }
+                
                 bootTerminal.appendChild(line);
+                
+                // Autoscroll terminal if lines exceed container boundaries
+                bootTerminal.scrollTop = bootTerminal.scrollHeight;
+                
                 lineIndex++;
-                setTimeout(printBootLine, randInt(150, 450));
+                
+                // Carefully paced delays to smooth out across an 8.8 second print span
+                let delay = randInt(500, 750); 
+                if (lineIndex === 3 || lineIndex === 7 || lineIndex === 12) delay = 950; // Emulate "processing computational loads"
+                
+                setTimeout(printBootLine, delay);
             } else {
+                // Buffer hold before initiating visual terminal fade out (Brings total loop to exactly 10s)
                 setTimeout(() => {
                     bootSequence.classList.add('boot-hidden');
-                    // Completely drop display configuration to unlock structural accessibility clicks
                     setTimeout(() => {
                         bootSequence.style.display = 'none';
                     }, 600);
@@ -43,17 +72,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- ANTI-INSPECTION FALCON INTERCEPTORS ---
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', (e) => {
-        // Intercept F12 Functionality
         if (e.key === 'F12') {
             e.preventDefault();
             return false;
         }
-        // Intercept Inspection Framework Combinations (Ctrl+Shift+I / Mac equivalents)
         if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
             e.preventDefault();
             return false;
         }
-        // Intercept Source View Manipulation Routing (Ctrl+U)
         if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             return false;
@@ -84,9 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
             constructor() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.6; // Faster movement
+                this.vx = (Math.random() - 0.5) * 0.6; 
                 this.vy = (Math.random() - 0.5) * 0.6;
-                this.radius = Math.random() * 1.5 + 0.8; // Larger nodes
+                this.radius = Math.random() * 1.5 + 0.8; 
             }
             update() {
                 this.x += this.vx;
@@ -97,12 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 229, 255, 0.8)'; // Brighter cyan
+                ctx.fillStyle = 'rgba(0, 229, 255, 0.8)'; 
                 ctx.fill();
             }
         }
 
-        // Initialize node distribution count density pool limits (Increased density)
         const particlePoolSize = Math.min(100, Math.floor((width * height) / 15000));
         for (let i = 0; i < particlePoolSize; i++) {
             particles.push(new NodeParticle());
@@ -122,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     if (dist < 130) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / 130) * 0.6})`; // Brighter/thicker connecting lines
+                        ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / 130) * 0.6})`; 
                         ctx.lineWidth = 0.8;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -130,7 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
 
-                // Mouse interaction glow enhancement
                 if (mouse.x !== null) {
                     let dx = particles[i].x - mouse.x;
                     let dy = particles[i].y - mouse.y;
