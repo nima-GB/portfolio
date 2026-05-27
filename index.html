@@ -26,7 +26,6 @@
     </div>
 
     <canvas id="neural-canvas"></canvas>
-
     <div class="hud-overlay"></div>
 
     <div class="terminal-container" id="main-container">
@@ -42,6 +41,7 @@
         </header>
 
         <main class="system-core">
+            
             <section id="profile" aria-labelledby="profile-heading" class="intro-module">
                 <h1 id="profile-heading">Negarandeh</h1>
                 <p class="status-indicator">Status: Active Operations & Engineering</p>
@@ -171,7 +171,7 @@
                             <div class="sentient-cli-wrapper">
                                 <div class="cli-input-row">
                                     <span class="cli-prompt">></span>
-                                    <input type="text" id="sentient-input" class="cli-input" placeholder="AWAITING NEURAL COMMAND..." autocomplete="off">
+                                    <input type="text" id="sentient-input" class="cli-input" placeholder="AWAITING NEURAL COMMAND..." autocomplete="off" aria-label="Command Line Interface Input">
                                 </div>
                                 <div id="cli-response" class="cli-response"></div>
                             </div>
@@ -187,27 +187,26 @@
                 
                 <div class="c2-shell" style="margin-bottom: 15px;">
                     <div class="panel" style="text-align: center; padding: 20px 10px;">
-                        <div class="panel-header alert-header" style="background: rgba(255, 51, 51, 0.1); color: var(--tac-red); justify-content: center; font-weight: bold; letter-spacing: 2px;">
+                        <div class="panel-header alert-header" style="background: rgba(255, 51, 51, 0.1); color: var(--tac-red); justify-content: center; font-weight: bold; letter-spacing: 2px; border-bottom: 1px dashed rgba(255,51,51,0.25);">
                             ⚠️ CRITICAL SYSTEM PREDICTION VECTOR
                         </div>
-                        <div id="defcon-status" style="font-family: monospace; font-size: 28px; color: var(--tac-red); font-weight: bold; margin: 15px 0; text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);">
+                        <div id="defcon-status" style="font-family: var(--font-mono); font-size: 24px; color: var(--tac-red); font-weight: bold; margin: 15px 0; text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);">
                             DEFCON 3 // ELEVATED READY STATE
                         </div>
-                        <div style="font-family: monospace; font-size: 10px; opacity: 0.6; text-transform: uppercase;">
+                        <div style="font-family: var(--font-mono); font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">
                             Strategic Intelligence Engine // Probability Anchor Divergence Logged
                         </div>
                     </div>
                 </div>
 
                 <div class="theater-matrix">
-                    <div class="panel" style="grid-column: span 3;">
+                    <div class="panel threat-panel-wide">
                         <div class="panel-header">🗺️ LIVE REGIONAL CONFLICT SPECTRUM OPERATIONAL INDICES</div>
                         <div id="threat-sector-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 10px;">
                             </div>
                     </div>
                 </div>
             </section>
-
         </main>
 
         <footer class="system-footer">
