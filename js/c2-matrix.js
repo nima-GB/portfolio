@@ -1,7 +1,7 @@
 "use strict"; // Enforce strict mode for cleaner, safer code execution
 
 /**
- *  C2 MATRIX - ADVANCED KERNEL
+ * NEGARIX C2 MATRIX - ADVANCED KERNEL
  * Refactored for Object-Oriented modularity, performance optimization, and encapsulated state.
  */
 
@@ -116,11 +116,10 @@ class NeuralCanvas {
     }
 
     animate() {
-        // Pseudo-clearing for slight motion blur effect
         this.ctx.fillStyle = '#050a0f'; 
         this.ctx.fillRect(0, 0, this.width, this.height);
         
-        const connectDistSq = 130 * 130; // Optimized distance calculation
+        const connectDistSq = 130 * 130; 
         const mouseDistSq = 160 * 160;
 
         for (let i = 0; i < this.particles.length; i++) {
@@ -187,7 +186,6 @@ class RadarSystem {
     }
 
     initEngine() {
-        // High-precision clock for smooth rotation tracking
         const sweepLoop = () => {
             this.angle = (this.angle + 1.5) % 360;
             this.aziElement.innerText = `${Utils.formatAzi(this.angle)}°`;
@@ -195,7 +193,6 @@ class RadarSystem {
         };
         requestAnimationFrame(sweepLoop);
 
-        // Ambient threat generation
         setInterval(() => { if (Math.random() > 0.6) this.manifestBlip(); }, 4000);
     }
 
@@ -229,7 +226,97 @@ class RadarSystem {
 
         blip.appendChild(label);
         this.container.appendChild(blip);
-        setTimeout(() => blip.remove(), 4000); // Garbage collection
+        setTimeout(() => blip.remove(), 4000); 
+    }
+}
+
+// ==========================================
+// SUBSYSTEM: GLOBAL THREAT MATRIX INTEL
+// ==========================================
+class ThreatIntelEngine {
+    constructor() {
+        this.defconEl = document.getElementById('defcon-status');
+        this.sectorContainer = document.getElementById('threat-sector-grid');
+        
+        this.sectors = [
+            { name: "NORTHAM // NORAD_CORES", level: 28 },
+            { name: "EUROCOM // NATO_AXIS", level: 64 },
+            { name: "INDOPACOM // SECTOR_7", level: 81 },
+            { name: "CYBER_COM // DEEPMIND", level: 42 }
+        ];
+
+        if (this.defconEl && this.sectorContainer) {
+            this.initEngine();
+        }
+    }
+
+    initEngine() {
+        this.renderSectors();
+        setInterval(() => this.fluctuateThreatArrays(), 3000);
+    }
+
+    renderSectors() {
+        this.sectorContainer.innerHTML = this.sectors.map((sec, idx) => {
+            return `
+                <div class="node-widget sector-card-node" id="sec-node-${idx}" style="border-left: 3px solid var(--tac-cyan); background: rgba(5, 10, 15, 0.4); padding: 10px; transition: border-color 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; font-family: monospace; font-size: 11px; margin-bottom: 4px;">
+                        <span style="color: #fff; font-weight: bold; letter-spacing: 0.5px;">${sec.name}</span>
+                        <span class="sector-pct" style="font-weight: bold; color: var(--tac-cyan);">0%</span>
+                    </div>
+                    <div style="font-family: monospace; font-size: 9px; opacity: 0.5;">
+                        TELEMETRY LOCK // STATUS: ACTIVE
+                    </div>
+                </div>
+            `;
+        }).join('');
+        this.updateDOMDisplay();
+    }
+
+    updateDOMDisplay() {
+        const cards = this.sectorContainer.querySelectorAll('.sector-card-node');
+        this.sectors.forEach((sec, idx) => {
+            const card = cards[idx];
+            if (!card) return;
+
+            const pctText = card.querySelector('.sector-pct');
+            let color = 'var(--tac-cyan)';
+            
+            if (sec.level > 75) {
+                color = 'var(--tac-red)';
+            } else if (sec.level > 50) {
+                color = '#ffb000'; 
+            }
+
+            if (pctText) {
+                pctText.innerText = `${sec.level}% LOAD`;
+                pctText.style.color = color;
+            }
+            card.style.borderLeftColor = color;
+        });
+    }
+
+    fluctuateThreatArrays() {
+        this.sectors.forEach(sec => {
+            const variant = Utils.randInt(-4, 4);
+            sec.level = Math.max(12, Math.min(98, sec.level + variant));
+        });
+        this.updateDOMDisplay();
+        this.recalculateGlobalDefcon();
+    }
+
+    recalculateGlobalDefcon() {
+        const highestThreatValue = Math.max(...this.sectors.map(s => s.level));
+        
+        if (highestThreatValue > 85) {
+            this.defconEl.innerText = "DEFCON 2 // FASTPACE INTERCEPT";
+            this.defconEl.style.color = "var(--tac-red)";
+        } else if (highestThreatValue > 60) {
+            this.defconEl.innerText = "DEFCON 3 // ELEVATED READY STATE";
+            this.defconEl.style.color = "#ffb000";
+        } else {
+            this.defconEl.innerText = "DEFCON 4 // COLD SAFE GUARD";
+            this.defconEl.style.color = "var(--tac-cyan)";
+        }
     }
 }
 
@@ -283,7 +370,7 @@ class CLIEngine {
         if (e.key === 'Enter' && this.input.value.trim() !== '') {
             const raw = this.input.value.trim();
             this.history.push(raw);
-            if (this.history.length > 20) this.history.shift(); // Prevent memory bloat
+            if (this.history.length > 20) this.history.shift(); 
             this.historyIdx = -1;
             
             this.input.value = '';
@@ -297,7 +384,7 @@ class CLIEngine {
         const [cmd, param] = rawCmd.toUpperCase().split(' ');
         
         const responses = {
-            'HELP': `> CMDS: HELP, PING, SCAN, LS, CAT [FILE], THEME [GREEN/AMBER/DEFAULT], CLEAR`,
+            'HELP': `> CMDS: HELP, PING, SCAN, THREAT, LS, CAT [FILE], THEME [GREEN/AMBER/DEFAULT], CLEAR`,
             'LS': `> FILES: SYSTEM.LOG, NETWORK.CFG, MANIFEST.DB`,
             'PING': `> TELEMETRY INTERCEPTED. ECHO DROPPED TO /DEV/NULL.`,
             'CLEAR': () => { this.res.innerText = ''; return null; },
@@ -311,7 +398,6 @@ class CLIEngine {
             return;
         }
 
-        // Complex Commands
         switch(cmd) {
             case 'SCAN':
                 if (this.radar) {
@@ -320,6 +406,9 @@ class CLIEngine {
                     setTimeout(() => this.radar.manifestBlip("HOSTILE_VECTOR"), 600);
                 }
                 new CrypticScrambler(this.res, `> PINGING SECTOR... ACQUIRED THREE UNKNOWN VECTORS.`, 12);
+                break;
+            case 'THREAT':
+                new CrypticScrambler(this.res, `> REPORT: STREAMING HIGHEST SECTOR THREAT DIVERGENCES DIRECT TO SIMULATOR MONITOR MAPS.`, 12);
                 break;
             case 'CAT':
                 if (!param) new CrypticScrambler(this.res, `> USAGE: 'CAT SYSTEM.LOG'`, 15);
@@ -390,6 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
     new NeuralCanvas('neural-canvas');
     const radar = new RadarSystem();
     new CLIEngine(radar);
+    new ThreatIntelEngine();
 
     // 4. UI Polish & Timers
     const coreBanner = document.getElementById('core-banner');
