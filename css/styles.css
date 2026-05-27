@@ -128,6 +128,7 @@ body {
 .nav-links {
     list-style: none;
     display: flex;
+    flex-wrap: wrap;
     gap: 2.5rem;
     font-family: var(--font-mono);
     font-size: 0.85rem;
@@ -357,6 +358,7 @@ body {
     padding: 8px;
     font-size: 0.7rem;
 }
+.node-widget .scramble { color: var(--tac-amber); }
 .node-name { color: #ffffff; font-weight: bold; }
 .node-status { color: var(--tac-green); font-size: 0.65rem; margin-top: 4px; }
 .scramble { display: inline-block; }
@@ -408,6 +410,26 @@ body {
 }
 .infra-grid th { background: rgba(0, 229, 255, 0.06); color: var(--tac-cyan); font-weight: bold; }
 .secured-vector { color: var(--tac-green); font-weight: bold; text-shadow: 0 0 4px rgba(57, 255, 20, 0.3); }
+
+/* ==========================================
+   04 // MODULE: THREAT MATRIX SUB-COMPONENTS
+   ========================================== */
+.threat-panel-wide {
+    grid-column: span 3;
+}
+
+.sector-card-node {
+    background: var(--surface-color) !important;
+    border: 1px solid rgba(0, 229, 255, 0.1) !important;
+    border-left-width: 4px !important;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s !important;
+}
+
+.sector-card-node:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 229, 255, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
 
 /* ==========================================
    THE SENTIENT AI CORE SHIELD INTERACTION FRAME (CLI)
@@ -465,8 +487,18 @@ body {
    RESPONSIVE DESIGN ADAPTATION BREAKPOINTS
    ========================================== */
 @media (max-width: 1024px) {
-    .theater-matrix { grid-template-columns: 1fr; gap: 16px; }
-    .flex-col-between { min-height: auto; gap: 20px; }
+    .theater-matrix { 
+        grid-template-columns: 1fr; 
+        gap: 16px; 
+    }
+    /* Native structural override instead of the generic inline selector hack */
+    .threat-panel-wide {
+        grid-column: span 1;
+    }
+    .flex-col-between { 
+        min-height: auto; 
+        gap: 20px; 
+    }
 }
 @media (max-width: 768px) {
     body { padding: 1.5rem 1rem; }
