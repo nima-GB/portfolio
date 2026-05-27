@@ -3,6 +3,7 @@
 /**
  * NEGARIX C2 MATRIX - ADVANCED KERNEL
  * Refactored for Object-Oriented modularity, performance optimization, and encapsulated state.
+ * PRODUCTION BUILD // FULL SUBSYSTEM INTEGRATION
  */
 
 // ==========================================
@@ -227,6 +228,45 @@ class RadarSystem {
         blip.appendChild(label);
         this.container.appendChild(blip);
         setTimeout(() => blip.remove(), 4000); 
+    }
+}
+
+// ==========================================
+// SUBSYSTEM: RF SPECTRUM ANALYZER
+// ==========================================
+class SpectrumAnalyzer {
+    constructor() {
+        this.container = document.getElementById('spectrum-display');
+        this.freqText = document.getElementById('freq-fhs');
+        this.bars = [];
+        this.barCount = 24; 
+        
+        if (this.container && this.freqText) {
+            this.initEngine();
+        }
+    }
+
+    initEngine() {
+        for (let i = 0; i < this.barCount; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'spectrum-bar';
+            this.container.appendChild(bar);
+            this.bars.push(bar);
+        }
+        
+        setInterval(() => this.fluctuateSpectrum(), 120);
+        setInterval(() => this.fluctuateFrequency(), 2500);
+    }
+
+    fluctuateSpectrum() {
+        this.bars.forEach(bar => {
+            const height = Utils.randInt(10, 95);
+            bar.style.height = `${height}%`;
+        });
+    }
+
+    fluctuateFrequency() {
+        this.freqText.innerText = `433.${Utils.randInt(10, 99)} MHz`;
     }
 }
 
@@ -478,6 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Initialize Core Subsystems
     new NeuralCanvas('neural-canvas');
     const radar = new RadarSystem();
+    new SpectrumAnalyzer(); // Integrated RF Data Engine
     new CLIEngine(radar);
     new ThreatIntelEngine();
 
