@@ -4,216 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>Negarandeh | Systems Architecture & Global SIGINT C2</title>
-    <meta name="description" content="Professional portfolio and technical overview of Negarandeh. Specializing in secure infrastructure, systems architecture, high-availability environments, and live SIGINT telemetry.">
-    <meta name="keywords" content="Negarandeh, Cybersecurity, Infrastructure, Systems Architecture, Network Operations, C2 Dashboard, Zero-Trust, Technical Leadership">
-    <meta name="robots" content="index, follow">
+    <title>Negarandeh | Systems Architecture</title>
+    <meta name="description" content="Secure, lightweight operational terminal.">
+    <meta name="robots" content="noindex, nofollow"> <!-- Hardened: Removed from search indexing -->
 
-    <meta property="og:title" content="Negarandeh // Global Intelligence Terminal">
-    <meta property="og:description" content="Authorized personnel only. Accessing restricted framework profiles and secure infrastructure deployments.">
-    <meta property="og:type" content="website">
-
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+    <!-- Hardened Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-ancestors 'none'; form-action 'none'; upgrade-insecure-requests; base-uri 'none';">
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Ultra-light, bright theme */
+        :root {
+            --bg-colour: #f4f7f6;
+            --text-colour: #2c3e50;
+            --accent-colour: #3498db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-colour);
+            color: var(--text-colour);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            overflow: hidden; /* Prevents scrollbars from the canvas */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Live Background Canvas */
+        #live-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none; /* Let clicks pass through */
+        }
+
+        /* Minimal Centred Content */
+        .core-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2rem 4rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            color: var(--text-colour);
+        }
+
+        p {
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            color: var(--accent-colour);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
 
-    <div id="boot-sequence">
-        <div id="boot-terminal"></div>
-    </div>
+    <!-- Self-contained live background -->
+    <canvas id="live-background"></canvas>
 
-    <canvas id="neural-canvas"></canvas>
-    <div class="hud-overlay"></div>
+    <!-- Minimal, clean interface -->
+    <main class="core-container">
+        <h1>Negarandeh</h1>
+        <p>Secure Infrastructure</p>
+    </main>
 
-    <div class="terminal-container" id="main-container">
-        <header class="system-header">
-            <nav aria-label="Primary Navigation">
-                <ul class="nav-links">
-                    <li><a href="#profile">01 // Profile</a></li>
-                    <li><a href="#competencies">02 // Competencies</a></li>
-                    <li><a href="#telemetry">03 // C2_Matrix</a></li>
-                    <li><a href="#threats">04 // Threat_Intel</a></li>
-                </ul>
-            </nav>
-        </header>
+    <script>
+        // Bright, lightweight neural/particle animation
+        const canvas = document.getElementById('live-background');
+        const ctx = canvas.getContext('2d');
 
-        <main class="system-core">
+        let width, height, particles;
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
             
-            <section id="profile" aria-labelledby="profile-heading" class="intro-module">
-                <h1 id="profile-heading">Negarandeh</h1>
-                <p class="status-indicator">Status: Active Operations & Engineering</p>
-                <p class="summary-text">Specializing in secure infrastructure, systems architecture, and technical alignment. Focused on delivering high-availability environments and resilient operational frameworks with a low-signature footprint.</p>
-            </section>
+            // Adjust particle count based on screen size to keep it light
+            const particleCount = Math.floor((width * height) / 15000);
 
-            <hr class="divider">
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2 + 1
+                });
+            }
+        }
 
-            <section id="competencies" aria-labelledby="competencies-heading" class="specs-module">
-                <h2 id="competencies-heading">Core Competencies</h2>
-                <div class="grid-layout">
-                    <article class="spec-card ghost-card">
-                        <h3 class="glitch-target">Systems Architecture</h3>
-                        <p>Designing and deploying scalable, zero-dependency infrastructures. Ensuring operational continuity through precise resource allocation and strict environmental controls.</p>
-                    </article>
-                    <article class="spec-card ghost-card">
-                        <h3 class="glitch-target">Security & Compliance</h3>
-                        <p>Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols to protect digital assets from external vulnerabilities.</p>
-                    </article>
-                    <article class="spec-card ghost-card">
-                        <h3 class="glitch-target">Technical Leadership</h3>
-                        <p>Guiding engineering lifecycles from initial concept to production deployment. Bridging the gap between complex technical execution and high-level strategic objectives.</p>
-                    </article>
-                    <article class="spec-card ghost-card">
-                        <h3 class="glitch-target">Network Operations</h3>
-                        <p>Managing DNS routing, domain integrity (DMARC/SPF configurations), and maintaining high-performance global edge server deployments.</p>
-                    </article>
-                </div>
-            </section>
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, width, height);
 
-            <hr class="divider">
+            ctx.fillStyle = '#3498db';
+            ctx.lineWidth = 0.5;
 
-            <section id="telemetry" aria-labelledby="telemetry-heading" class="specs-module">
-                <h2 id="telemetry-heading">SIGINT & Advanced Cyber Operations</h2>
-                <div class="c2-shell">
-                    <div class="panel">
-                        <div class="header-bar">
-                            <span id="core-banner">NEGARIX // GLOBAL_SIGINT_C2</span>
-                            <span><span class="live-pulse">● COMMS_LINK</span> // SECURE</span>
-                        </div>
-                        <div class="telemetry-meta">
-                            <div>COORD: <span id="geo-telemetry">00.0000° N, 00.0000° E</span></div>
-                            <div>SYS_EPOCH: <span id="sys-epoch">0000000000</span></div>
-                            <div>AIR_GAP: <span class="tac-green">ISOLATED (CSP_ENFORCED)</span></div>
-                        </div>
-                    </div>
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
 
-                    <div class="theater-matrix">
-                        <div class="panel">
-                            <div class="panel-header">
-                                <span>📡 RF_SPECTRUM_RECEIVER</span>
-                                <span class="tac-cyan" id="freq-fhs">433.92 MHz</span>
-                            </div>
-                            <div class="spectrum-container" id="spectrum-display"></div>
-                            <div class="panel-header alert-header">
-                                <span>⚠️ BROADCAST_INTERCEPT_STREAM</span>
-                            </div>
-                            <div class="sigint-stream" id="packet-stream"></div>
-                        </div>
+                p.x += p.vx;
+                p.y += p.vy;
 
-                        <div class="panel">
-                            <div class="panel-header">🌐 GLOBAL_INFRASTRUCTURE_NODES</div>
-                            <div class="node-cluster">
-                                <div class="node-widget">
-                                    <div class="node-name">LOND-NODE-01</div>
-                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
-                                </div>
-                                <div class="node-widget">
-                                    <div class="node-name">WASH-NODE-04</div>
-                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
-                                </div>
-                                <div class="node-widget">
-                                    <div class="node-name">TOKY-NODE-09</div>
-                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
-                                </div>
-                                <div class="node-widget">
-                                    <div class="node-name">SYDN-NODE-02</div>
-                                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
-                                </div>
-                            </div>
-                            <div class="panel-header radar-header">🎯 PASSIVE_SCANNER_TARGETING</div>
-                            <div class="radar-display">
-                                <div class="radar-sweep"></div>
-                                <div class="reticle"></div>
-                                <div class="radar-azimuth">
-                                    AZIMUTH: <span id="radar-azi">312°</span>
-                                </div>
-                            </div>
-                        </div>
+                // Bounce off edges
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
 
-                        <div class="panel flex-col-between">
-                            <div>
-                                <div class="panel-header">🛡️ ZERO-TRUST_PERIMETER_ENFORCEMENT</div>
-                                <table class="infra-grid">
-                                    <thead>
-                                        <tr>
-                                            <th>DEFENSE VECTOR</th>
-                                            <th>PROTOCOL ARCHITECTURE</th>
-                                            <th>STATE</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>TRANSPORT MATRIX</td>
-                                            <td>MTA-STS / TLS 1.3 STRICT</td>
-                                            <td class="secured-vector">[ ENFORCE ]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>CRYPTOGRAPHIC CORE</td>
-                                            <td>DKIM KEYSETS (RSA-2048)</td>
-                                            <td class="secured-vector">[ ALIGNED ]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>SPOOF ISOLATION</td>
-                                            <td>SPF + DMARC POLICIES</td>
-                                            <td class="secured-vector">[ ISOLATED ]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>ISSUANCE CONTROL</td>
-                                            <td>CAA ANTI-WILDCARD GUARD</td>
-                                            <td class="secured-vector">[ ANCHORED ]</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="sentient-cli-wrapper">
-                                <div class="cli-input-row">
-                                    <span class="cli-prompt">></span>
-                                    <input type="text" id="sentient-input" class="cli-input" placeholder="AWAITING NEURAL COMMAND..." autocomplete="off" aria-label="Command Line Interface Input">
-                                </div>
-                                <div id="cli-response" class="cli-response"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                // Draw particle
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
 
-            <hr class="divider">
+                // Connect particles
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
 
-            <section id="threats" aria-labelledby="threats-heading" class="specs-module">
-                <h2 id="threats-heading">Global Military Threat Evaluation Matrix</h2>
-                
-                <div class="c2-shell" style="margin-bottom: 15px;">
-                    <div class="panel" style="text-align: center; padding: 20px 10px;">
-                        <div class="panel-header alert-header" style="background: rgba(255, 51, 51, 0.1); color: var(--tac-red); justify-content: center; font-weight: bold; letter-spacing: 2px; border-bottom: 1px dashed rgba(255,51,51,0.25);">
-                            ⚠️ CRITICAL SYSTEM PREDICTION VECTOR
-                        </div>
-                        <div id="defcon-status" style="font-family: var(--font-mono); font-size: 24px; color: var(--tac-red); font-weight: bold; margin: 15px 0; text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);">
-                            DEFCON 3 // ELEVATED READY STATE
-                        </div>
-                        <div style="font-family: var(--font-mono); font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">
-                            Strategic Intelligence Engine // Probability Anchor Divergence Logged
-                        </div>
-                    </div>
-                </div>
+                    if (distance < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(52, 152, 219, ${1 - distance / 120})`;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
 
-                <div class="theater-matrix">
-                    <div class="panel threat-panel-wide">
-                        <div class="panel-header">🗺️ LIVE REGIONAL CONFLICT SPECTRUM OPERATIONAL INDICES</div>
-                        <div id="threat-sector-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 10px;">
-                            </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="system-footer">
-            <p>&copy; 2026 Negarandeh. All rights reserved. Operations secured.</p>
-        </footer>
-    </div>
-
-    <script src="/js/c2-matrix.js"></script>
+        window.addEventListener('resize', init);
+        init();
+        animate();
+    </script>
 </body>
 </html>
