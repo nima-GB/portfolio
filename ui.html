@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Negarandeh</title>
+<title>Negarandeh // Live Operations Console</title>
+<meta name="description" content="Negarandeh — systems architecture. A live operations console rendering real-time public data: USGS seismic activity, NOAA space weather, ISS telemetry, and service health.">
 <meta name="robots" content="index, follow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nNMvBNqJ/VExMAYZjbJPUiUShHzADyl14GqAnkgbdFw='; style-src 'sha256-RKbD4z0fRkxtsQW1Uhlvy0zeUpwcUG7zcevLGkFf3Ms=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'none'; connect-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8gCbTN4PZcZzFvJ3W2urus0ECdpyJiWFYAIrMYLtPV0='; style-src 'sha256-gic8FkwYDg1C8HGfzu9CteryVOSjs7FpTk+hLbnpx20=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -13,14 +14,12 @@
 :root {
   --void:        #020408;
   --deep:        #060d14;
-  --surface:     #0a1520;
   --panel:       #0d1c2e;
   --rim:         #0e2235;
   --tac-cyan:    #00e5ff;
   --tac-green:   #39ff9e;
   --tac-amber:   #ffb300;
   --tac-red:     #ff3333;
-  --tac-violet:  #a855f7;
   --tac-dim:     #1a3a5c;
   --text-primary:#c8dff0;
   --text-muted:  #4a7a9b;
@@ -30,10 +29,10 @@
   --font-display:'Orbitron', sans-serif;
   --font-body:   'Rajdhani', sans-serif;
 
-  --glow-cyan:   0 0 8px rgba(0,229,255,0.6), 0 0 20px rgba(0,229,255,0.2);
-  --glow-green:  0 0 8px rgba(57,255,158,0.6), 0 0 20px rgba(57,255,158,0.2);
-  --glow-red:    0 0 8px rgba(255,51,51,0.6),  0 0 20px rgba(255,51,51,0.2);
-  --glow-amber:  0 0 8px rgba(255,179,0,0.6),  0 0 20px rgba(255,179,0,0.2);
+  --glow-cyan:   0 0 10px rgba(0,229,255,0.35);
+  --glow-green:  0 0 10px rgba(57,255,158,0.35);
+  --glow-red:    0 0 10px rgba(255,51,51,0.35);
+  --glow-amber:  0 0 10px rgba(255,179,0,0.35);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,7 +46,6 @@ body {
   font-size: 12px;
   line-height: 1.6;
   overflow-x: hidden;
-  cursor: crosshair;
 }
 
 #boot-overlay {
@@ -74,31 +72,11 @@ body {
   width: 100%;
   max-width: 700px;
 }
-#boot-log .boot-line { opacity: 0; animation: bootAppear 0.05s forwards; }
 #boot-log .boot-line.ok   { color: var(--tac-green); }
 #boot-log .boot-line.warn { color: var(--tac-amber); }
 #boot-log .boot-line.err  { color: var(--tac-red); }
 #boot-log .boot-line.info { color: var(--tac-cyan); }
 #boot-log .boot-line.head { color: var(--tac-cyan); font-size: 13px; font-family: var(--font-display); letter-spacing: 2px; }
-
-@keyframes bootAppear { to { opacity: 1; } }
-
-#boot-progress-bar {
-  width: 100%;
-  max-width: 700px;
-  height: 2px;
-  background: var(--rim);
-  margin-top: 24px;
-  position: relative;
-  overflow: hidden;
-}
-#boot-progress-fill {
-  height: 100%;
-  background: var(--tac-cyan);
-  box-shadow: var(--glow-cyan);
-  width: 0%;
-  transition: width 0.1s linear;
-}
 
 #boot-logo {
   font-family: var(--font-display);
@@ -108,8 +86,6 @@ body {
   text-shadow: var(--glow-cyan);
   letter-spacing: 6px;
   margin-bottom: 40px;
-  opacity: 0;
-  animation: bootAppear 0.4s 0.2s forwards;
 }
 #boot-logo span { color: var(--text-muted); font-weight: 300; }
 
@@ -129,8 +105,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
   );
 }
 
@@ -139,7 +115,7 @@ body {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
 }
 
 #main-wrapper {
@@ -172,7 +148,6 @@ body {
   font-weight: 700;
   color: var(--tac-cyan);
   letter-spacing: 3px;
-  text-shadow: var(--glow-cyan);
 }
 .header-brand span { color: var(--text-muted); font-weight: 400; }
 
@@ -193,7 +168,6 @@ body {
   color: var(--tac-cyan);
   border-color: var(--tac-dim);
   background: rgba(0,229,255,0.04);
-  text-shadow: var(--glow-cyan);
 }
 
 .header-status {
@@ -210,6 +184,7 @@ body {
   box-shadow: var(--glow-green);
   animation: pulse 2s infinite;
 }
+.pulse-dot.offline { background: var(--tac-red); box-shadow: var(--glow-red); }
 @keyframes pulse {
   0%,100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.7); }
@@ -244,7 +219,7 @@ body {
   margin-bottom: 8px;
   line-height: 1.1;
 }
-.section-title .accent { color: var(--tac-cyan); text-shadow: var(--glow-cyan); }
+.section-title .accent { color: var(--tac-cyan); }
 
 .section-rule {
   width: 60px; height: 1px;
@@ -268,7 +243,6 @@ body {
   color: var(--tac-cyan);
   letter-spacing: 4px;
   margin-bottom: 20px;
-  text-shadow: var(--glow-cyan);
 }
 
 .hero-name {
@@ -288,7 +262,7 @@ body {
   font-size: clamp(14px, 2vw, 18px);
   font-weight: 300;
   color: var(--text-muted);
-  max-width: 560px;
+  max-width: 620px;
   margin-bottom: 40px;
   line-height: 1.7;
   letter-spacing: 0.5px;
@@ -299,16 +273,12 @@ body {
   gap: 32px;
   flex-wrap: wrap;
 }
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-}
+.hero-stat { display: flex; flex-direction: column; }
 .hero-stat-val {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   color: var(--tac-cyan);
-  text-shadow: var(--glow-cyan);
 }
 .hero-stat-lbl {
   font-size: 9px;
@@ -338,7 +308,7 @@ body {
   background: rgba(0,229,255,0.12);
   box-shadow: var(--glow-cyan);
 }
-.hero-cta::before { content: '>'; font-family: var(--font-hud); }
+.hero-cta::before { content: '>'; }
 
 .ticker-wrap {
   position: absolute;
@@ -385,7 +355,6 @@ body {
   top: 0; left: 0;
   width: 3px; height: 0;
   background: var(--tac-cyan);
-  box-shadow: var(--glow-cyan);
   transition: height 0.4s ease;
 }
 .comp-card:hover { background: var(--rim); }
@@ -431,7 +400,6 @@ body {
 .c2-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto auto;
   gap: 2px;
   background: var(--tac-dim);
   border: 1px solid var(--tac-dim);
@@ -439,7 +407,6 @@ body {
 
 .c2-panel {
   background: var(--panel);
-  padding: 0;
   position: relative;
   overflow: hidden;
 }
@@ -460,54 +427,59 @@ body {
   color: var(--text-muted);
   text-transform: uppercase;
 }
-.panel-head-status {
-  font-size: 9px;
-  letter-spacing: 1px;
-}
+.panel-head-status { font-size: 9px; letter-spacing: 1px; }
 .panel-body { padding: 16px; }
+.panel-src {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-ghost);
+  padding: 6px 16px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  text-transform: uppercase;
+}
 
-.sigint-feed {
+.feed-list {
   font-family: var(--font-hud);
   font-size: 9px;
   height: 180px;
   overflow: hidden;
-  position: relative;
 }
-.sigint-line {
+.feed-line {
   padding: 2px 0;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   display: flex;
   gap: 12px;
-  animation: fadeInLine 0.3s ease;
   white-space: nowrap;
   overflow: hidden;
 }
-@keyframes fadeInLine {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-.sigint-ts { color: var(--text-ghost); min-width: 80px; }
-.sigint-src { color: var(--tac-cyan); min-width: 60px; }
-.sigint-type { color: var(--tac-amber); min-width: 70px; }
-.sigint-data { color: var(--text-muted); }
-.sigint-line.alert .sigint-data { color: var(--tac-red); }
+.feed-ts   { color: var(--text-ghost); min-width: 66px; }
+.feed-src  { color: var(--tac-cyan); min-width: 52px; }
+.feed-data { color: var(--text-muted); }
+.feed-line.alert .feed-data { color: var(--tac-red); }
+.feed-line.ok .feed-data { color: var(--tac-green); }
 
-.spectrum-viz {
+.kp-viz {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 80px;
-  padding: 8px 0;
+  gap: 3px;
+  height: 90px;
+  padding: 8px 0 4px;
 }
-.spec-bar {
+.kp-bar {
   flex: 1;
   background: var(--tac-cyan);
-  opacity: 0.7;
-  transition: height 0.1s ease;
+  opacity: 0.75;
   min-height: 2px;
 }
-.spec-bar.hot { background: var(--tac-amber); opacity: 1; }
-.spec-bar.warn { background: var(--tac-red); }
+.kp-bar.hot  { background: var(--tac-amber); opacity: 1; }
+.kp-bar.warn { background: var(--tac-red); opacity: 1; }
+.kp-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--text-ghost);
+  letter-spacing: 1px;
+}
 
 .node-list { display: flex; flex-direction: column; gap: 8px; }
 .node-row {
@@ -522,31 +494,40 @@ body {
 .node-row.online { border-left-color: var(--tac-green); }
 .node-row.warn   { border-left-color: var(--tac-amber); }
 .node-row.err    { border-left-color: var(--tac-red);   }
+.node-row.pending{ border-left-color: var(--tac-dim);   }
 .node-name { font-size: 10px; color: var(--text-primary); letter-spacing: 1px; }
-.node-ping { font-size: 10px; color: var(--text-muted); }
-.node-status-badge {
-  font-size: 9px;
-  padding: 2px 8px;
-  letter-spacing: 1px;
-}
+.node-detail { font-size: 9px; color: var(--text-muted); }
+.node-status-badge { font-size: 9px; padding: 2px 8px; letter-spacing: 1px; }
 .badge-green { color: var(--tac-green); border: 1px solid rgba(57,255,158,0.2); }
 .badge-amber { color: var(--tac-amber); border: 1px solid rgba(255,179,0,0.2); }
 .badge-red   { color: var(--tac-red);   border: 1px solid rgba(255,51,51,0.2); }
+.badge-dim   { color: var(--text-muted); border: 1px solid var(--tac-dim); }
 
-.radar-wrap {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  margin: 0 auto;
+.iss-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
-.radar-canvas { width: 100%; height: 100%; }
+.orbit-wrap { position: relative; width: 180px; height: 180px; }
+.orbit-canvas { width: 100%; height: 100%; }
+.iss-readout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  width: 100%;
+}
+.iss-readout .val { color: var(--tac-cyan); text-align: right; }
 
-.defense-table {
+.quake-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 10px;
 }
-.defense-table th {
+.quake-table th {
   font-size: 9px;
   letter-spacing: 1.5px;
   color: var(--text-muted);
@@ -556,19 +537,19 @@ body {
   background: rgba(0,0,0,0.3);
   text-transform: uppercase;
 }
-.defense-table td {
-  padding: 9px 12px;
+.quake-table td {
+  padding: 8px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   color: var(--text-muted);
-  font-family: var(--font-hud);
 }
-.defense-table tr:last-child td { border-bottom: none; }
-.defense-table tr:hover td { background: rgba(0,229,255,0.03); }
-.td-vector { color: var(--text-primary); }
-.td-proto  { color: var(--tac-cyan); font-size: 9px; }
-.td-state  { font-size: 9px; letter-spacing: 1px; }
-.secured   { color: var(--tac-green); }
-.active    { color: var(--tac-amber); }
+.quake-table tr:last-child td { border-bottom: none; }
+.quake-table tr:hover td { background: rgba(0,229,255,0.03); }
+.q-mag { font-family: var(--font-display); font-weight: 700; }
+.q-place { color: var(--text-primary); }
+.q-time { color: var(--text-ghost); font-size: 9px; }
+.mag-low  { color: var(--tac-green); }
+.mag-mid  { color: var(--tac-amber); }
+.mag-high { color: var(--tac-red); }
 
 .cli-wrap {
   background: rgba(0,0,0,0.5);
@@ -604,143 +585,60 @@ body {
   font-family: var(--font-hud);
   font-size: 11px;
   caret-color: var(--tac-cyan);
-  cursor: text;
 }
 
-#minimap-canvas {
+#worldmap-canvas {
   width: 100%;
-  height: 140px;
+  height: 200px;
   display: block;
 }
 
-.defcon-banner {
+.geomag-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 28px;
   background: var(--panel);
-  border: 1px solid rgba(255,51,51,0.25);
+  border: 1px solid var(--tac-dim);
   margin-bottom: 2px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.5s;
 }
-.defcon-banner::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--tac-red), transparent);
-  animation: scanH 3s linear infinite;
-}
-@keyframes scanH {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(100%); }
-}
+.geomag-banner.quiet  { border-color: rgba(57,255,158,0.25); }
+.geomag-banner.active { border-color: rgba(255,179,0,0.3); }
+.geomag-banner.storm  { border-color: rgba(255,51,51,0.35); }
 
-.defcon-level {
+.geomag-level {
   font-family: var(--font-display);
   font-size: clamp(18px, 3vw, 28px);
   font-weight: 900;
-  color: var(--tac-red);
-  text-shadow: var(--glow-red);
   letter-spacing: 4px;
 }
-.defcon-sub {
+.geomag-banner.quiet  .geomag-level { color: var(--tac-green); text-shadow: var(--glow-green); }
+.geomag-banner.active .geomag-level { color: var(--tac-amber); text-shadow: var(--glow-amber); }
+.geomag-banner.storm  .geomag-level { color: var(--tac-red); text-shadow: var(--glow-red); }
+
+.geomag-sub {
   font-size: 10px;
   color: var(--text-muted);
   letter-spacing: 2px;
   margin-top: 4px;
 }
-.defcon-blocks {
-  display: flex;
-  gap: 4px;
-}
-.defcon-block {
+.geomag-blocks { display: flex; gap: 4px; }
+.geomag-block {
   width: 28px; height: 28px;
   border: 1px solid var(--tac-dim);
   opacity: 0.3;
-}
-.defcon-block.active {
-  background: var(--tac-red);
-  border-color: var(--tac-red);
-  box-shadow: var(--glow-red);
-  opacity: 1;
-  animation: defconBlink 1.5s infinite;
-}
-@keyframes defconBlink {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.threat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 2px;
-  background: var(--tac-dim);
-  border: 1px solid var(--tac-dim);
-  border-top: none;
-}
-.threat-card {
-  background: var(--panel);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.threat-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--accent, var(--tac-cyan));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s ease;
-}
-.threat-card:hover::after { transform: scaleX(1); }
-.threat-region {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-}
-.threat-index-wrap {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.threat-index-val {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 900;
-  line-height: 1;
-}
-.threat-index-lbl {
+  align-items: center;
+  justify-content: center;
   font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  padding-bottom: 4px;
+  color: var(--text-ghost);
 }
-.threat-bar-wrap {
-  height: 3px;
-  background: var(--rim);
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.threat-bar-fill {
-  height: 100%;
-  background: var(--accent, var(--tac-cyan));
-  box-shadow: 0 0 6px var(--accent, var(--tac-cyan));
-  transition: width 1s ease;
-}
-.threat-detail {
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  line-height: 1.8;
-}
+.geomag-block.lit-green { background: rgba(57,255,158,0.15); border-color: var(--tac-green); color: var(--tac-green); opacity: 1; }
+.geomag-block.lit-amber { background: rgba(255,179,0,0.15);  border-color: var(--tac-amber); color: var(--tac-amber); opacity: 1; }
+.geomag-block.lit-red   { background: rgba(255,51,51,0.15);  border-color: var(--tac-red);   color: var(--tac-red);   opacity: 1; }
 
 .sys-footer {
   border-top: 1px solid var(--tac-dim);
@@ -751,31 +649,16 @@ body {
   font-size: 10px;
   color: var(--text-ghost);
   letter-spacing: 1px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+.sys-footer a { color: var(--text-muted); text-decoration: none; }
+.sys-footer a:hover { color: var(--tac-cyan); }
 
-.tac-cyan   { color: var(--tac-cyan)   !important; }
-.tac-green  { color: var(--tac-green)  !important; }
-.tac-amber  { color: var(--tac-amber)  !important; }
-.tac-red    { color: var(--tac-red)    !important; }
-.tac-violet { color: var(--tac-violet) !important; }
-
-.glitch {
-  position: relative;
-  animation: glitchShift 8s infinite;
-}
-@keyframes glitchShift {
-  0%,94%,100% { clip-path: none; transform: none; }
-  95% { clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%); transform: translate(-2px, 0); color: var(--tac-red); }
-  96% { clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); transform: translate(2px, 0); color: var(--tac-cyan); }
-  97% { clip-path: none; transform: none; }
-}
-
-.scramble { animation: scrambleText 3s infinite; }
-@keyframes scrambleText {
-  0%,85%,100% { opacity: 1; }
-  90% { opacity: 0.3; }
-  92% { opacity: 1; }
-}
+.tac-cyan  { color: var(--tac-cyan)  !important; }
+.tac-green { color: var(--tac-green) !important; }
+.tac-amber { color: var(--tac-amber) !important; }
+.tac-red   { color: var(--tac-red)   !important; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--void); }
@@ -786,27 +669,26 @@ body {
   .c2-grid { grid-template-columns: 1fr; }
   .c2-panel.wide, .c2-panel.full { grid-column: span 1; }
   .section { padding: 80px 20px 40px; }
-  .sys-footer { flex-direction: column; gap: 8px; text-align: center; }
+  .sys-footer { flex-direction: column; text-align: center; }
 }
 @media (max-width: 640px) {
   .sys-nav a { display: none; }
+  .sys-nav a.nav-exit { display: block; }
   .hero-name { letter-spacing: 2px; }
-  .defcon-banner { flex-direction: column; gap: 16px; text-align: center; }
+  .geomag-banner { flex-direction: column; gap: 16px; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   #boot-overlay { display: none; }
   #main-wrapper { opacity: 1; }
-  #boot-log .boot-line { opacity: 1; }
 }
 </style>
 </head>
 <body>
 <div id="boot-overlay">
-  <div id="boot-logo">NEGARIX <span>// INIT</span></div>
+  <div id="boot-logo">NEGARIX <span>// LIVE OPS</span></div>
   <div id="boot-log"></div>
-  <div id="boot-progress-bar"><div id="boot-progress-fill"></div></div>
 </div>
 
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
@@ -816,48 +698,48 @@ body {
 <div id="main-wrapper">
 
   <header class="sys-header">
-    <div class="header-brand">NEGARANDEH <span>// C2</span></div>
+    <div class="header-brand">NEGARANDEH <span>// LIVE OPS</span></div>
     <nav class="sys-nav" aria-label="Primary navigation">
       <a href="#profile">Profile</a>
       <a href="#competencies">Competencies</a>
-      <a href="#telemetry">C2 Matrix</a>
-      <a href="#threats">Threat Intel</a>
-      <a href="index.html">⌂ Exit</a>
+      <a href="#telemetry">Telemetry</a>
+      <a href="#geomag">Space Weather</a>
+      <a href="index.html" class="nav-exit">⌂ Exit</a>
     </nav>
     <div class="header-status">
-      <div class="pulse-dot"></div>
+      <div class="pulse-dot" id="conn-dot"></div>
       <span id="live-clock">--:--:--</span>
-      <span class="tac-cyan scramble" id="uplink-status">UPLINK SECURE</span>
+      <span class="tac-cyan" id="conn-label">LINK UP</span>
     </div>
   </header>
 
   <section id="profile" class="section">
-    <div class="hero-tag">PERSONNEL FILE // CLEARED: TOP SECRET</div>
-    <h1 class="hero-name glitch">
+    <div class="hero-tag">SYSTEMS ARCHITECTURE // LIVE OPERATIONS CONSOLE</div>
+    <h1 class="hero-name">
       NEGA<span class="c1">R</span>AN<span class="c2">DEH</span>
     </h1>
-    <p class="hero-sub">Specializing in secure infrastructure, systems architecture, and technical alignment. Delivering high-availability environments and resilient operational frameworks with a minimal-signature footprint.</p>
+    <p class="hero-sub">Secure infrastructure and systems architecture. Every reading on this console is live public data: seismic activity from USGS, space weather from NOAA, orbital telemetry from open tracking APIs, and real service health probes. Nothing here is simulated.</p>
 
     <div class="hero-meta">
       <div class="hero-stat">
-        <span class="hero-stat-val" id="uptime-counter">99.97%</span>
-        <span class="hero-stat-lbl">System Uptime</span>
+        <span class="hero-stat-val" id="stat-quakes">--</span>
+        <span class="hero-stat-lbl">Quakes M2.5+ / 24h</span>
       </div>
       <div class="hero-stat">
-        <span class="hero-stat-val tac-green">ACTIVE</span>
-        <span class="hero-stat-lbl">Op Status</span>
+        <span class="hero-stat-val tac-amber" id="stat-maxmag">--</span>
+        <span class="hero-stat-lbl">Max Magnitude / 24h</span>
       </div>
       <div class="hero-stat">
-        <span class="hero-stat-val tac-amber" id="threat-count">14</span>
-        <span class="hero-stat-lbl">Threats Neutralized</span>
+        <span class="hero-stat-val tac-green" id="stat-kp">--</span>
+        <span class="hero-stat-lbl">Planetary Kp Now</span>
       </div>
       <div class="hero-stat">
-        <span class="hero-stat-val tac-violet">AES-256</span>
-        <span class="hero-stat-lbl">Encryption Level</span>
+        <span class="hero-stat-val" id="stat-iss">--</span>
+        <span class="hero-stat-lbl">ISS Velocity km/h</span>
       </div>
     </div>
 
-    <a href="#telemetry" class="hero-cta">Access C2 Dashboard</a>
+    <a href="#telemetry" class="hero-cta">Open Telemetry</a>
 
     <div class="ticker-wrap" aria-hidden="true">
       <div class="ticker-track" id="ticker"></div>
@@ -878,7 +760,6 @@ body {
           <span class="comp-tag">Kubernetes</span>
           <span class="comp-tag">IaC</span>
           <span class="comp-tag">HA Clusters</span>
-          <span class="comp-tag">Air-Gap</span>
         </div>
       </div>
       <div class="comp-card">
@@ -888,8 +769,7 @@ body {
         <div class="comp-tags">
           <span class="comp-tag">Zero-Trust</span>
           <span class="comp-tag">TLS 1.3</span>
-          <span class="comp-tag">SIEM</span>
-          <span class="comp-tag">EDR</span>
+          <span class="comp-tag">CSP</span>
         </div>
       </div>
       <div class="comp-card">
@@ -898,7 +778,7 @@ body {
         <p class="comp-body">Guiding engineering lifecycles from initial concept to production deployment. Bridging complex technical execution with high-level strategic objectives.</p>
         <div class="comp-tags">
           <span class="comp-tag">Roadmapping</span>
-          <span class="comp-tag">Sprint</span>
+          <span class="comp-tag">Delivery</span>
           <span class="comp-tag">Stakeholder</span>
         </div>
       </div>
@@ -907,72 +787,69 @@ body {
         <div class="comp-title">Network Operations</div>
         <p class="comp-body">Managing DNS routing, domain integrity (DMARC/SPF), and maintaining high-performance global edge deployments across distributed infrastructure.</p>
         <div class="comp-tags">
-          <span class="comp-tag">BGP</span>
           <span class="comp-tag">DMARC</span>
+          <span class="comp-tag">MTA-STS</span>
           <span class="comp-tag">CDN</span>
-          <span class="comp-tag">Anycast</span>
         </div>
       </div>
     </div>
   </section>
 
   <section id="telemetry" class="section">
-    <div class="section-eyebrow">Advanced Cyber Operations</div>
-    <h2 class="section-title">SIGINT <span class="accent">C2 Matrix</span></h2>
+    <div class="section-eyebrow">Live Telemetry</div>
+    <h2 class="section-title">Global <span class="accent">Monitoring</span></h2>
     <div class="section-rule"></div>
 
     <div class="c2-grid">
 
       <div class="c2-panel wide">
         <div class="panel-head">
-          <span class="panel-head-title">📡 RF Spectrum &amp; Intercept Stream</span>
-          <span class="panel-head-status tac-cyan" id="freq-display">433.92 MHz</span>
+          <span class="panel-head-title">Seismic Activity — M2.5+ Last 24 Hours</span>
+          <span class="panel-head-status tac-cyan" id="quake-head-status">CONNECTING...</span>
         </div>
-        <div class="panel-body">
-          <div class="spectrum-viz" id="spectrum-viz" aria-hidden="true"></div>
-          <div class="sigint-feed" id="sigint-feed" aria-label="SIGINT intercept stream"></div>
-        </div>
+        <table class="quake-table" aria-label="Latest earthquakes">
+          <thead>
+            <tr><th>Mag</th><th>Location</th><th>Time</th></tr>
+          </thead>
+          <tbody id="quake-tbody">
+            <tr><td colspan="3">Awaiting USGS feed...</td></tr>
+          </tbody>
+        </table>
+        <div class="panel-src">Source: USGS Earthquake Hazards Program</div>
       </div>
 
       <div class="c2-panel">
         <div class="panel-head">
-          <span class="panel-head-title">🌐 Global Infrastructure Nodes</span>
-          <span class="panel-head-status tac-green">5/6 ONLINE</span>
+          <span class="panel-head-title">ISS Live Telemetry</span>
+          <span class="panel-head-status tac-amber" id="iss-head-status">ACQUIRING...</span>
         </div>
-        <div class="panel-body">
-          <div class="node-list" id="node-list"></div>
+        <div class="panel-body iss-body">
+          <div class="orbit-wrap" aria-hidden="true">
+            <canvas class="orbit-canvas" id="orbit-canvas" width="180" height="180"></canvas>
+          </div>
+          <div class="iss-readout">
+            <span>LATITUDE</span><span class="val" id="iss-lat">--</span>
+            <span>LONGITUDE</span><span class="val" id="iss-lon">--</span>
+            <span>ALTITUDE</span><span class="val" id="iss-alt">--</span>
+            <span>VELOCITY</span><span class="val" id="iss-vel">--</span>
+            <span>VISIBILITY</span><span class="val" id="iss-vis">--</span>
+          </div>
         </div>
+        <div class="panel-src">Source: wheretheiss.at // NORAD 25544</div>
       </div>
 
       <div class="c2-panel wide">
         <div class="panel-head">
-          <span class="panel-head-title">🛡️ Zero-Trust Perimeter Enforcement</span>
-          <span class="panel-head-status tac-green">ALL VECTORS SECURED</span>
+          <span class="panel-head-title">Event Log — Console Telemetry</span>
+          <span class="panel-head-status tac-green">LIVE</span>
         </div>
-        <div class="panel-body" style="padding:0;">
-          <table class="defense-table" aria-label="Defense vector status table">
-            <thead>
-              <tr>
-                <th>Defense Vector</th>
-                <th>Protocol Architecture</th>
-                <th>State</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td class="td-vector">Transport Matrix</td><td class="td-proto">MTA-STS / TLS 1.3 STRICT</td><td class="td-state secured">[ ENFORCE ]</td></tr>
-              <tr><td class="td-vector">Cryptographic Core</td><td class="td-proto">DKIM KEYSETS (RSA-2048)</td><td class="td-state secured">[ ALIGNED ]</td></tr>
-              <tr><td class="td-vector">Spoof Isolation</td><td class="td-proto">SPF + DMARC POLICIES</td><td class="td-state secured">[ ISOLATED ]</td></tr>
-              <tr><td class="td-vector">Issuance Control</td><td class="td-proto">CAA ANTI-WILDCARD GUARD</td><td class="td-state secured">[ ANCHORED ]</td></tr>
-              <tr><td class="td-vector">Endpoint Hardening</td><td class="td-proto">EDR + HIDS ENFORCEMENT</td><td class="td-state active">[ SCANNING ]</td></tr>
-            </tbody>
-          </table>
-          <div class="panel-body">
-            <div class="cli-wrap" aria-label="Command line interface">
-              <div class="cli-output" id="cli-output"></div>
-              <div class="cli-input-row">
-                <span class="cli-prompt" aria-hidden="true">▶</span>
-                <input class="cli-field" id="cli-field" type="text" placeholder="ENTER COMMAND..." autocomplete="off" aria-label="Command input" spellcheck="false" maxlength="64">
-              </div>
+        <div class="panel-body">
+          <div class="feed-list" id="event-feed" aria-label="Live event log"></div>
+          <div class="cli-wrap" aria-label="Command line interface">
+            <div class="cli-output" id="cli-output"></div>
+            <div class="cli-input-row">
+              <span class="cli-prompt" aria-hidden="true">▶</span>
+              <input class="cli-field" id="cli-field" type="text" placeholder="TYPE HELP..." autocomplete="off" aria-label="Command input" spellcheck="false" maxlength="64">
             </div>
           </div>
         </div>
@@ -980,56 +857,55 @@ body {
 
       <div class="c2-panel">
         <div class="panel-head">
-          <span class="panel-head-title">🎯 Passive Scanner</span>
-          <span class="panel-head-status tac-amber">TRACKING</span>
+          <span class="panel-head-title">External Service Health</span>
+          <span class="panel-head-status tac-cyan" id="status-head-status">PROBING...</span>
         </div>
-        <div class="panel-body" style="display:flex; flex-direction:column; align-items:center; gap:12px;">
-          <div class="radar-wrap" aria-hidden="true">
-            <canvas class="radar-canvas" id="radar-canvas" width="180" height="180"></canvas>
-          </div>
-          <div style="font-size:10px; color:var(--text-muted); text-align:center; letter-spacing:1px;">
-            AZI: <span class="tac-cyan" id="radar-azi">---°</span> &nbsp;|&nbsp;
-            ELV: <span class="tac-amber" id="radar-elv">---°</span>
-          </div>
+        <div class="panel-body">
+          <div class="node-list" id="node-list"></div>
         </div>
+        <div class="panel-src">Source: public statuspage APIs</div>
       </div>
 
       <div class="c2-panel full">
         <div class="panel-head">
-          <span class="panel-head-title">🗺️ Global Node Topology</span>
-          <span class="panel-head-status tac-cyan scramble">LIVE</span>
+          <span class="panel-head-title">World Plot — Seismic Events + ISS Ground Track</span>
+          <span class="panel-head-status tac-cyan">LIVE</span>
         </div>
-        <canvas id="minimap-canvas" aria-label="Global node topology map" height="140"></canvas>
+        <canvas id="worldmap-canvas" aria-label="World map plotting live earthquakes and ISS position" height="200"></canvas>
       </div>
 
     </div>
   </section>
 
-  <section id="threats" class="section">
-    <div class="section-eyebrow">Threat Intelligence</div>
-    <h2 class="section-title">Global Military <span class="accent">Threat Evaluation</span></h2>
+  <section id="geomag" class="section">
+    <div class="section-eyebrow">Space Weather</div>
+    <h2 class="section-title">Geomagnetic <span class="accent">Conditions</span></h2>
     <div class="section-rule"></div>
 
-    <div class="defcon-banner" role="status" aria-label="Current DEFCON level">
+    <div class="geomag-banner quiet" id="geomag-banner" role="status" aria-label="Current geomagnetic conditions">
       <div>
-        <div class="defcon-level">DEFCON 3 // ELEVATED READY STATE</div>
-        <div class="defcon-sub">Strategic Intelligence Engine // Probability Anchor Divergence Logged</div>
+        <div class="geomag-level" id="geomag-level">CONNECTING TO NOAA SWPC...</div>
+        <div class="geomag-sub" id="geomag-sub">NOAA space weather scale // Kp 5+ indicates geomagnetic storm conditions</div>
       </div>
-      <div class="defcon-blocks" aria-hidden="true">
-        <div class="defcon-block"></div>
-        <div class="defcon-block"></div>
-        <div class="defcon-block active"></div>
-        <div class="defcon-block active"></div>
-        <div class="defcon-block active"></div>
-      </div>
+      <div class="geomag-blocks" id="geomag-blocks" aria-hidden="true"></div>
     </div>
 
-    <div class="threat-grid" id="threat-grid"></div>
+    <div class="c2-panel full" style="border:1px solid var(--tac-dim); border-top:none;">
+      <div class="panel-head">
+        <span class="panel-head-title">Planetary K-Index — Recent Readings</span>
+        <span class="panel-head-status tac-cyan" id="kp-head-status">--</span>
+      </div>
+      <div class="panel-body">
+        <div class="kp-viz" id="kp-viz" aria-label="Kp index bar chart"></div>
+        <div class="kp-scale"><span>OLDEST</span><span>3-HOUR INTERVALS // SCALE 0–9</span><span>LATEST</span></div>
+      </div>
+      <div class="panel-src">Source: NOAA Space Weather Prediction Center</div>
+    </div>
   </section>
 
   <footer class="sys-footer">
-    <span>© 2026 NEGARANDEH // ALL RIGHTS RESERVED // OPERATIONS SECURED</span>
-    <span class="tac-cyan">NEGARIX v3.1.0 // BUILD <span id="build-hash"></span></span>
+    <span>© 2026 NEGARANDEH // LIVE DATA: USGS · NOAA SWPC · WHERETHEISS.AT · ATLASSIAN STATUSPAGE</span>
+    <span class="tac-cyan">NEGARIX v4.0 // <a href="index.html">RETURN TO GATEWAY</a></span>
   </footer>
 
 </div>
@@ -1038,71 +914,122 @@ body {
 
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-(function initBoot() {
-  var overlay = document.getElementById('boot-overlay');
-  var log     = document.getElementById('boot-log');
-  var fill    = document.getElementById('boot-progress-fill');
-  var main    = document.getElementById('main-wrapper');
+var FEEDS = {
+  quakes: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson',
+  kp:     'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
+  iss:    'https://api.wheretheiss.at/v1/satellites/25544',
+  status: [
+    { name: 'GITHUB',     url: 'https://www.githubstatus.com/api/v2/status.json' },
+    { name: 'CLOUDFLARE', url: 'https://www.cloudflarestatus.com/api/v2/status.json' },
+    { name: 'NETLIFY',    url: 'https://www.netlifystatus.com/api/v2/status.json' }
+  ]
+};
 
+var STATE = {
+  quakes: null,
+  kpNow: null,
+  iss: null,
+  services: {},
+  bootDone: false
+};
+
+function utcNow() { return new Date().toISOString().slice(11, 19); }
+
+function fetchJSON(url, timeoutMs) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 10000);
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' })
+    .then(function (r) {
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .catch(function (e) {
+      clearTimeout(timer);
+      throw e;
+    });
+}
+
+/* ---- Event feed (real telemetry of this page) ---- */
+var feedEl = null;
+function logFeed(src, text, cls) {
+  if (!feedEl) feedEl = document.getElementById('event-feed');
+  if (!feedEl) return;
+  var line = document.createElement('div');
+  line.className = 'feed-line' + (cls ? ' ' + cls : '');
+  var ts = document.createElement('span');
+  ts.className = 'feed-ts';
+  ts.textContent = utcNow();
+  var s = document.createElement('span');
+  s.className = 'feed-src';
+  s.textContent = src;
+  var d = document.createElement('span');
+  d.className = 'feed-data';
+  d.textContent = text;
+  line.appendChild(ts);
+  line.appendChild(s);
+  line.appendChild(d);
+  feedEl.insertBefore(line, feedEl.firstChild);
+  while (feedEl.children.length > 18) feedEl.removeChild(feedEl.lastChild);
+}
+
+/* ---- Boot log ---- */
+var bootLog = document.getElementById('boot-log');
+function bootLine(cls, text) {
+  if (STATE.bootDone || !bootLog) return;
+  var el = document.createElement('div');
+  el.className = 'boot-line ' + cls;
+  el.textContent = text;
+  bootLog.appendChild(el);
+  bootLog.scrollTop = bootLog.scrollHeight;
+}
+
+function finishBoot() {
+  if (STATE.bootDone) return;
+  STATE.bootDone = true;
+  var overlay = document.getElementById('boot-overlay');
+  var main = document.getElementById('main-wrapper');
+  main.classList.add('visible');
+  if (overlay) {
+    overlay.classList.add('fade-out');
+    setTimeout(function () { overlay.remove(); }, 900);
+  }
+}
+
+(function initBoot() {
+  var main = document.getElementById('main-wrapper');
   if (REDUCED_MOTION) {
-    overlay.remove();
+    var overlay = document.getElementById('boot-overlay');
+    if (overlay) overlay.remove();
+    STATE.bootDone = true;
     main.classList.add('visible');
     return;
   }
-
-  var lines = [
-    { cls:'head', text:'NEGARIX OS v3.1.0 // SECURE BOOT INITIATED' },
-    { cls:'ok',   text:'[OK] Loading cryptographic modules ... AES-256-GCM / RSA-4096' },
-    { cls:'ok',   text:'[OK] Initialising memory isolation zones ... COMPLETE' },
-    { cls:'ok',   text:'[OK] Neural canvas renderer ... LOADED' },
-    { cls:'warn', text:'[WARN] Telemetry signature elevated — suppressing SIGINT noise floor' },
-    { cls:'ok',   text:'[OK] Zero-trust perimeter enforcement ... ENGAGED' },
-    { cls:'ok',   text:'[OK] Transport matrix TLS 1.3 strict ... VERIFIED' },
-    { cls:'ok',   text:'[OK] DKIM keysets RSA-2048 ... ALIGNED' },
-    { cls:'ok',   text:'[OK] SPF + DMARC policy enforcement ... ISOLATED' },
-    { cls:'warn', text:'[WARN] Anomalous packet detected on LOND-NODE-01 :: flagging' },
-    { cls:'ok',   text:'[OK] CAA anti-wildcard guard ... ANCHORED' },
-    { cls:'ok',   text:'[OK] RF spectrum receiver ... 433.92 MHz / hopping enabled' },
-    { cls:'ok',   text:'[OK] Passive scanner targeting array ... ARMED' },
-    { cls:'err',  text:'[ERR] Node MOSW-NODE-07 :: no route to host — isolating' },
-    { cls:'ok',   text:'[OK] Threat evaluation matrix loaded ... 6 theaters active' },
-    { cls:'ok',   text:'[OK] Global infrastructure nodes: 5/6 ONLINE' },
-    { cls:'ok',   text:'[OK] SIGINT intercept stream ... LOCKED' },
-    { cls:'info', text:'[SYS] All systems nominal. Launching C2 interface...' }
-  ];
-
-  var delays = [0,120,200,280,380,460,540,620,700,780,860,940,1020,1100,1180,1260,1340,1440];
-
-  lines.forEach(function (l, i) {
-    setTimeout(function () {
-      var el = document.createElement('div');
-      el.className = 'boot-line ' + l.cls;
-      el.textContent = l.text;
-      log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
-      fill.style.width = ((i + 1) / lines.length * 100) + '%';
-    }, delays[i]);
-  });
-
-  setTimeout(function () {
-    overlay.classList.add('fade-out');
-    main.classList.add('visible');
-    setTimeout(function () { overlay.remove(); }, 900);
-  }, delays[lines.length - 1] + 600);
+  bootLine('head', 'NEGARIX LIVE OPS v4.0 // INITIALISING');
+  bootLine('info', '[SYS] All telemetry on this console is live public data.');
+  bootLine('ok',   '[OK] Renderer initialised');
+  setTimeout(finishBoot, 4000);
 })();
 
+/* ---- Clock + connection ---- */
 (function initClock() {
   var el = document.getElementById('live-clock');
+  var dot = document.getElementById('conn-dot');
+  var lbl = document.getElementById('conn-label');
   function tick() {
-    el.textContent = new Date().toISOString().slice(11, 19) + ' UTC';
+    el.textContent = utcNow() + ' UTC';
+    var on = navigator.onLine;
+    dot.className = 'pulse-dot' + (on ? '' : ' offline');
+    lbl.textContent = on ? 'LINK UP' : 'OFFLINE';
+    lbl.className = on ? 'tac-cyan' : 'tac-red';
   }
   tick();
   setInterval(tick, 1000);
+  window.addEventListener('online', tick);
+  window.addEventListener('offline', tick);
 })();
 
-document.getElementById('build-hash').textContent =
-  Math.random().toString(16).slice(2, 10).toUpperCase();
-
+/* ---- Background particles ---- */
 (function initBgCanvas() {
   var canvas = document.getElementById('bg-canvas');
   if (!canvas || !canvas.getContext) return;
@@ -1110,7 +1037,7 @@ document.getElementById('build-hash').textContent =
   var W, H, nodes;
 
   function initNodes() {
-    var count = Math.min(Math.floor(W * H / 14000), 80);
+    var count = Math.min(Math.floor(W * H / 16000), 70);
     nodes = [];
     for (var i = 0; i < count; i++) {
       nodes.push({
@@ -1125,7 +1052,7 @@ document.getElementById('build-hash').textContent =
 
   var resizeTimer = null;
   function resize() {
-    W = canvas.width  = window.innerWidth;
+    W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
     initNodes();
   }
@@ -1134,33 +1061,22 @@ document.getElementById('build-hash').textContent =
     resizeTimer = setTimeout(resize, 150);
   }, { passive: true });
 
-  var mouse = { x: -9999, y: -9999 };
-  window.addEventListener('mousemove', function (e) {
-    mouse.x = e.clientX; mouse.y = e.clientY;
-  }, { passive: true });
-
   function frame() {
     ctx.clearRect(0, 0, W, H);
-    var LINK_DIST = 120;
     var i, j, dx, dy, d, n;
-
     for (i = 0; i < nodes.length; i++) {
       n = nodes[i];
       n.x += n.vx; n.y += n.vy;
       if (n.x < 0 || n.x > W) n.vx = -n.vx;
       if (n.y < 0 || n.y > H) n.vy = -n.vy;
-      dx = n.x - mouse.x; dy = n.y - mouse.y;
-      d = Math.sqrt(dx * dx + dy * dy);
-      if (d < 80 && d > 0) { n.x += dx / d * 1.2; n.y += dy / d * 1.2; }
     }
-
     for (i = 0; i < nodes.length; i++) {
       for (j = i + 1; j < nodes.length; j++) {
         dx = nodes[i].x - nodes[j].x;
         dy = nodes[i].y - nodes[j].y;
         d = Math.sqrt(dx * dx + dy * dy);
-        if (d < LINK_DIST) {
-          ctx.strokeStyle = 'rgba(0,229,255,' + ((1 - d / LINK_DIST) * 0.15) + ')';
+        if (d < 120) {
+          ctx.strokeStyle = 'rgba(0,229,255,' + ((1 - d / 120) * 0.12) + ')';
           ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -1169,31 +1085,41 @@ document.getElementById('build-hash').textContent =
         }
       }
     }
-
     for (i = 0; i < nodes.length; i++) {
       n = nodes[i];
-      ctx.fillStyle = 'rgba(0,229,255,0.4)';
+      ctx.fillStyle = 'rgba(0,229,255,0.35)';
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fill();
     }
-
-    if (!REDUCED_MOTION) requestAnimationFrame(frame);
+    if (!REDUCED_MOTION && !document.hidden) requestAnimationFrame(frame);
   }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && !REDUCED_MOTION) requestAnimationFrame(frame);
+  });
 
   resize();
   frame();
 })();
 
-(function initTicker() {
-  var items = [
-    '◈ UPLINK SECURE', '◈ TLS 1.3 ENFORCED', '◈ RF 433.92 MHz ACTIVE',
-    '◈ NODE MESH NOMINAL', '◈ DMARC ISOLATION ACTIVE', '◈ CIPHER ROTATE IN 04:22:11',
-    '◈ PACKET FLOW NOMINAL', '◈ DEFCON 3 // ELEVATED', '◈ THREAT MONITOR ENGAGED',
-    '◈ ZERO-TRUST PERIMETER: ENFORCED', '◈ PASSIVE SCANNER: ARMED',
-    '◈ SIGINT INTERCEPT: LOCKED', '◈ AIR GAP: ISOLATED', '◈ AES-256-GCM: ACTIVE'
-  ];
+/* ---- Ticker (live values, updated as feeds land) ---- */
+function updateTicker() {
+  var items = ['◈ ALL TELEMETRY LIVE // SOURCES: USGS · NOAA SWPC · WHERETHEISS · STATUSPAGE'];
+  if (STATE.quakes) {
+    items.push('◈ SEISMIC EVENTS M2.5+ (24H): ' + STATE.quakes.count);
+    if (STATE.quakes.maxMag !== null) items.push('◈ MAX MAGNITUDE (24H): M' + STATE.quakes.maxMag.toFixed(1));
+  }
+  if (STATE.kpNow !== null) items.push('◈ PLANETARY KP INDEX: ' + STATE.kpNow.toFixed(2));
+  if (STATE.iss) {
+    items.push('◈ ISS VELOCITY: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' KM/H');
+    items.push('◈ ISS ALTITUDE: ' + Math.round(STATE.iss.altitude) + ' KM');
+  }
+  Object.keys(STATE.services).forEach(function (k) {
+    items.push('◈ ' + k + ': ' + STATE.services[k].toUpperCase());
+  });
   var el = document.getElementById('ticker');
+  el.textContent = '';
   items.concat(items).forEach(function (t) {
     var span = document.createElement('span');
     span.className = 'ticker-item';
@@ -1204,362 +1130,391 @@ document.getElementById('build-hash').textContent =
     span.appendChild(document.createTextNode('\u00A0\u00A0' + t.replace('◈ ', '')));
     el.appendChild(span);
   });
-})();
+}
 
-(function initSpectrum() {
-  var viz = document.getElementById('spectrum-viz');
-  var N = 48;
-  var bars = [];
-  var values = [];
-  for (var i = 0; i < N; i++) {
-    var b = document.createElement('div');
-    b.className = 'spec-bar';
-    b.style.height = '4px';
-    viz.appendChild(b);
-    bars.push(b);
-    values.push(0);
-  }
-
-  function tick() {
-    for (var i = 0; i < N; i++) {
-      values[i] = values[i] * 0.85 + Math.random() * 15 + 2;
-      if (Math.random() < 0.04) values[i] += Math.random() * 60;
-      values[i] = Math.min(values[i], 76);
-      var h = Math.max(values[i], 2);
-      bars[i].style.height = h + 'px';
-      bars[i].className = 'spec-bar' + (h > 60 ? ' warn' : h > 40 ? ' hot' : '');
-    }
-  }
-  tick();
-  if (!REDUCED_MOTION) setInterval(tick, 80);
-})();
-
-(function initSigint() {
-  var feed = document.getElementById('sigint-feed');
-  var sources = ['SRC-A1', 'SRC-B7', 'SRC-C2', 'RTR-99', 'SAT-04', 'NDS-11', 'GND-33'];
-  var types   = ['BEACON', 'UPLINK', 'BYPASS', 'PROBE ', 'SYNC  ', 'FLOOD ', 'ACK   '];
-  var data    = [
-    'ENC_PAYLOAD :: 7f3a9c...', 'FREQ_HOP :: 868→915 MHz',
-    'AUTH TOKEN VALID :: 0x4f2a', 'RST FLAG :: DROP SEQUENCE',
-    '>>> ANOMALY DETECTED <<<', 'HANDSHAKE OK :: TLS_AES_256',
-    'ROUTE CHANGE :: AS64512', 'DNS QUERY :: FILTERED',
-    'PACKET LOSS :: 0.02%', 'TUNNEL ESTABLISHED'
-  ];
-
-  function ts() { return new Date().toISOString().slice(11, 19); }
-
-  function cell(cls, text) {
-    var s = document.createElement('span');
-    s.className = cls;
-    s.textContent = text;
-    return s;
-  }
-
-  function addLine() {
-    var isAlert = Math.random() < 0.12;
-    var line = document.createElement('div');
-    line.className = 'sigint-line' + (isAlert ? ' alert' : '');
-    var d = isAlert ? '>>> ANOMALY DETECTED <<<' : data[Math.floor(Math.random() * data.length)];
-    line.appendChild(cell('sigint-ts', ts()));
-    line.appendChild(cell('sigint-src', sources[Math.floor(Math.random() * sources.length)]));
-    line.appendChild(cell('sigint-type', types[Math.floor(Math.random() * types.length)]));
-    line.appendChild(cell('sigint-data', d));
-    feed.insertBefore(line, feed.firstChild);
-    while (feed.children.length > 18) feed.removeChild(feed.lastChild);
-  }
-
-  for (var i = 0; i < 8; i++) addLine();
-  if (!REDUCED_MOTION) setInterval(addLine, 900);
-})();
-
-(function initNodes() {
-  var nodes = [
-    { name:'LOND-NODE-01', ping:'12ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
-    { name:'WASH-NODE-04', ping:'48ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
-    { name:'TOKY-NODE-09', ping:'91ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
-    { name:'SYDN-NODE-02', ping:'67ms', status:'warn',   badge:'LATENCY', badgeCls:'badge-amber' },
-    { name:'DXBA-NODE-06', ping:'22ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
-    { name:'MOSW-NODE-07', ping:'---',  status:'err',    badge:'OFFLINE', badgeCls:'badge-red'   }
-  ];
-  var list = document.getElementById('node-list');
-  nodes.forEach(function (n) {
-    var row = document.createElement('div');
-    row.className = 'node-row ' + n.status;
-    var name = document.createElement('span');
-    name.className = 'node-name';
-    name.textContent = n.name;
-    var ping = document.createElement('span');
-    ping.className = 'node-ping';
-    ping.textContent = n.ping;
-    var badge = document.createElement('span');
-    badge.className = 'node-status-badge ' + n.badgeCls;
-    badge.textContent = n.badge;
-    row.appendChild(name);
-    row.appendChild(ping);
-    row.appendChild(badge);
-    list.appendChild(row);
-  });
-
-  if (!REDUCED_MOTION) {
-    setInterval(function () {
-      list.querySelectorAll('.node-row.warn').forEach(function (r) {
-        if (Math.random() < 0.3) {
-          r.style.opacity = '0.6';
-          setTimeout(function () { r.style.opacity = '1'; }, 200);
-        }
-      });
-    }, 3000);
-  }
-})();
-
-(function initRadar() {
-  var canvas = document.getElementById('radar-canvas');
+/* ---- World map (real positions: quakes + ISS) ---- */
+var mapState = { trail: [] };
+function drawWorldMap() {
+  var canvas = document.getElementById('worldmap-canvas');
   if (!canvas || !canvas.getContext) return;
   var ctx = canvas.getContext('2d');
-  var W = 180, H = 180, CX = W / 2, CY = H / 2, R = 80;
-  var angle = 0;
-  var blips = [];
+  var W = canvas.offsetWidth || 800;
+  var H = 200;
+  canvas.width = W;
+  canvas.height = H;
 
-  function addBlip() {
-    if (Math.random() < 0.3) {
-      var a = Math.random() * Math.PI * 2;
-      var r = Math.random() * R * 0.85;
-      blips.push({ x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r, life: 1.0 });
-    }
-    while (blips.length > 8) blips.shift();
-  }
-
-  function drawRadar() {
-    ctx.clearRect(0, 0, W, H);
-
-    for (var i = 1; i <= 4; i++) {
-      ctx.strokeStyle = 'rgba(0,229,255,0.12)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(CX, CY, R / 4 * i, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = 'rgba(0,229,255,0.08)';
-    ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(CX - R, CY); ctx.lineTo(CX + R, CY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke();
-
-    ctx.save();
-    ctx.translate(CX, CY);
-    ctx.rotate(angle);
-    var sg = ctx.createLinearGradient(0, 0, R, 0);
-    sg.addColorStop(0, 'rgba(0,229,255,0.0)');
-    sg.addColorStop(1, 'rgba(0,229,255,0.45)');
-    ctx.fillStyle = sg;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, R, -0.35, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    blips.forEach(function (b) {
-      b.life -= 0.008;
-      if (b.life <= 0) return;
-      ctx.fillStyle = 'rgba(57,255,158,' + b.life + ')';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(57,255,158,' + (b.life * 0.3) + ')';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 6, 0, Math.PI * 2);
-      ctx.stroke();
-    });
-
-    ctx.strokeStyle = 'rgba(0,229,255,0.35)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(CX, CY, R, 0, Math.PI * 2);
-    ctx.stroke();
-
-    angle += 0.025;
-    if (angle > Math.PI * 2) {
-      angle = 0;
-      addBlip();
-    }
-
-    var azi = Math.round((angle / (Math.PI * 2)) * 360);
-    var elv = Math.round(30 + Math.sin(angle * 3) * 15);
-    var aziEl = document.getElementById('radar-azi');
-    var elvEl = document.getElementById('radar-elv');
-    if (aziEl) aziEl.textContent = azi + '°';
-    if (elvEl) elvEl.textContent = elv + '°';
-
-    if (!REDUCED_MOTION) requestAnimationFrame(drawRadar);
-  }
-
-  addBlip(); addBlip();
-  drawRadar();
-})();
-
-(function initMinimap() {
-  var canvas = document.getElementById('minimap-canvas');
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  var W = 0, H = 140;
-
-  var nodeCoords = [
-    { name:'LOND', lat:51.5,  lon:-0.1,  status:'online' },
-    { name:'WASH', lat:38.9,  lon:-77.0, status:'online' },
-    { name:'TOKY', lat:35.7,  lon:139.7, status:'online' },
-    { name:'SYDN', lat:-33.9, lon:151.2, status:'warn' },
-    { name:'DXBA', lat:25.2,  lon:55.3,  status:'online' },
-    { name:'MOSW', lat:55.7,  lon:37.6,  status:'err' }
-  ];
-  var connections = [[0,1],[0,4],[0,5],[1,4],[2,3],[4,5]];
-
-  function latLonToXY(lat, lon) {
+  function xy(lat, lon) {
     return { x: ((lon + 180) / 360) * W, y: ((90 - lat) / 180) * H };
   }
 
-  function fit() {
-    var w = canvas.offsetWidth || canvas.parentElement.clientWidth;
-    if (w !== W) {
-      W = w;
-      canvas.width = W;
-      canvas.height = H;
-    }
+  ctx.fillStyle = 'rgba(6,13,20,0.8)';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(30,61,90,0.4)';
+  ctx.lineWidth = 0.5;
+  var gx, gy;
+  for (gx = 0; gx <= W; gx += W / 24) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
   }
+  for (gy = 0; gy <= H; gy += H / 12) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(30,61,90,0.8)';
+  ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
 
-  var resizeTimer = null;
-  window.addEventListener('resize', function () {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(fit, 150);
-  }, { passive: true });
-
-  var t = 0;
-  function draw() {
-    if (!W) fit();
-    ctx.clearRect(0, 0, W, H);
-
-    ctx.fillStyle = 'rgba(6,13,20,0.8)';
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.strokeStyle = 'rgba(30,61,90,0.4)';
-    ctx.lineWidth = 0.5;
-    var x, y;
-    for (x = 0; x <= W; x += W / 12) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-    }
-    for (y = 0; y <= H; y += H / 6) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    }
-
-    var xyMap = nodeCoords.map(function (n) {
-      var p = latLonToXY(n.lat, n.lon);
-      return { name: n.name, status: n.status, x: p.x, y: p.y };
-    });
-
-    connections.forEach(function (c) {
-      var p1 = xyMap[c[0]], p2 = xyMap[c[1]];
-      var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2 - 20;
-      var isErr = p1.status === 'err' || p2.status === 'err';
-      var isWarn = p1.status === 'warn' || p2.status === 'warn';
-      ctx.strokeStyle = isErr ? 'rgba(255,51,51,0.25)' : isWarn ? 'rgba(255,179,0,0.25)' : 'rgba(0,229,255,0.18)';
-      ctx.lineWidth = 0.8;
-      ctx.setLineDash([3, 6]);
-      ctx.lineDashOffset = -t * 0.5;
+  if (STATE.quakes) {
+    STATE.quakes.events.forEach(function (q) {
+      var p = xy(q.lat, q.lon);
+      var r = Math.max(1.5, q.mag - 1);
+      var color = q.mag >= 5.5 ? '255,51,51' : q.mag >= 4.5 ? '255,179,0' : '57,255,158';
+      ctx.fillStyle = 'rgba(' + color + ',0.85)';
       ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.quadraticCurveTo(mx, my, p2.x, p2.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    });
-
-    xyMap.forEach(function (n, i) {
-      var color = n.status === 'online' ? '#39ff9e' : n.status === 'warn' ? '#ffb300' : '#ff3333';
-      var pulse = 0.5 + 0.5 * Math.sin(t * 0.06 + i);
-
-      ctx.strokeStyle = color;
-      ctx.globalAlpha = pulse * 0.3;
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(' + color + ',0.25)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, 8 + pulse * 4, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.font = '8px "Share Tech Mono", monospace';
-      ctx.fillStyle = 'rgba(200,223,240,0.6)';
-      ctx.fillText(n.name, n.x + 6, n.y - 5);
     });
-
-    t++;
-    if (!REDUCED_MOTION) requestAnimationFrame(draw);
   }
 
-  fit();
-  draw();
-})();
+  if (mapState.trail.length > 1) {
+    ctx.strokeStyle = 'rgba(0,229,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    mapState.trail.forEach(function (t, i) {
+      var p = xy(t.lat, t.lon);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else if (Math.abs(t.lon - mapState.trail[i - 1].lon) > 90) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 
+  if (STATE.iss) {
+    var ip = xy(STATE.iss.latitude, STATE.iss.longitude);
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(ip.x, ip.y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,229,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(ip.x, ip.y, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = '8px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(200,223,240,0.8)';
+    ctx.fillText('ISS', ip.x + 10, ip.y - 4);
+  }
+
+  ctx.font = '8px "Share Tech Mono", monospace';
+  ctx.fillStyle = 'rgba(74,122,155,0.7)';
+  ctx.fillText('EQUIRECTANGULAR // M2.5+ 24H // ISS GROUND TRACK', 8, H - 8);
+}
+var mapResizeTimer = null;
+window.addEventListener('resize', function () {
+  if (mapResizeTimer) clearTimeout(mapResizeTimer);
+  mapResizeTimer = setTimeout(drawWorldMap, 150);
+}, { passive: true });
+
+/* ---- USGS earthquakes ---- */
+function loadQuakes() {
+  return fetchJSON(FEEDS.quakes).then(function (data) {
+    var feats = (data.features || []).slice();
+    feats.sort(function (a, b) { return b.properties.time - a.properties.time; });
+    var events = feats.map(function (f) {
+      return {
+        mag: f.properties.mag || 0,
+        place: f.properties.place || 'Unknown location',
+        time: f.properties.time,
+        lon: f.geometry.coordinates[0],
+        lat: f.geometry.coordinates[1]
+      };
+    });
+    var maxMag = events.length ? Math.max.apply(null, events.map(function (e) { return e.mag; })) : null;
+    STATE.quakes = { count: events.length, maxMag: maxMag, events: events };
+
+    var statEl = document.getElementById('stat-quakes');
+    if (statEl) statEl.textContent = events.length;
+    var maxEl = document.getElementById('stat-maxmag');
+    if (maxEl) maxEl.textContent = maxMag !== null ? 'M' + maxMag.toFixed(1) : '--';
+    var headEl = document.getElementById('quake-head-status');
+    if (headEl) headEl.textContent = events.length + ' EVENTS / 24H';
+
+    var tbody = document.getElementById('quake-tbody');
+    if (tbody) {
+      tbody.textContent = '';
+      events.slice(0, 7).forEach(function (q) {
+        var tr = document.createElement('tr');
+        var tdM = document.createElement('td');
+        tdM.className = 'q-mag ' + (q.mag >= 5.5 ? 'mag-high' : q.mag >= 4.5 ? 'mag-mid' : 'mag-low');
+        tdM.textContent = 'M' + q.mag.toFixed(1);
+        var tdP = document.createElement('td');
+        tdP.className = 'q-place';
+        tdP.textContent = q.place;
+        var tdT = document.createElement('td');
+        tdT.className = 'q-time';
+        tdT.textContent = new Date(q.time).toISOString().slice(11, 16) + ' UTC';
+        tr.appendChild(tdM);
+        tr.appendChild(tdP);
+        tr.appendChild(tdT);
+        tbody.appendChild(tr);
+      });
+    }
+
+    if (events.length) {
+      var latest = events[0];
+      logFeed('USGS', 'M' + latest.mag.toFixed(1) + ' :: ' + latest.place, latest.mag >= 5.5 ? 'alert' : '');
+    }
+    bootLine('ok', '[OK] USGS seismic feed :: ' + events.length + ' events (24h)');
+    drawWorldMap();
+    updateTicker();
+  }).catch(function (e) {
+    bootLine('err', '[ERR] USGS seismic feed :: ' + e.message);
+    logFeed('USGS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
+    var headEl = document.getElementById('quake-head-status');
+    if (headEl) { headEl.textContent = 'FEED UNAVAILABLE'; headEl.className = 'panel-head-status tac-red'; }
+  });
+}
+
+/* ---- NOAA Kp index ---- */
+function kpClass(v) { return v >= 5 ? 'warn' : v >= 4 ? 'hot' : ''; }
+function gScale(kp) {
+  if (kp >= 9) return { label: 'G5 // EXTREME STORM', cls: 'storm' };
+  if (kp >= 8) return { label: 'G4 // SEVERE STORM', cls: 'storm' };
+  if (kp >= 7) return { label: 'G3 // STRONG STORM', cls: 'storm' };
+  if (kp >= 6) return { label: 'G2 // MODERATE STORM', cls: 'storm' };
+  if (kp >= 5) return { label: 'G1 // MINOR STORM', cls: 'storm' };
+  if (kp >= 4) return { label: 'KP ' + kp.toFixed(1) + ' // ACTIVE CONDITIONS', cls: 'active' };
+  return { label: 'KP ' + kp.toFixed(1) + ' // QUIET FIELD', cls: 'quiet' };
+}
+
+function loadKp() {
+  return fetchJSON(FEEDS.kp).then(function (rows) {
+    var series = rows.slice(1).map(function (r) {
+      return { t: r[0], kp: parseFloat(r[1]) };
+    }).filter(function (r) { return !isNaN(r.kp); });
+    var recent = series.slice(-48);
+    var now = recent.length ? recent[recent.length - 1].kp : null;
+    STATE.kpNow = now;
+
+    var viz = document.getElementById('kp-viz');
+    if (viz) {
+      viz.textContent = '';
+      recent.forEach(function (r) {
+        var b = document.createElement('div');
+        b.className = 'kp-bar ' + kpClass(r.kp);
+        b.style.height = Math.max(2, (r.kp / 9) * 82) + 'px';
+        b.title = r.t + ' UTC :: Kp ' + r.kp;
+        viz.appendChild(b);
+      });
+    }
+
+    if (now !== null) {
+      var g = gScale(now);
+      var banner = document.getElementById('geomag-banner');
+      var lvl = document.getElementById('geomag-level');
+      var sub = document.getElementById('geomag-sub');
+      if (banner) banner.className = 'geomag-banner ' + g.cls;
+      if (lvl) lvl.textContent = g.label;
+      if (sub) sub.textContent = 'NOAA SWPC PLANETARY K-INDEX // LAST READING ' + recent[recent.length - 1].t + ' UTC';
+
+      var blocks = document.getElementById('geomag-blocks');
+      if (blocks) {
+        blocks.textContent = '';
+        for (var i = 1; i <= 9; i++) {
+          var blk = document.createElement('div');
+          blk.className = 'geomag-block';
+          blk.textContent = i;
+          if (now >= i) {
+            blk.className += i >= 5 ? ' lit-red' : i >= 4 ? ' lit-amber' : ' lit-green';
+          }
+          blocks.appendChild(blk);
+        }
+      }
+
+      var kpHead = document.getElementById('kp-head-status');
+      if (kpHead) kpHead.textContent = 'KP ' + now.toFixed(2);
+      var statKp = document.getElementById('stat-kp');
+      if (statKp) statKp.textContent = now.toFixed(1);
+      logFeed('SWPC', 'Planetary Kp :: ' + now.toFixed(2), now >= 5 ? 'alert' : 'ok');
+    }
+    bootLine('ok', '[OK] NOAA SWPC K-index feed :: current Kp ' + (now !== null ? now.toFixed(2) : '--'));
+    updateTicker();
+  }).catch(function (e) {
+    bootLine('err', '[ERR] NOAA SWPC feed :: ' + e.message);
+    logFeed('SWPC', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
+    var lvl = document.getElementById('geomag-level');
+    if (lvl) lvl.textContent = 'FEED UNAVAILABLE';
+  });
+}
+
+/* ---- ISS ---- */
+var orbitCtx = null;
+function drawOrbit() {
+  var canvas = document.getElementById('orbit-canvas');
+  if (!canvas || !canvas.getContext) return;
+  if (!orbitCtx) orbitCtx = canvas.getContext('2d');
+  var ctx = orbitCtx;
+  var W = 180, H = 180, CX = 90, CY = 90, R = 70;
+  ctx.clearRect(0, 0, W, H);
+
+  for (var i = 1; i <= 3; i++) {
+    ctx.strokeStyle = 'rgba(0,229,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(CX, CY, R / 3 * i, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(0,229,255,0.08)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(CX - R, CY); ctx.lineTo(CX + R, CY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(74,122,155,0.9)';
+  ctx.font = '8px "Share Tech Mono", monospace';
+  ctx.fillText('0°', CX + R + 2, CY + 3);
+  ctx.fillText('180°', CX - R - 22, CY + 3);
+
+  if (STATE.iss) {
+    var a = STATE.iss.longitude * Math.PI / 180;
+    var rr = R * (1 - Math.abs(STATE.iss.latitude) / 120);
+    var x = CX + Math.cos(a) * rr;
+    var y = CY + Math.sin(a) * rr;
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,229,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(x, y, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,229,255,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+}
+
+var issFirst = true;
+function loadISS() {
+  return fetchJSON(FEEDS.iss, 8000).then(function (d) {
+    STATE.iss = d;
+    mapState.trail.push({ lat: d.latitude, lon: d.longitude });
+    if (mapState.trail.length > 60) mapState.trail.shift();
+
+    function set(id, v) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = v;
+    }
+    set('iss-lat', d.latitude.toFixed(2) + '°');
+    set('iss-lon', d.longitude.toFixed(2) + '°');
+    set('iss-alt', Math.round(d.altitude) + ' km');
+    set('iss-vel', Math.round(d.velocity).toLocaleString('en-GB') + ' km/h');
+    set('iss-vis', (d.visibility || '--').toUpperCase());
+    var head = document.getElementById('iss-head-status');
+    if (head) { head.textContent = 'TRACKING'; head.className = 'panel-head-status tac-green'; }
+    var statV = document.getElementById('stat-iss');
+    if (statV) statV.textContent = Math.round(d.velocity).toLocaleString('en-GB');
+
+    if (issFirst) {
+      issFirst = false;
+      bootLine('ok', '[OK] ISS telemetry :: ' + Math.round(d.velocity).toLocaleString('en-GB') + ' km/h @ ' + Math.round(d.altitude) + ' km');
+      logFeed('ISS', 'Acquired :: ' + d.latitude.toFixed(1) + '°, ' + d.longitude.toFixed(1) + '°', 'ok');
+    }
+    drawOrbit();
+    drawWorldMap();
+    updateTicker();
+  }).catch(function (e) {
+    if (issFirst) {
+      issFirst = false;
+      bootLine('err', '[ERR] ISS telemetry :: ' + e.message);
+    }
+    logFeed('ISS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
+    var head = document.getElementById('iss-head-status');
+    if (head) { head.textContent = 'NO SIGNAL'; head.className = 'panel-head-status tac-red'; }
+  });
+}
+
+/* ---- Service status pages ---- */
+function loadStatus() {
+  var list = document.getElementById('node-list');
+  if (!list) return Promise.resolve();
+  list.textContent = '';
+  var rows = {};
+  FEEDS.status.forEach(function (svc) {
+    var row = document.createElement('div');
+    row.className = 'node-row pending';
+    var name = document.createElement('span');
+    name.className = 'node-name';
+    name.textContent = svc.name;
+    var detail = document.createElement('span');
+    detail.className = 'node-detail';
+    detail.textContent = 'QUERYING...';
+    var badge = document.createElement('span');
+    badge.className = 'node-status-badge badge-dim';
+    badge.textContent = 'PENDING';
+    row.appendChild(name);
+    row.appendChild(detail);
+    row.appendChild(badge);
+    list.appendChild(row);
+    rows[svc.name] = { row: row, detail: detail, badge: badge };
+  });
+
+  var okCount = 0;
+  return Promise.all(FEEDS.status.map(function (svc) {
+    return fetchJSON(svc.url, 8000).then(function (d) {
+      var ind = (d.status && d.status.indicator) || 'unknown';
+      var desc = (d.status && d.status.description) || 'Unknown';
+      STATE.services[svc.name] = desc;
+      var r = rows[svc.name];
+      r.detail.textContent = desc.toUpperCase();
+      if (ind === 'none') {
+        r.row.className = 'node-row online';
+        r.badge.className = 'node-status-badge badge-green';
+        r.badge.textContent = 'NOMINAL';
+        okCount++;
+      } else if (ind === 'minor' || ind === 'maintenance') {
+        r.row.className = 'node-row warn';
+        r.badge.className = 'node-status-badge badge-amber';
+        r.badge.textContent = ind.toUpperCase();
+      } else {
+        r.row.className = 'node-row err';
+        r.badge.className = 'node-status-badge badge-red';
+        r.badge.textContent = ind.toUpperCase();
+        logFeed('STATUS', svc.name + ' :: ' + desc, 'alert');
+      }
+    }).catch(function (e) {
+      var r = rows[svc.name];
+      r.row.className = 'node-row err';
+      r.detail.textContent = 'UNREACHABLE';
+      r.badge.className = 'node-status-badge badge-red';
+      r.badge.textContent = 'NO DATA';
+      logFeed('STATUS', svc.name + ' :: query failed (' + e.message + ')', 'alert');
+    });
+  })).then(function () {
+    var head = document.getElementById('status-head-status');
+    if (head) {
+      head.textContent = okCount + '/' + FEEDS.status.length + ' NOMINAL';
+      head.className = 'panel-head-status ' + (okCount === FEEDS.status.length ? 'tac-green' : 'tac-amber');
+    }
+    bootLine('ok', '[OK] Service status probes :: ' + okCount + '/' + FEEDS.status.length + ' nominal');
+    updateTicker();
+  });
+}
+
+/* ---- CLI (answers from live state) ---- */
 (function initCLI() {
-  var field  = document.getElementById('cli-field');
+  var field = document.getElementById('cli-field');
   var output = document.getElementById('cli-output');
   if (!field || !output) return;
 
-  var responses = {
-    help: [
-      'Available commands:',
-      '  status   — system health overview',
-      '  nodes    — list infrastructure nodes',
-      '  scan     — run passive network scan',
-      '  cipher   — show encryption status',
-      '  defcon   — current threat level',
-      '  clear    — clear output'
-    ],
-    status: [
-      'SYS STATUS :: ALL GREEN',
-      'Uptime: 99.97% // 847 days',
-      'CPU: 12% // MEM: 3.1GB / 16GB',
-      'Packets routed: 1.4B // Threats blocked: 14'
-    ],
-    nodes: [
-      'NODE INVENTORY :: 5/6 ONLINE',
-      '  LOND-NODE-01 :: 12ms  [OK]',
-      '  WASH-NODE-04 :: 48ms  [OK]',
-      '  TOKY-NODE-09 :: 91ms  [OK]',
-      '  SYDN-NODE-02 :: 67ms  [WARN: latency]',
-      '  DXBA-NODE-06 :: 22ms  [OK]',
-      '  MOSW-NODE-07 :: ---   [ERR: no route]'
-    ],
-    scan: [
-      'INITIATING PASSIVE SCAN ...',
-      'Probing 433.92 MHz band ...',
-      'Target acquisition: 3 contacts',
-      '  [1] 192.168.4.11 — BENIGN',
-      '  [2] 10.44.2.3   — BENIGN',
-      '  [3] UNKNOWN       — FLAGGED',
-      'Scan complete. 1 anomaly logged.'
-    ],
-    cipher: [
-      'ENCRYPTION STATUS ::',
-      '  Transport: TLS 1.3 (AES-256-GCM)',
-      '  Mail: DKIM RSA-2048 [ALIGNED]',
-      '  Storage: AES-256 at rest',
-      '  Key rotation: T-04:22:11'
-    ],
-    defcon: [
-      'THREAT LEVEL :: DEFCON 3',
-      'Status: ELEVATED READY STATE',
-      'Active theaters: 6',
-      'Highest index: INDO-PACIFIC (82)'
-    ],
-    clear: ['__CLEAR__']
-  };
-
   function addLine(text, cls) {
-    if (text === '__CLEAR__') { output.textContent = ''; return; }
     var el = document.createElement('div');
     el.className = cls || 'cli-line-out';
     el.textContent = text;
@@ -1567,7 +1522,60 @@ document.getElementById('build-hash').textContent =
     output.scrollTop = output.scrollHeight;
   }
 
-  addLine('NEGARIX CLI v3.1 // Type "help" for commands.', 'cli-line-out');
+  function run(cmd) {
+    switch (cmd) {
+      case 'help':
+        ['Available commands:',
+         '  quakes  — latest seismic events (USGS)',
+         '  kp      — geomagnetic conditions (NOAA SWPC)',
+         '  iss     — live ISS telemetry',
+         '  status  — external service health',
+         '  sources — list all data feeds',
+         '  refresh — re-poll all feeds',
+         '  clear   — clear output'].forEach(function (l) { addLine(l); });
+        break;
+      case 'quakes':
+        if (!STATE.quakes) { addLine('USGS feed not loaded.', 'cli-line-err'); break; }
+        addLine('SEISMIC :: ' + STATE.quakes.count + ' events M2.5+ in 24h');
+        STATE.quakes.events.slice(0, 5).forEach(function (q) {
+          addLine('  M' + q.mag.toFixed(1) + ' :: ' + q.place);
+        });
+        break;
+      case 'kp':
+        if (STATE.kpNow === null) { addLine('SWPC feed not loaded.', 'cli-line-err'); break; }
+        addLine('PLANETARY KP :: ' + STATE.kpNow.toFixed(2));
+        addLine('CONDITION :: ' + gScale(STATE.kpNow).label);
+        break;
+      case 'iss':
+        if (!STATE.iss) { addLine('ISS feed not loaded.', 'cli-line-err'); break; }
+        addLine('ISS :: ' + STATE.iss.latitude.toFixed(2) + '°, ' + STATE.iss.longitude.toFixed(2) + '°');
+        addLine('ALT :: ' + Math.round(STATE.iss.altitude) + ' km // VEL :: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' km/h');
+        break;
+      case 'status':
+        var keys = Object.keys(STATE.services);
+        if (!keys.length) { addLine('Status probes not loaded.', 'cli-line-err'); break; }
+        keys.forEach(function (k) { addLine('  ' + k + ' :: ' + STATE.services[k]); });
+        break;
+      case 'sources':
+        addLine('DATA SOURCES ::');
+        addLine('  earthquake.usgs.gov — seismic feed');
+        addLine('  services.swpc.noaa.gov — planetary K-index');
+        addLine('  api.wheretheiss.at — ISS telemetry');
+        addLine('  statuspage APIs — GitHub / Cloudflare / Netlify');
+        break;
+      case 'refresh':
+        addLine('Re-polling all feeds...');
+        loadQuakes(); loadKp(); loadISS(); loadStatus();
+        break;
+      case 'clear':
+        output.textContent = '';
+        break;
+      default:
+        addLine('Unknown command: "' + cmd + '". Try "help".', 'cli-line-err');
+    }
+  }
+
+  addLine('NEGARIX CLI v4.0 // Live data console. Type "help".');
 
   field.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
@@ -1575,108 +1583,20 @@ document.getElementById('build-hash').textContent =
     field.value = '';
     if (!cmd) return;
     addLine('▶ ' + cmd, 'cli-line-in');
-    var res = responses[cmd];
-    if (res) {
-      setTimeout(function () {
-        res.forEach(function (line, i) {
-          setTimeout(function () { addLine(line); }, i * 60);
-        });
-      }, 80);
-    } else {
-      addLine('Unknown command: "' + cmd + '". Try "help".', 'cli-line-err');
-    }
+    run(cmd);
   });
 })();
 
-(function initThreatGrid() {
-  var grid = document.getElementById('threat-grid');
-  if (!grid) return;
+/* ---- Kick off feeds + polling ---- */
+logFeed('SYS', 'Console initialised // all telemetry is live public data', 'ok');
+Promise.allSettled([loadQuakes(), loadKp(), loadISS(), loadStatus()]).then(function () {
+  bootLine('info', '[SYS] Initialisation complete.');
+  setTimeout(finishBoot, 700);
+});
 
-  var threats = [
-    { region:'EAST EUROPE',    index:74, trend:'+2', color:'#ff3333', detail:'Cyber-kinetic ops / Electronic warfare elevated' },
-    { region:'INDO-PACIFIC',   index:82, trend:'+5', color:'#ff3333', detail:'Carrier group movements / Signal jamming active' },
-    { region:'MIDDLE EAST',    index:61, trend:'-1', color:'#ffb300', detail:'Proxy conflict vectors / Infrastructure attacks' },
-    { region:'ARCTIC THEATER', index:48, trend:'+3', color:'#ffb300', detail:'Hypersonic test signatures / Radar incursions' },
-    { region:'SOUTH ASIA',     index:55, trend:'+1', color:'#ffb300', detail:'Border flash-points / Electronic intel gathering' },
-    { region:'CYBER DOMAIN',   index:91, trend:'+8', color:'#ff3333', detail:'APT cluster activity / Critical infra targeting' }
-  ];
-
-  threats.forEach(function (t) {
-    var card = document.createElement('div');
-    card.className = 'threat-card';
-    card.style.setProperty('--accent', t.color);
-
-    var region = document.createElement('div');
-    region.className = 'threat-region';
-    region.textContent = t.region;
-
-    var wrap = document.createElement('div');
-    wrap.className = 'threat-index-wrap';
-
-    var val = document.createElement('div');
-    val.className = 'threat-index-val';
-    val.style.color = t.color;
-    val.style.textShadow = '0 0 12px ' + t.color + '80';
-    val.textContent = t.index;
-
-    var lbl = document.createElement('div');
-    lbl.className = 'threat-index-lbl';
-    lbl.appendChild(document.createTextNode('THREAT INDEX'));
-    lbl.appendChild(document.createElement('br'));
-    var trend = document.createElement('span');
-    trend.style.color = t.color;
-    trend.textContent = t.trend + ' 24H';
-    lbl.appendChild(trend);
-
-    wrap.appendChild(val);
-    wrap.appendChild(lbl);
-
-    var barWrap = document.createElement('div');
-    barWrap.className = 'threat-bar-wrap';
-    var bar = document.createElement('div');
-    bar.className = 'threat-bar-fill';
-    bar.style.width = '0%';
-    bar.style.setProperty('--accent', t.color);
-    barWrap.appendChild(bar);
-
-    var detail = document.createElement('div');
-    detail.className = 'threat-detail';
-    detail.textContent = t.detail;
-
-    card.appendChild(region);
-    card.appendChild(wrap);
-    card.appendChild(barWrap);
-    card.appendChild(detail);
-    grid.appendChild(card);
-
-    if (REDUCED_MOTION) {
-      bar.style.width = t.index + '%';
-    } else {
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) {
-          if (en.isIntersecting) {
-            setTimeout(function () { bar.style.width = t.index + '%'; }, 200);
-            obs.disconnect();
-          }
-        });
-      }, { threshold: 0.3 });
-      obs.observe(card);
-    }
-  });
-})();
-
-(function initFreqHop() {
-  var freqs = ['433.92 MHz','868.00 MHz','915.00 MHz','2.4 GHz','5.8 GHz','1.2 GHz'];
-  var el = document.getElementById('freq-display');
-  if (!el || REDUCED_MOTION) return;
-  var i = 0;
-  setInterval(function () {
-    if (Math.random() < 0.25) {
-      i = (i + 1) % freqs.length;
-      el.textContent = freqs[i];
-    }
-  }, 2200);
-})();
+setInterval(function () { if (!document.hidden) loadISS(); }, 5000);
+setInterval(function () { if (!document.hidden) { loadQuakes(); loadStatus(); } }, 300000);
+setInterval(function () { if (!document.hidden) loadKp(); }, 600000);
 </script>
 </body>
 </html>
