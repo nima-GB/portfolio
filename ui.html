@@ -2,19 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Negarandeh // NEGARIX GLOBAL C2</title>
-<meta name="description" content="Negarandeh — Systems Architecture & Global SIGINT C2. Secure infrastructure, zero-trust frameworks, resilient operational systems.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Negarandeh</title>
 <meta name="robots" content="index, follow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nNMvBNqJ/VExMAYZjbJPUiUShHzADyl14GqAnkgbdFw='; style-src 'sha256-RKbD4z0fRkxtsQW1Uhlvy0zeUpwcUG7zcevLGkFf3Ms=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'none'; connect-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
 <style>
-/* ================================================================
-   NEGARANDEH // NEGARIX GLOBAL C2
-   Design Token System
-   ================================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
 
 :root {
-  /* Core Palette */
   --void:        #020408;
   --deep:        #060d14;
   --surface:     #0a1520;
@@ -30,12 +26,10 @@
   --text-muted:  #4a7a9b;
   --text-ghost:  #1e3d5a;
 
-  /* Type */
   --font-hud:    'Share Tech Mono', monospace;
   --font-display:'Orbitron', sans-serif;
   --font-body:   'Rajdhani', sans-serif;
 
-  /* Glow */
   --glow-cyan:   0 0 8px rgba(0,229,255,0.6), 0 0 20px rgba(0,229,255,0.2);
   --glow-green:  0 0 8px rgba(57,255,158,0.6), 0 0 20px rgba(57,255,158,0.2);
   --glow-red:    0 0 8px rgba(255,51,51,0.6),  0 0 20px rgba(255,51,51,0.2);
@@ -54,13 +48,8 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   cursor: crosshair;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
-/* ================================================================
-   BOOT SEQUENCE
-   ================================================================ */
 #boot-overlay {
   position: fixed;
   inset: 0;
@@ -124,9 +113,6 @@ body {
 }
 #boot-logo span { color: var(--text-muted); font-weight: 300; }
 
-/* ================================================================
-   BACKGROUND CANVAS & GRID
-   ================================================================ */
 #bg-canvas {
   position: fixed;
   inset: 0;
@@ -156,9 +142,6 @@ body {
   background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
 }
 
-/* ================================================================
-   LAYOUT WRAPPER
-   ================================================================ */
 #main-wrapper {
   position: relative;
   z-index: 10;
@@ -168,9 +151,6 @@ body {
 }
 #main-wrapper.visible { opacity: 1; }
 
-/* ================================================================
-   HEADER / NAV
-   ================================================================ */
 .sys-header {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -182,6 +162,7 @@ body {
   height: 52px;
   background: rgba(2,4,8,0.92);
   border-bottom: 1px solid var(--tac-dim);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -207,7 +188,8 @@ body {
   transition: all 0.2s;
   text-transform: uppercase;
 }
-.sys-nav a:hover {
+.sys-nav a:hover,
+.sys-nav a:focus-visible {
   color: var(--tac-cyan);
   border-color: var(--tac-dim);
   background: rgba(0,229,255,0.04);
@@ -233,9 +215,6 @@ body {
   50% { opacity: 0.4; transform: scale(0.7); }
 }
 
-/* ================================================================
-   SECTIONS
-   ================================================================ */
 .section {
   padding: 100px 40px 60px;
   max-width: 1600px;
@@ -274,9 +253,6 @@ body {
   margin-bottom: 40px;
 }
 
-/* ================================================================
-   HERO / PROFILE
-   ================================================================ */
 #profile {
   min-height: 100vh;
   display: flex;
@@ -357,13 +333,13 @@ body {
   background: rgba(0,229,255,0.04);
   transition: all 0.25s;
 }
-.hero-cta:hover {
+.hero-cta:hover,
+.hero-cta:focus-visible {
   background: rgba(0,229,255,0.12);
   box-shadow: var(--glow-cyan);
 }
 .hero-cta::before { content: '>'; font-family: var(--font-hud); }
 
-/* Scrolling ticker */
 .ticker-wrap {
   position: absolute;
   bottom: 40px;
@@ -387,11 +363,6 @@ body {
 }
 .ticker-item .hi { color: var(--tac-cyan); }
 @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-/* ================================================================
-   COMPETENCIES
-   ================================================================ */
-#competencies { background: transparent; }
 
 .comp-grid {
   display: grid;
@@ -457,11 +428,6 @@ body {
   text-transform: uppercase;
 }
 
-/* ================================================================
-   C2 DASHBOARD
-   ================================================================ */
-#telemetry { background: transparent; }
-
 .c2-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -500,7 +466,6 @@ body {
 }
 .panel-body { padding: 16px; }
 
-/* SIGINT Stream */
 .sigint-feed {
   font-family: var(--font-hud);
   font-size: 9px;
@@ -527,7 +492,6 @@ body {
 .sigint-data { color: var(--text-muted); }
 .sigint-line.alert .sigint-data { color: var(--tac-red); }
 
-/* Spectrum Visualizer */
 .spectrum-viz {
   display: flex;
   align-items: flex-end;
@@ -545,7 +509,6 @@ body {
 .spec-bar.hot { background: var(--tac-amber); opacity: 1; }
 .spec-bar.warn { background: var(--tac-red); }
 
-/* Node Cluster */
 .node-list { display: flex; flex-direction: column; gap: 8px; }
 .node-row {
   display: flex;
@@ -570,7 +533,6 @@ body {
 .badge-amber { color: var(--tac-amber); border: 1px solid rgba(255,179,0,0.2); }
 .badge-red   { color: var(--tac-red);   border: 1px solid rgba(255,51,51,0.2); }
 
-/* Radar */
 .radar-wrap {
   position: relative;
   width: 180px;
@@ -579,7 +541,6 @@ body {
 }
 .radar-canvas { width: 100%; height: 100%; }
 
-/* Defense Table */
 .defense-table {
   width: 100%;
   border-collapse: collapse;
@@ -609,7 +570,6 @@ body {
 .secured   { color: var(--tac-green); }
 .active    { color: var(--tac-amber); }
 
-/* CLI */
 .cli-wrap {
   background: rgba(0,0,0,0.5);
   border: 1px solid var(--tac-dim);
@@ -647,17 +607,11 @@ body {
   cursor: text;
 }
 
-/* Minimap */
 #minimap-canvas {
   width: 100%;
   height: 140px;
   display: block;
 }
-
-/* ================================================================
-   THREAT MATRIX
-   ================================================================ */
-#threats { background: transparent; }
 
 .defcon-banner {
   display: flex;
@@ -788,9 +742,6 @@ body {
   line-height: 1.8;
 }
 
-/* ================================================================
-   FOOTER
-   ================================================================ */
 .sys-footer {
   border-top: 1px solid var(--tac-dim);
   padding: 24px 40px;
@@ -802,9 +753,6 @@ body {
   letter-spacing: 1px;
 }
 
-/* ================================================================
-   UTILITIES
-   ================================================================ */
 .tac-cyan   { color: var(--tac-cyan)   !important; }
 .tac-green  { color: var(--tac-green)  !important; }
 .tac-amber  { color: var(--tac-amber)  !important; }
@@ -829,17 +777,11 @@ body {
   92% { opacity: 1; }
 }
 
-/* ================================================================
-   SCROLLBAR
-   ================================================================ */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--void); }
 ::-webkit-scrollbar-thumb { background: var(--tac-dim); }
 ::-webkit-scrollbar-thumb:hover { background: var(--tac-cyan); }
 
-/* ================================================================
-   RESPONSIVE
-   ================================================================ */
 @media (max-width: 900px) {
   .c2-grid { grid-template-columns: 1fr; }
   .c2-panel.wide, .c2-panel.full { grid-column: span 1; }
@@ -854,27 +796,25 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  #boot-overlay { display: none; }
+  #main-wrapper { opacity: 1; }
+  #boot-log .boot-line { opacity: 1; }
 }
 </style>
 </head>
 <body>
-
-<!-- BOOT SEQUENCE -->
 <div id="boot-overlay">
   <div id="boot-logo">NEGARIX <span>// INIT</span></div>
   <div id="boot-log"></div>
   <div id="boot-progress-bar"><div id="boot-progress-fill"></div></div>
 </div>
 
-<!-- BG EFFECTS -->
-<canvas id="bg-canvas"></canvas>
-<div class="scanlines"></div>
-<div class="vignette"></div>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="scanlines" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
 
-<!-- MAIN CONTENT -->
 <div id="main-wrapper">
 
-  <!-- HEADER -->
   <header class="sys-header">
     <div class="header-brand">NEGARANDEH <span>// C2</span></div>
     <nav class="sys-nav" aria-label="Primary navigation">
@@ -882,6 +822,7 @@ body {
       <a href="#competencies">Competencies</a>
       <a href="#telemetry">C2 Matrix</a>
       <a href="#threats">Threat Intel</a>
+      <a href="index.html">⌂ Exit</a>
     </nav>
     <div class="header-status">
       <div class="pulse-dot"></div>
@@ -890,9 +831,6 @@ body {
     </div>
   </header>
 
-  <!-- ======================================================
-       HERO / PROFILE
-       ====================================================== -->
   <section id="profile" class="section">
     <div class="hero-tag">PERSONNEL FILE // CLEARED: TOP SECRET</div>
     <h1 class="hero-name glitch">
@@ -921,15 +859,11 @@ body {
 
     <a href="#telemetry" class="hero-cta">Access C2 Dashboard</a>
 
-    <!-- Ticker -->
     <div class="ticker-wrap" aria-hidden="true">
       <div class="ticker-track" id="ticker"></div>
     </div>
   </section>
 
-  <!-- ======================================================
-       COMPETENCIES
-       ====================================================== -->
   <section id="competencies" class="section">
     <div class="section-eyebrow">Core Competencies</div>
     <h2 class="section-title">Operational <span class="accent">Capabilities</span></h2>
@@ -949,7 +883,7 @@ body {
       </div>
       <div class="comp-card">
         <div class="comp-num">02 // SECURITY</div>
-        <div class="comp-title">Security & Compliance</div>
+        <div class="comp-title">Security &amp; Compliance</div>
         <p class="comp-body">Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols protecting digital assets from external vulnerabilities.</p>
         <div class="comp-tags">
           <span class="comp-tag">Zero-Trust</span>
@@ -982,9 +916,6 @@ body {
     </div>
   </section>
 
-  <!-- ======================================================
-       C2 TELEMETRY
-       ====================================================== -->
   <section id="telemetry" class="section">
     <div class="section-eyebrow">Advanced Cyber Operations</div>
     <h2 class="section-title">SIGINT <span class="accent">C2 Matrix</span></h2>
@@ -992,7 +923,6 @@ body {
 
     <div class="c2-grid">
 
-      <!-- ROW 1: SIGINT Stream (wide) + Nodes -->
       <div class="c2-panel wide">
         <div class="panel-head">
           <span class="panel-head-title">📡 RF Spectrum &amp; Intercept Stream</span>
@@ -1000,11 +930,10 @@ body {
         </div>
         <div class="panel-body">
           <div class="spectrum-viz" id="spectrum-viz" aria-hidden="true"></div>
-          <div class="sigint-feed" id="sigint-feed" aria-label="SIGINT intercept stream" aria-live="polite"></div>
+          <div class="sigint-feed" id="sigint-feed" aria-label="SIGINT intercept stream"></div>
         </div>
       </div>
 
-      <!-- Global Nodes -->
       <div class="c2-panel">
         <div class="panel-head">
           <span class="panel-head-title">🌐 Global Infrastructure Nodes</span>
@@ -1015,7 +944,6 @@ body {
         </div>
       </div>
 
-      <!-- ROW 2: Defense Table (wide) + Radar -->
       <div class="c2-panel wide">
         <div class="panel-head">
           <span class="panel-head-title">🛡️ Zero-Trust Perimeter Enforcement</span>
@@ -1043,14 +971,13 @@ body {
               <div class="cli-output" id="cli-output"></div>
               <div class="cli-input-row">
                 <span class="cli-prompt" aria-hidden="true">▶</span>
-                <input class="cli-field" id="cli-field" type="text" placeholder="ENTER COMMAND..." autocomplete="off" aria-label="Command input" spellcheck="false">
+                <input class="cli-field" id="cli-field" type="text" placeholder="ENTER COMMAND..." autocomplete="off" aria-label="Command input" spellcheck="false" maxlength="64">
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Radar -->
       <div class="c2-panel">
         <div class="panel-head">
           <span class="panel-head-title">🎯 Passive Scanner</span>
@@ -1067,7 +994,6 @@ body {
         </div>
       </div>
 
-      <!-- Minimap full row -->
       <div class="c2-panel full">
         <div class="panel-head">
           <span class="panel-head-title">🗺️ Global Node Topology</span>
@@ -1079,9 +1005,6 @@ body {
     </div>
   </section>
 
-  <!-- ======================================================
-       THREAT MATRIX
-       ====================================================== -->
   <section id="threats" class="section">
     <div class="section-eyebrow">Threat Intelligence</div>
     <h2 class="section-title">Global Military <span class="accent">Threat Evaluation</span></h2>
@@ -1104,29 +1027,30 @@ body {
     <div class="threat-grid" id="threat-grid"></div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="sys-footer">
     <span>© 2026 NEGARANDEH // ALL RIGHTS RESERVED // OPERATIONS SECURED</span>
     <span class="tac-cyan">NEGARIX v3.1.0 // BUILD <span id="build-hash"></span></span>
   </footer>
 
-</div><!-- /main-wrapper -->
-
+</div>
 <script>
-/* ================================================================
-   NEGARANDEH // NEGARIX C2 — Main Script
-   ================================================================ */
+'use strict';
 
-/* ---------------------------------------------------------------
-   BOOT SEQUENCE
-   --------------------------------------------------------------- */
+var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 (function initBoot() {
-  const overlay  = document.getElementById('boot-overlay');
-  const log      = document.getElementById('boot-log');
-  const fill     = document.getElementById('boot-progress-fill');
-  const main     = document.getElementById('main-wrapper');
+  var overlay = document.getElementById('boot-overlay');
+  var log     = document.getElementById('boot-log');
+  var fill    = document.getElementById('boot-progress-fill');
+  var main    = document.getElementById('main-wrapper');
 
-  const lines = [
+  if (REDUCED_MOTION) {
+    overlay.remove();
+    main.classList.add('visible');
+    return;
+  }
+
+  var lines = [
     { cls:'head', text:'NEGARIX OS v3.1.0 // SECURE BOOT INITIATED' },
     { cls:'ok',   text:'[OK] Loading cryptographic modules ... AES-256-GCM / RSA-4096' },
     { cls:'ok',   text:'[OK] Initialising memory isolation zones ... COMPLETE' },
@@ -1144,97 +1068,99 @@ body {
     { cls:'ok',   text:'[OK] Threat evaluation matrix loaded ... 6 theaters active' },
     { cls:'ok',   text:'[OK] Global infrastructure nodes: 5/6 ONLINE' },
     { cls:'ok',   text:'[OK] SIGINT intercept stream ... LOCKED' },
-    { cls:'info', text:'[SYS] All systems nominal. Launching C2 interface...' },
+    { cls:'info', text:'[SYS] All systems nominal. Launching C2 interface...' }
   ];
 
-  let idx = 0;
-  const delays = [0,120,200,280,380,460,540,620,700,780,860,940,1020,1100,1180,1260,1340,1440];
+  var delays = [0,120,200,280,380,460,540,620,700,780,860,940,1020,1100,1180,1260,1340,1440];
 
-  lines.forEach((l, i) => {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = `boot-line ${l.cls}`;
+  lines.forEach(function (l, i) {
+    setTimeout(function () {
+      var el = document.createElement('div');
+      el.className = 'boot-line ' + l.cls;
       el.textContent = l.text;
       log.appendChild(el);
       log.scrollTop = log.scrollHeight;
-      fill.style.width = ((i+1)/lines.length * 100) + '%';
+      fill.style.width = ((i + 1) / lines.length * 100) + '%';
     }, delays[i]);
   });
 
-  setTimeout(() => {
+  setTimeout(function () {
     overlay.classList.add('fade-out');
     main.classList.add('visible');
-    setTimeout(() => overlay.remove(), 900);
-  }, delays[lines.length-1] + 600);
+    setTimeout(function () { overlay.remove(); }, 900);
+  }, delays[lines.length - 1] + 600);
 })();
 
-/* ---------------------------------------------------------------
-   CLOCK
-   --------------------------------------------------------------- */
-function initClock() {
-  const el = document.getElementById('live-clock');
-  setInterval(() => {
-    const n = new Date();
-    el.textContent = n.toISOString().substr(11,8) + ' UTC';
-  }, 1000);
-}
-initClock();
+(function initClock() {
+  var el = document.getElementById('live-clock');
+  function tick() {
+    el.textContent = new Date().toISOString().slice(11, 19) + ' UTC';
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 
-/* Build hash */
 document.getElementById('build-hash').textContent =
-  Math.random().toString(16).substr(2,8).toUpperCase();
+  Math.random().toString(16).slice(2, 10).toUpperCase();
 
-/* ---------------------------------------------------------------
-   BACKGROUND CANVAS — Particle neural net
-   --------------------------------------------------------------- */
 (function initBgCanvas() {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, nodes;
+  var canvas = document.getElementById('bg-canvas');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, nodes;
 
+  function initNodes() {
+    var count = Math.min(Math.floor(W * H / 14000), 80);
+    nodes = [];
+    for (var i = 0; i < count; i++) {
+      nodes.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        r: Math.random() * 1.5 + 0.5
+      });
+    }
+  }
+
+  var resizeTimer = null;
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
     initNodes();
   }
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  }, { passive: true });
 
-  function initNodes() {
-    const count = Math.min(Math.floor(W * H / 14000), 80);
-    nodes = Array.from({ length: count }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: (Math.random() - 0.5) * 0.25,
-      r: Math.random() * 1.5 + 0.5,
-    }));
-  }
+  var mouse = { x: -9999, y: -9999 };
+  window.addEventListener('mousemove', function (e) {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+  }, { passive: true });
 
-  let mouse = { x: -9999, y: -9999 };
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-
-  function draw() {
+  function frame() {
     ctx.clearRect(0, 0, W, H);
-    const LINK_DIST = 120;
+    var LINK_DIST = 120;
+    var i, j, dx, dy, d, n;
 
-    nodes.forEach(n => {
+    for (i = 0; i < nodes.length; i++) {
+      n = nodes[i];
       n.x += n.vx; n.y += n.vy;
-      if (n.x < 0 || n.x > W) n.vx *= -1;
-      if (n.y < 0 || n.y > H) n.vy *= -1;
+      if (n.x < 0 || n.x > W) n.vx = -n.vx;
+      if (n.y < 0 || n.y > H) n.vy = -n.vy;
+      dx = n.x - mouse.x; dy = n.y - mouse.y;
+      d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 80 && d > 0) { n.x += dx / d * 1.2; n.y += dy / d * 1.2; }
+    }
 
-      // Mouse repulsion
-      const dx = n.x - mouse.x, dy = n.y - mouse.y;
-      const d  = Math.sqrt(dx*dx + dy*dy);
-      if (d < 80) { n.x += dx/d*1.2; n.y += dy/d*1.2; }
-    });
-
-    // Links
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i+1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        const d  = Math.sqrt(dx*dx + dy*dy);
+    for (i = 0; i < nodes.length; i++) {
+      for (j = i + 1; j < nodes.length; j++) {
+        dx = nodes[i].x - nodes[j].x;
+        dy = nodes[i].y - nodes[j].y;
+        d = Math.sqrt(dx * dx + dy * dy);
         if (d < LINK_DIST) {
-          const alpha = (1 - d/LINK_DIST) * 0.15;
-          ctx.strokeStyle = `rgba(0,229,255,${alpha})`;
+          ctx.strokeStyle = 'rgba(0,229,255,' + ((1 - d / LINK_DIST) * 0.15) + ')';
           ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -1244,163 +1170,161 @@ document.getElementById('build-hash').textContent =
       }
     }
 
-    // Dots
-    nodes.forEach(n => {
+    for (i = 0; i < nodes.length; i++) {
+      n = nodes[i];
       ctx.fillStyle = 'rgba(0,229,255,0.4)';
       ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fill();
-    });
+    }
 
-    requestAnimationFrame(draw);
+    if (!REDUCED_MOTION) requestAnimationFrame(frame);
   }
 
-  window.addEventListener('resize', resize);
   resize();
-  draw();
+  frame();
 })();
 
-/* ---------------------------------------------------------------
-   TICKER
-   --------------------------------------------------------------- */
 (function initTicker() {
-  const items = [
+  var items = [
     '◈ UPLINK SECURE', '◈ TLS 1.3 ENFORCED', '◈ RF 433.92 MHz ACTIVE',
     '◈ NODE MESH NOMINAL', '◈ DMARC ISOLATION ACTIVE', '◈ CIPHER ROTATE IN 04:22:11',
     '◈ PACKET FLOW NOMINAL', '◈ DEFCON 3 // ELEVATED', '◈ THREAT MONITOR ENGAGED',
     '◈ ZERO-TRUST PERIMETER: ENFORCED', '◈ PASSIVE SCANNER: ARMED',
-    '◈ SIGINT INTERCEPT: LOCKED', '◈ AIR GAP: ISOLATED', '◈ AES-256-GCM: ACTIVE',
+    '◈ SIGINT INTERCEPT: LOCKED', '◈ AIR GAP: ISOLATED', '◈ AES-256-GCM: ACTIVE'
   ];
-  const doubled = [...items, ...items];
-  const el = document.getElementById('ticker');
-  doubled.forEach(t => {
-    const span = document.createElement('span');
+  var el = document.getElementById('ticker');
+  items.concat(items).forEach(function (t) {
+    var span = document.createElement('span');
     span.className = 'ticker-item';
-    span.innerHTML = t.includes('◈') ? `<span class="hi">◈</span> ${t.slice(2)}` : t;
-    span.innerHTML = `<span class="hi">◈</span>&nbsp;&nbsp;${t.replace('◈ ','')}`;
+    var hi = document.createElement('span');
+    hi.className = 'hi';
+    hi.textContent = '◈';
+    span.appendChild(hi);
+    span.appendChild(document.createTextNode('\u00A0\u00A0' + t.replace('◈ ', '')));
     el.appendChild(span);
   });
 })();
 
-/* ---------------------------------------------------------------
-   SPECTRUM VISUALIZER
-   --------------------------------------------------------------- */
 (function initSpectrum() {
-  const viz = document.getElementById('spectrum-viz');
-  const N = 48;
-  const bars = [];
-  for (let i = 0; i < N; i++) {
-    const b = document.createElement('div');
+  var viz = document.getElementById('spectrum-viz');
+  var N = 48;
+  var bars = [];
+  var values = [];
+  for (var i = 0; i < N; i++) {
+    var b = document.createElement('div');
     b.className = 'spec-bar';
     b.style.height = '4px';
     viz.appendChild(b);
     bars.push(b);
+    values.push(0);
   }
 
-  let values = new Array(N).fill(0);
   function tick() {
-    for (let i = 0; i < N; i++) {
-      // Smooth decay + random burst
+    for (var i = 0; i < N; i++) {
       values[i] = values[i] * 0.85 + Math.random() * 15 + 2;
       if (Math.random() < 0.04) values[i] += Math.random() * 60;
       values[i] = Math.min(values[i], 76);
-      const h = Math.max(values[i], 2);
+      var h = Math.max(values[i], 2);
       bars[i].style.height = h + 'px';
-      bars[i].className = 'spec-bar' +
-        (h > 60 ? ' warn' : h > 40 ? ' hot' : '');
+      bars[i].className = 'spec-bar' + (h > 60 ? ' warn' : h > 40 ? ' hot' : '');
     }
   }
-  setInterval(tick, 80);
+  tick();
+  if (!REDUCED_MOTION) setInterval(tick, 80);
 })();
 
-/* ---------------------------------------------------------------
-   SIGINT INTERCEPT STREAM
-   --------------------------------------------------------------- */
 (function initSigint() {
-  const feed = document.getElementById('sigint-feed');
-  const sources = ['SRC-A1', 'SRC-B7', 'SRC-C2', 'RTR-99', 'SAT-04', 'NDS-11', 'GND-33'];
-  const types   = ['BEACON', 'UPLINK', 'BYPASS', 'PROBE ', 'SYNC  ', 'FLOOD ', 'ACK   '];
-  const data    = [
+  var feed = document.getElementById('sigint-feed');
+  var sources = ['SRC-A1', 'SRC-B7', 'SRC-C2', 'RTR-99', 'SAT-04', 'NDS-11', 'GND-33'];
+  var types   = ['BEACON', 'UPLINK', 'BYPASS', 'PROBE ', 'SYNC  ', 'FLOOD ', 'ACK   '];
+  var data    = [
     'ENC_PAYLOAD :: 7f3a9c...', 'FREQ_HOP :: 868→915 MHz',
     'AUTH TOKEN VALID :: 0x4f2a', 'RST FLAG :: DROP SEQUENCE',
     '>>> ANOMALY DETECTED <<<', 'HANDSHAKE OK :: TLS_AES_256',
     'ROUTE CHANGE :: AS64512', 'DNS QUERY :: FILTERED',
-    'PACKET LOSS :: 0.02%', 'TUNNEL ESTABLISHED',
+    'PACKET LOSS :: 0.02%', 'TUNNEL ESTABLISHED'
   ];
 
-  function ts() {
-    const n = new Date();
-    return n.toISOString().substr(11,8);
+  function ts() { return new Date().toISOString().slice(11, 19); }
+
+  function cell(cls, text) {
+    var s = document.createElement('span');
+    s.className = cls;
+    s.textContent = text;
+    return s;
   }
 
   function addLine() {
-    const isAlert = Math.random() < 0.12;
-    const line = document.createElement('div');
+    var isAlert = Math.random() < 0.12;
+    var line = document.createElement('div');
     line.className = 'sigint-line' + (isAlert ? ' alert' : '');
-    const d = isAlert ? '>>> ANOMALY DETECTED <<<' : data[Math.floor(Math.random()*data.length)];
-    line.innerHTML =
-      `<span class="sigint-ts">${ts()}</span>` +
-      `<span class="sigint-src">${sources[Math.floor(Math.random()*sources.length)]}</span>` +
-      `<span class="sigint-type">${types[Math.floor(Math.random()*types.length)]}</span>` +
-      `<span class="sigint-data">${d}</span>`;
+    var d = isAlert ? '>>> ANOMALY DETECTED <<<' : data[Math.floor(Math.random() * data.length)];
+    line.appendChild(cell('sigint-ts', ts()));
+    line.appendChild(cell('sigint-src', sources[Math.floor(Math.random() * sources.length)]));
+    line.appendChild(cell('sigint-type', types[Math.floor(Math.random() * types.length)]));
+    line.appendChild(cell('sigint-data', d));
     feed.insertBefore(line, feed.firstChild);
     while (feed.children.length > 18) feed.removeChild(feed.lastChild);
   }
 
-  setInterval(addLine, 700 + Math.random() * 600);
-  for (let i = 0; i < 8; i++) addLine();
+  for (var i = 0; i < 8; i++) addLine();
+  if (!REDUCED_MOTION) setInterval(addLine, 900);
 })();
 
-/* ---------------------------------------------------------------
-   GLOBAL NODES
-   --------------------------------------------------------------- */
 (function initNodes() {
-  const nodes = [
+  var nodes = [
     { name:'LOND-NODE-01', ping:'12ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
     { name:'WASH-NODE-04', ping:'48ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
     { name:'TOKY-NODE-09', ping:'91ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
     { name:'SYDN-NODE-02', ping:'67ms', status:'warn',   badge:'LATENCY', badgeCls:'badge-amber' },
     { name:'DXBA-NODE-06', ping:'22ms', status:'online', badge:'ONLINE',  badgeCls:'badge-green' },
-    { name:'MOSW-NODE-07', ping:'---',  status:'err',    badge:'OFFLINE', badgeCls:'badge-red'   },
+    { name:'MOSW-NODE-07', ping:'---',  status:'err',    badge:'OFFLINE', badgeCls:'badge-red'   }
   ];
-  const list = document.getElementById('node-list');
-  nodes.forEach(n => {
-    const row = document.createElement('div');
-    row.className = `node-row ${n.status}`;
-    row.innerHTML =
-      `<span class="node-name">${n.name}</span>` +
-      `<span class="node-ping">${n.ping}</span>` +
-      `<span class="node-status-badge ${n.badgeCls}">${n.badge}</span>`;
+  var list = document.getElementById('node-list');
+  nodes.forEach(function (n) {
+    var row = document.createElement('div');
+    row.className = 'node-row ' + n.status;
+    var name = document.createElement('span');
+    name.className = 'node-name';
+    name.textContent = n.name;
+    var ping = document.createElement('span');
+    ping.className = 'node-ping';
+    ping.textContent = n.ping;
+    var badge = document.createElement('span');
+    badge.className = 'node-status-badge ' + n.badgeCls;
+    badge.textContent = n.badge;
+    row.appendChild(name);
+    row.appendChild(ping);
+    row.appendChild(badge);
     list.appendChild(row);
   });
 
-  // Simulate occasional status flicker
-  setInterval(() => {
-    const rows = list.querySelectorAll('.node-row');
-    rows.forEach(r => {
-      if (r.classList.contains('warn') && Math.random() < 0.3) {
-        r.style.opacity = '0.6';
-        setTimeout(() => r.style.opacity = '1', 200);
-      }
-    });
-  }, 3000);
+  if (!REDUCED_MOTION) {
+    setInterval(function () {
+      list.querySelectorAll('.node-row.warn').forEach(function (r) {
+        if (Math.random() < 0.3) {
+          r.style.opacity = '0.6';
+          setTimeout(function () { r.style.opacity = '1'; }, 200);
+        }
+      });
+    }, 3000);
+  }
 })();
 
-/* ---------------------------------------------------------------
-   RADAR
-   --------------------------------------------------------------- */
 (function initRadar() {
-  const canvas = document.getElementById('radar-canvas');
-  const ctx    = canvas.getContext('2d');
-  const W = 180, H = 180, CX = W/2, CY = H/2, R = 80;
-  let   angle = 0;
-  const blips = [];
+  var canvas = document.getElementById('radar-canvas');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var W = 180, H = 180, CX = W / 2, CY = H / 2, R = 80;
+  var angle = 0;
+  var blips = [];
 
   function addBlip() {
     if (Math.random() < 0.3) {
-      const a = Math.random() * Math.PI * 2;
-      const r = Math.random() * R * 0.85;
-      blips.push({ x: CX + Math.cos(a)*r, y: CY + Math.sin(a)*r, life: 1.0 });
+      var a = Math.random() * Math.PI * 2;
+      var r = Math.random() * R * 0.85;
+      blips.push({ x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r, life: 1.0 });
     }
     while (blips.length > 8) blips.shift();
   }
@@ -1408,132 +1332,136 @@ document.getElementById('build-hash').textContent =
   function drawRadar() {
     ctx.clearRect(0, 0, W, H);
 
-    // Rings
-    for (let i = 1; i <= 4; i++) {
+    for (var i = 1; i <= 4; i++) {
       ctx.strokeStyle = 'rgba(0,229,255,0.12)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(CX, CY, R/4*i, 0, Math.PI*2);
+      ctx.arc(CX, CY, R / 4 * i, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Cross hairs
     ctx.strokeStyle = 'rgba(0,229,255,0.08)';
     ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(CX-R, CY); ctx.lineTo(CX+R, CY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(CX, CY-R); ctx.lineTo(CX, CY+R); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CX - R, CY); ctx.lineTo(CX + R, CY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke();
 
-    // Sweep
-    const grad = ctx.createConicalGradient ? null : null;
     ctx.save();
     ctx.translate(CX, CY);
     ctx.rotate(angle);
-    const sg = ctx.createLinearGradient(0, 0, R, 0);
+    var sg = ctx.createLinearGradient(0, 0, R, 0);
     sg.addColorStop(0, 'rgba(0,229,255,0.0)');
     sg.addColorStop(1, 'rgba(0,229,255,0.45)');
     ctx.fillStyle = sg;
     ctx.beginPath();
-    ctx.moveTo(0,0);
+    ctx.moveTo(0, 0);
     ctx.arc(0, 0, R, -0.35, 0);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
 
-    // Blips
-    blips.forEach(b => {
+    blips.forEach(function (b) {
       b.life -= 0.008;
       if (b.life <= 0) return;
-      ctx.fillStyle = `rgba(57,255,158,${b.life})`;
+      ctx.fillStyle = 'rgba(57,255,158,' + b.life + ')';
       ctx.beginPath();
-      ctx.arc(b.x, b.y, 2.5, 0, Math.PI*2);
+      ctx.arc(b.x, b.y, 2.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = `rgba(57,255,158,${b.life * 0.3})`;
+      ctx.strokeStyle = 'rgba(57,255,158,' + (b.life * 0.3) + ')';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(b.x, b.y, 6, 0, Math.PI*2);
+      ctx.arc(b.x, b.y, 6, 0, Math.PI * 2);
       ctx.stroke();
     });
 
-    // Outer ring
     ctx.strokeStyle = 'rgba(0,229,255,0.35)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(CX, CY, R, 0, Math.PI*2);
+    ctx.arc(CX, CY, R, 0, Math.PI * 2);
     ctx.stroke();
 
     angle += 0.025;
-    if (angle > Math.PI*2) {
+    if (angle > Math.PI * 2) {
       angle = 0;
       addBlip();
     }
 
-    // Update UI
-    const azi = Math.round((angle / (Math.PI*2)) * 360);
-    const elv = Math.round(30 + Math.sin(angle * 3) * 15);
-    const aziEl = document.getElementById('radar-azi');
-    const elvEl = document.getElementById('radar-elv');
+    var azi = Math.round((angle / (Math.PI * 2)) * 360);
+    var elv = Math.round(30 + Math.sin(angle * 3) * 15);
+    var aziEl = document.getElementById('radar-azi');
+    var elvEl = document.getElementById('radar-elv');
     if (aziEl) aziEl.textContent = azi + '°';
     if (elvEl) elvEl.textContent = elv + '°';
 
-    requestAnimationFrame(drawRadar);
+    if (!REDUCED_MOTION) requestAnimationFrame(drawRadar);
   }
 
   addBlip(); addBlip();
   drawRadar();
 })();
 
-/* ---------------------------------------------------------------
-   MINIMAP — World topology
-   --------------------------------------------------------------- */
 (function initMinimap() {
-  const canvas = document.getElementById('minimap-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let W, H;
+  var canvas = document.getElementById('minimap-canvas');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var W = 0, H = 140;
 
-  const nodeCoords = [
-    { name:'LOND', lat:51.5, lon:-0.1, status:'online' },
-    { name:'WASH', lat:38.9, lon:-77.0, status:'online' },
-    { name:'TOKY', lat:35.7, lon:139.7, status:'online' },
+  var nodeCoords = [
+    { name:'LOND', lat:51.5,  lon:-0.1,  status:'online' },
+    { name:'WASH', lat:38.9,  lon:-77.0, status:'online' },
+    { name:'TOKY', lat:35.7,  lon:139.7, status:'online' },
     { name:'SYDN', lat:-33.9, lon:151.2, status:'warn' },
-    { name:'DXBA', lat:25.2, lon:55.3, status:'online' },
-    { name:'MOSW', lat:55.7, lon:37.6, status:'err' },
+    { name:'DXBA', lat:25.2,  lon:55.3,  status:'online' },
+    { name:'MOSW', lat:55.7,  lon:37.6,  status:'err' }
   ];
+  var connections = [[0,1],[0,4],[0,5],[1,4],[2,3],[4,5]];
 
   function latLonToXY(lat, lon) {
-    const x = ((lon + 180) / 360) * W;
-    const y = ((90 - lat) / 180) * H;
-    return { x, y };
+    return { x: ((lon + 180) / 360) * W, y: ((90 - lat) / 180) * H };
   }
 
-  let t = 0;
+  function fit() {
+    var w = canvas.offsetWidth || canvas.parentElement.clientWidth;
+    if (w !== W) {
+      W = w;
+      canvas.width = W;
+      canvas.height = H;
+    }
+  }
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fit, 150);
+  }, { passive: true });
+
+  var t = 0;
   function draw() {
-    W = canvas.width  = canvas.offsetWidth;
-    H = canvas.height = 140;
+    if (!W) fit();
     ctx.clearRect(0, 0, W, H);
 
-    // Background
     ctx.fillStyle = 'rgba(6,13,20,0.8)';
     ctx.fillRect(0, 0, W, H);
 
-    // Grid lines
     ctx.strokeStyle = 'rgba(30,61,90,0.4)';
     ctx.lineWidth = 0.5;
-    for (let x = 0; x <= W; x += W/12) {
+    var x, y;
+    for (x = 0; x <= W; x += W / 12) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
     }
-    for (let y = 0; y <= H; y += H/6) {
+    for (y = 0; y <= H; y += H / 6) {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
     }
 
-    // Connection arcs between nodes
-    const xyMap = nodeCoords.map(n => ({ ...n, ...latLonToXY(n.lat, n.lon) }));
-    const connections = [[0,1],[0,4],[0,5],[1,4],[2,3],[4,5]];
-    connections.forEach(([a,b]) => {
-      const p1 = xyMap[a], p2 = xyMap[b];
-      const mx = (p1.x + p2.x)/2, my = (p1.y + p2.y)/2 - 20;
-      const isErr = p1.status==='err' || p2.status==='err';
-      const isWarn = p1.status==='warn' || p2.status==='warn';
+    var xyMap = nodeCoords.map(function (n) {
+      var p = latLonToXY(n.lat, n.lon);
+      return { name: n.name, status: n.status, x: p.x, y: p.y };
+    });
+
+    connections.forEach(function (c) {
+      var p1 = xyMap[c[0]], p2 = xyMap[c[1]];
+      var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2 - 20;
+      var isErr = p1.status === 'err' || p2.status === 'err';
+      var isWarn = p1.status === 'warn' || p2.status === 'warn';
       ctx.strokeStyle = isErr ? 'rgba(255,51,51,0.25)' : isWarn ? 'rgba(255,179,0,0.25)' : 'rgba(0,229,255,0.18)';
       ctx.lineWidth = 0.8;
       ctx.setLineDash([3, 6]);
@@ -1545,49 +1473,42 @@ document.getElementById('build-hash').textContent =
       ctx.setLineDash([]);
     });
 
-    // Nodes
-    xyMap.forEach(n => {
-      const color = n.status==='online' ? '#39ff9e' : n.status==='warn' ? '#ffb300' : '#ff3333';
-      const pulse = 0.5 + 0.5 * Math.sin(t * 0.06 + xyMap.indexOf(n));
+    xyMap.forEach(function (n, i) {
+      var color = n.status === 'online' ? '#39ff9e' : n.status === 'warn' ? '#ffb300' : '#ff3333';
+      var pulse = 0.5 + 0.5 * Math.sin(t * 0.06 + i);
 
-      // Outer pulse ring
       ctx.strokeStyle = color;
       ctx.globalAlpha = pulse * 0.3;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, 8 + pulse*4, 0, Math.PI*2);
+      ctx.arc(n.x, n.y, 8 + pulse * 4, 0, Math.PI * 2);
       ctx.stroke();
       ctx.globalAlpha = 1;
 
-      // Core dot
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, 3, 0, Math.PI*2);
+      ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Label
       ctx.font = '8px "Share Tech Mono", monospace';
       ctx.fillStyle = 'rgba(200,223,240,0.6)';
       ctx.fillText(n.name, n.x + 6, n.y - 5);
     });
 
     t++;
-    requestAnimationFrame(draw);
+    if (!REDUCED_MOTION) requestAnimationFrame(draw);
   }
 
+  fit();
   draw();
-  window.addEventListener('resize', draw);
 })();
 
-/* ---------------------------------------------------------------
-   CLI
-   --------------------------------------------------------------- */
 (function initCLI() {
-  const field  = document.getElementById('cli-field');
-  const output = document.getElementById('cli-output');
+  var field  = document.getElementById('cli-field');
+  var output = document.getElementById('cli-output');
   if (!field || !output) return;
 
-  const responses = {
+  var responses = {
     help: [
       'Available commands:',
       '  status   — system health overview',
@@ -1595,13 +1516,13 @@ document.getElementById('build-hash').textContent =
       '  scan     — run passive network scan',
       '  cipher   — show encryption status',
       '  defcon   — current threat level',
-      '  clear    — clear output',
+      '  clear    — clear output'
     ],
     status: [
       'SYS STATUS :: ALL GREEN',
       'Uptime: 99.97% // 847 days',
       'CPU: 12% // MEM: 3.1GB / 16GB',
-      'Packets routed: 1.4B // Threats blocked: 14',
+      'Packets routed: 1.4B // Threats blocked: 14'
     ],
     nodes: [
       'NODE INVENTORY :: 5/6 ONLINE',
@@ -1610,7 +1531,7 @@ document.getElementById('build-hash').textContent =
       '  TOKY-NODE-09 :: 91ms  [OK]',
       '  SYDN-NODE-02 :: 67ms  [WARN: latency]',
       '  DXBA-NODE-06 :: 22ms  [OK]',
-      '  MOSW-NODE-07 :: ---   [ERR: no route]',
+      '  MOSW-NODE-07 :: ---   [ERR: no route]'
     ],
     scan: [
       'INITIATING PASSIVE SCAN ...',
@@ -1619,27 +1540,27 @@ document.getElementById('build-hash').textContent =
       '  [1] 192.168.4.11 — BENIGN',
       '  [2] 10.44.2.3   — BENIGN',
       '  [3] UNKNOWN       — FLAGGED',
-      'Scan complete. 1 anomaly logged.',
+      'Scan complete. 1 anomaly logged.'
     ],
     cipher: [
       'ENCRYPTION STATUS ::',
       '  Transport: TLS 1.3 (AES-256-GCM)',
       '  Mail: DKIM RSA-2048 [ALIGNED]',
       '  Storage: AES-256 at rest',
-      '  Key rotation: T-04:22:11',
+      '  Key rotation: T-04:22:11'
     ],
     defcon: [
       'THREAT LEVEL :: DEFCON 3',
       'Status: ELEVATED READY STATE',
       'Active theaters: 6',
-      'Highest index: INDO-PACIFIC (82)',
+      'Highest index: INDO-PACIFIC (82)'
     ],
-    clear: ['__CLEAR__'],
+    clear: ['__CLEAR__']
   };
 
   function addLine(text, cls) {
-    if (text === '__CLEAR__') { output.innerHTML = ''; return; }
-    const el = document.createElement('div');
+    if (text === '__CLEAR__') { output.textContent = ''; return; }
+    var el = document.createElement('div');
     el.className = cls || 'cli-line-out';
     el.textContent = text;
     output.appendChild(el);
@@ -1648,86 +1569,114 @@ document.getElementById('build-hash').textContent =
 
   addLine('NEGARIX CLI v3.1 // Type "help" for commands.', 'cli-line-out');
 
-  field.addEventListener('keydown', e => {
+  field.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
-    const cmd = field.value.trim().toLowerCase();
+    var cmd = field.value.trim().toLowerCase();
     field.value = '';
     if (!cmd) return;
     addLine('▶ ' + cmd, 'cli-line-in');
-    const res = responses[cmd];
+    var res = responses[cmd];
     if (res) {
-      setTimeout(() => {
-        res.forEach((line, i) => setTimeout(() => addLine(line), i*60));
+      setTimeout(function () {
+        res.forEach(function (line, i) {
+          setTimeout(function () { addLine(line); }, i * 60);
+        });
       }, 80);
     } else {
-      addLine(`Unknown command: "${cmd}". Try "help".`, 'cli-line-err');
+      addLine('Unknown command: "' + cmd + '". Try "help".', 'cli-line-err');
     }
   });
 })();
 
-/* ---------------------------------------------------------------
-   THREAT GRID
-   --------------------------------------------------------------- */
 (function initThreatGrid() {
-  const grid = document.getElementById('threat-grid');
+  var grid = document.getElementById('threat-grid');
   if (!grid) return;
 
-  const threats = [
+  var threats = [
     { region:'EAST EUROPE',    index:74, trend:'+2', color:'#ff3333', detail:'Cyber-kinetic ops / Electronic warfare elevated' },
     { region:'INDO-PACIFIC',   index:82, trend:'+5', color:'#ff3333', detail:'Carrier group movements / Signal jamming active' },
     { region:'MIDDLE EAST',    index:61, trend:'-1', color:'#ffb300', detail:'Proxy conflict vectors / Infrastructure attacks' },
     { region:'ARCTIC THEATER', index:48, trend:'+3', color:'#ffb300', detail:'Hypersonic test signatures / Radar incursions' },
     { region:'SOUTH ASIA',     index:55, trend:'+1', color:'#ffb300', detail:'Border flash-points / Electronic intel gathering' },
-    { region:'CYBER DOMAIN',   index:91, trend:'+8', color:'#ff3333', detail:'APT cluster activity / Critical infra targeting' },
+    { region:'CYBER DOMAIN',   index:91, trend:'+8', color:'#ff3333', detail:'APT cluster activity / Critical infra targeting' }
   ];
 
-  threats.forEach(t => {
-    const card = document.createElement('div');
+  threats.forEach(function (t) {
+    var card = document.createElement('div');
     card.className = 'threat-card';
     card.style.setProperty('--accent', t.color);
-    card.innerHTML = `
-      <div class="threat-region">${t.region}</div>
-      <div class="threat-index-wrap">
-        <div class="threat-index-val" style="color:${t.color}; text-shadow:0 0 12px ${t.color}80;">${t.index}</div>
-        <div class="threat-index-lbl">THREAT INDEX<br><span style="color:${t.color}">${t.trend} 24H</span></div>
-      </div>
-      <div class="threat-bar-wrap">
-        <div class="threat-bar-fill" style="width:0%; --accent:${t.color};"></div>
-      </div>
-      <div class="threat-detail">${t.detail}</div>
-    `;
+
+    var region = document.createElement('div');
+    region.className = 'threat-region';
+    region.textContent = t.region;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'threat-index-wrap';
+
+    var val = document.createElement('div');
+    val.className = 'threat-index-val';
+    val.style.color = t.color;
+    val.style.textShadow = '0 0 12px ' + t.color + '80';
+    val.textContent = t.index;
+
+    var lbl = document.createElement('div');
+    lbl.className = 'threat-index-lbl';
+    lbl.appendChild(document.createTextNode('THREAT INDEX'));
+    lbl.appendChild(document.createElement('br'));
+    var trend = document.createElement('span');
+    trend.style.color = t.color;
+    trend.textContent = t.trend + ' 24H';
+    lbl.appendChild(trend);
+
+    wrap.appendChild(val);
+    wrap.appendChild(lbl);
+
+    var barWrap = document.createElement('div');
+    barWrap.className = 'threat-bar-wrap';
+    var bar = document.createElement('div');
+    bar.className = 'threat-bar-fill';
+    bar.style.width = '0%';
+    bar.style.setProperty('--accent', t.color);
+    barWrap.appendChild(bar);
+
+    var detail = document.createElement('div');
+    detail.className = 'threat-detail';
+    detail.textContent = t.detail;
+
+    card.appendChild(region);
+    card.appendChild(wrap);
+    card.appendChild(barWrap);
+    card.appendChild(detail);
     grid.appendChild(card);
 
-    // Animate bar fill on scroll
-    const bar = card.querySelector('.threat-bar-fill');
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) {
-          setTimeout(() => bar.style.width = t.index + '%', 200);
-          obs.disconnect();
-        }
-      });
-    }, { threshold: 0.3 });
-    obs.observe(card);
+    if (REDUCED_MOTION) {
+      bar.style.width = t.index + '%';
+    } else {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            setTimeout(function () { bar.style.width = t.index + '%'; }, 200);
+            obs.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+      obs.observe(card);
+    }
   });
 })();
 
-/* ---------------------------------------------------------------
-   FREQ HOPPING DISPLAY
-   --------------------------------------------------------------- */
 (function initFreqHop() {
-  const freqs  = ['433.92 MHz','868.00 MHz','915.00 MHz','2.4 GHz','5.8 GHz','1.2 GHz'];
-  const el     = document.getElementById('freq-display');
-  if (!el) return;
-  let i = 0;
-  setInterval(() => {
+  var freqs = ['433.92 MHz','868.00 MHz','915.00 MHz','2.4 GHz','5.8 GHz','1.2 GHz'];
+  var el = document.getElementById('freq-display');
+  if (!el || REDUCED_MOTION) return;
+  var i = 0;
+  setInterval(function () {
     if (Math.random() < 0.25) {
-      i = (i+1) % freqs.length;
+      i = (i + 1) % freqs.length;
       el.textContent = freqs[i];
     }
   }, 2200);
 })();
-
 </script>
 </body>
 </html>
