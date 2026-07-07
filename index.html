@@ -2,55 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negarandeh | Systems Architecture</title>
-    <meta name="description" content="Secure, lightweight operational terminal.">
-    <meta name="robots" content="noindex, nofollow"> <!-- Hardened: Removed from search indexing -->
-
-    <!-- Hardened Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-ancestors 'none'; form-action 'none'; upgrade-insecure-requests; base-uri 'none';">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-atUuVke3gurRzTP/kNZ9b8gu0Jh3wZn/wjmHQxJoDR4='; style-src 'sha256-baEVehY6zQ0uOCav2v9UG25xFaCDtiZsKlo1UYPoTqg='; img-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-
     <style>
-        /* Ultra-light, bright theme */
         :root {
             --bg-colour: #f4f7f6;
             --text-colour: #2c3e50;
             --accent-colour: #3498db;
         }
 
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
         }
 
         body {
             background-color: var(--bg-colour);
             color: var(--text-colour);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            overflow: hidden; /* Prevents scrollbars from the canvas */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Live Background Canvas */
         #live-background {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            inset: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             z-index: 1;
-            pointer-events: none; /* Let clicks pass through */
+            pointer-events: none;
         }
 
-        /* Minimal Centred Content */
         .core-container {
             position: relative;
             z-index: 2;
@@ -59,12 +55,14 @@
             padding: 2rem 4rem;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 1);
+            margin: 1rem;
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: clamp(1.4rem, 5vw, 2rem);
             font-weight: 300;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -72,95 +70,151 @@
             color: var(--text-colour);
         }
 
-        p {
+        .tagline {
             font-size: 0.85rem;
             letter-spacing: 2px;
             color: var(--accent-colour);
             text-transform: uppercase;
             font-weight: 600;
         }
-    </style>
+
+        @media (prefers-reduced-motion: reduce) {
+            #live-background {
+                opacity: 0.5;
+            }
+        }
+</style>
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
-
-    <!-- Self-contained live background -->
-    <canvas id="live-background"></canvas>
-
-    <!-- Minimal, clean interface -->
+<body>
+    <canvas id="live-background" aria-hidden="true"></canvas>
     <main class="core-container">
         <h1>Negarandeh</h1>
-        <p>Secure Infrastructure</p>
+        <p class="tagline">Secure Infrastructure</p>
     </main>
-
     <script>
-        // Bright, lightweight neural/particle animation
-        const canvas = document.getElementById('live-background');
-        const ctx = canvas.getContext('2d');
+'use strict';
 
-        let width, height, particles;
+(function () {
+  var canvas = document.getElementById('live-background');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-        function init() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            particles = [];
-            
-            // Adjust particle count based on screen size to keep it light
-            const particleCount = Math.floor((width * height) / 15000);
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var LINK_DIST = 120;
+  var COLOUR = '52, 152, 219';
 
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    radius: Math.random() * 2 + 1
-                });
-            }
+  var width = 0, height = 0, dpr = 1;
+  var particles = [];
+  var rafId = null;
+  var running = false;
+
+  function build() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var count = Math.min(Math.floor((width * height) / 15000), 140);
+    particles = [];
+    for (var i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        r: Math.random() * 2 + 1
+      });
+    }
+  }
+
+  function draw(step) {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgb(' + COLOUR + ')';
+    ctx.lineWidth = 0.5;
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+
+      if (step) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > width) p.vx = -p.vx;
+        if (p.y < 0 || p.y > height) p.vy = -p.vy;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (var j = i + 1; j < particles.length; j++) {
+        var q = particles[j];
+        var dx = p.x - q.x;
+        var dy = p.y - q.y;
+        var d2 = dx * dx + dy * dy;
+        if (d2 < LINK_DIST * LINK_DIST) {
+          var d = Math.sqrt(d2);
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(' + COLOUR + ',' + (1 - d / LINK_DIST) + ')';
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.stroke();
         }
+      }
+    }
+  }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            ctx.clearRect(0, 0, width, height);
+  function loop() {
+    rafId = window.requestAnimationFrame(loop);
+    draw(true);
+  }
 
-            ctx.fillStyle = '#3498db';
-            ctx.lineWidth = 0.5;
+  function start() {
+    if (running || reducedMotion.matches) return;
+    running = true;
+    loop();
+  }
 
-            for (let i = 0; i < particles.length; i++) {
-                let p = particles[i];
+  function stop() {
+    running = false;
+    if (rafId !== null) {
+      window.cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
 
-                p.x += p.vx;
-                p.y += p.vy;
+  function render() {
+    build();
+    if (reducedMotion.matches) {
+      stop();
+      draw(false);
+    } else {
+      draw(false);
+      start();
+    }
+  }
 
-                // Bounce off edges
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
 
-                // Draw particle
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(render, 150);
+  }, { passive: true });
 
-                // Connect particles
-                for (let j = i + 1; j < particles.length; j++) {
-                    let p2 = particles[j];
-                    let dx = p.x - p2.x;
-                    let dy = p.y - p2.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance < 120) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(52, 152, 219, ${1 - distance / 120})`;
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { stop(); } else { start(); }
+  });
 
-        window.addEventListener('resize', init);
-        init();
-        animate();
-    </script>
+
+  if (typeof reducedMotion.addEventListener === 'function') {
+    reducedMotion.addEventListener('change', render);
+  }
+
+  render();
+})();
+</script>
 </body>
 </html>
