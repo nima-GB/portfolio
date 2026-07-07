@@ -6,10 +6,9 @@
 <title>Negarandeh // Live Operations Console</title>
 <meta name="description" content="Negarandeh — systems architecture. A live operations console rendering real-time public data: USGS seismic activity, NOAA space weather, ISS telemetry, and service health.">
 <meta name="robots" content="index, follow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8gCbTN4PZcZzFvJ3W2urus0ECdpyJiWFYAIrMYLtPV0='; style-src 'sha256-gic8FkwYDg1C8HGfzu9CteryVOSjs7FpTk+hLbnpx20=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9WagtojLrOWXDo7Ko5t8dH4ZZRDPhyruO3isZLjXtRQ='; style-src 'sha256-MSboJoGlqjD4pExV8/8jZ7W0CAhANS1YNyBd/AoO/0M='; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
 
 :root {
   --void:        #020408;
@@ -25,9 +24,9 @@
   --text-muted:  #4a7a9b;
   --text-ghost:  #1e3d5a;
 
-  --font-hud:    'Share Tech Mono', monospace;
-  --font-display:'Orbitron', sans-serif;
-  --font-body:   'Rajdhani', sans-serif;
+  --font-hud:    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', 'Menlo', 'Liberation Mono', monospace;
+  --font-display: 'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body:   'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
 
   --glow-cyan:   0 0 10px rgba(0,229,255,0.35);
   --glow-green:  0 0 10px rgba(57,255,158,0.35);
@@ -950,6 +949,15 @@ function fetchJSON(url, timeoutMs) {
     });
 }
 
+/* ---- Data validation: bound-check every external value ---- */
+function numIn(v, lo, hi) {
+  return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
+}
+function cleanText(v, maxLen) {
+  if (typeof v !== 'string') return '';
+  return v.slice(0, maxLen || 80);
+}
+
 /* ---- Event feed (real telemetry of this page) ---- */
 var feedEl = null;
 function logFeed(src, text, cls) {
@@ -1206,12 +1214,12 @@ function drawWorldMap() {
     ctx.beginPath();
     ctx.arc(ip.x, ip.y, 8, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.font = '8px "Share Tech Mono", monospace';
+    ctx.font = '8px ui-monospace, monospace';
     ctx.fillStyle = 'rgba(200,223,240,0.8)';
     ctx.fillText('ISS', ip.x + 10, ip.y - 4);
   }
 
-  ctx.font = '8px "Share Tech Mono", monospace';
+  ctx.font = '8px ui-monospace, monospace';
   ctx.fillStyle = 'rgba(74,122,155,0.7)';
   ctx.fillText('EQUIRECTANGULAR // M2.5+ 24H // ISS GROUND TRACK', 8, H - 8);
 }
@@ -1226,14 +1234,21 @@ function loadQuakes() {
   return fetchJSON(FEEDS.quakes).then(function (data) {
     var feats = (data.features || []).slice();
     feats.sort(function (a, b) { return b.properties.time - a.properties.time; });
-    var events = feats.map(function (f) {
-      return {
-        mag: f.properties.mag || 0,
-        place: f.properties.place || 'Unknown location',
-        time: f.properties.time,
-        lon: f.geometry.coordinates[0],
-        lat: f.geometry.coordinates[1]
-      };
+    var events = [];
+    feats.slice(0, 500).forEach(function (f) {
+      if (!f || !f.properties || !f.geometry || !Array.isArray(f.geometry.coordinates)) return;
+      var mag = f.properties.mag;
+      var lon = f.geometry.coordinates[0];
+      var lat = f.geometry.coordinates[1];
+      var time = f.properties.time;
+      if (!numIn(mag, -1, 10) || !numIn(lat, -90, 90) || !numIn(lon, -180, 180) || !numIn(time, 0, 4102444800000)) return;
+      events.push({
+        mag: mag,
+        place: cleanText(f.properties.place, 80) || 'Unknown location',
+        time: time,
+        lon: lon,
+        lat: lat
+      });
     });
     var maxMag = events.length ? Math.max.apply(null, events.map(function (e) { return e.mag; })) : null;
     STATE.quakes = { count: events.length, maxMag: maxMag, events: events };
@@ -1295,9 +1310,10 @@ function gScale(kp) {
 
 function loadKp() {
   return fetchJSON(FEEDS.kp).then(function (rows) {
+    if (!Array.isArray(rows)) throw new Error('malformed feed');
     var series = rows.slice(1).map(function (r) {
-      return { t: r[0], kp: parseFloat(r[1]) };
-    }).filter(function (r) { return !isNaN(r.kp); });
+      return { t: cleanText(Array.isArray(r) ? r[0] : '', 20), kp: parseFloat(Array.isArray(r) ? r[1] : NaN) };
+    }).filter(function (r) { return numIn(r.kp, 0, 9); });
     var recent = series.slice(-48);
     var now = recent.length ? recent[recent.length - 1].kp : null;
     STATE.kpNow = now;
@@ -1376,7 +1392,7 @@ function drawOrbit() {
   ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke();
 
   ctx.fillStyle = 'rgba(74,122,155,0.9)';
-  ctx.font = '8px "Share Tech Mono", monospace';
+  ctx.font = '8px ui-monospace, monospace';
   ctx.fillText('0°', CX + R + 2, CY + 3);
   ctx.fillText('180°', CX - R - 22, CY + 3);
 
@@ -1404,6 +1420,11 @@ function drawOrbit() {
 var issFirst = true;
 function loadISS() {
   return fetchJSON(FEEDS.iss, 8000).then(function (d) {
+    if (!d || !numIn(d.latitude, -90, 90) || !numIn(d.longitude, -180, 180) ||
+        !numIn(d.altitude, 100, 2000) || !numIn(d.velocity, 1000, 50000)) {
+      throw new Error('telemetry out of bounds');
+    }
+    d.visibility = cleanText(d.visibility, 20);
     STATE.iss = d;
     mapState.trail.push({ lat: d.latitude, lon: d.longitude });
     if (mapState.trail.length > 60) mapState.trail.shift();
@@ -1469,8 +1490,10 @@ function loadStatus() {
   var okCount = 0;
   return Promise.all(FEEDS.status.map(function (svc) {
     return fetchJSON(svc.url, 8000).then(function (d) {
-      var ind = (d.status && d.status.indicator) || 'unknown';
-      var desc = (d.status && d.status.description) || 'Unknown';
+      var rawInd = d && d.status ? String(d.status.indicator) : '';
+      var allowed = ['none', 'minor', 'major', 'critical', 'maintenance'];
+      var ind = allowed.indexOf(rawInd) !== -1 ? rawInd : 'unknown';
+      var desc = cleanText(d && d.status ? d.status.description : '', 60) || 'Unknown';
       STATE.services[svc.name] = desc;
       var r = rows[svc.name];
       r.detail.textContent = desc.toUpperCase();
