@@ -1,24 +1,17 @@
-# ==========================================
-# ROBOTS.TXT - AI & DATA PROTECTION SHIELD
-# ==========================================
+# robots.txt — negarandeh
+# Policy: full search visibility, AI assistants may cite this page,
+# bulk AI-training crawlers may not ingest it.
+# Note: advisory only. Rogue bots ignore this file entirely.
 
-# 1. Block aggressive AI Scraping & Data Mining
+# --- Tier 1: Search engines — ALLOWED (default) ---
+
+# --- Tier 2: On-demand AI fetchers — ALLOWED ---
+# These fetch only when a human asks an AI about this site.
+# Blocking them makes the site invisible in AI answers.
+# (ChatGPT-User, Claude-Web, Perplexity-User: no rule = allowed)
+
+# --- Tier 3: Bulk training / dataset crawlers — BLOCKED ---
 User-agent: GPTBot
-Disallow: /
-
-User-agent: ChatGPT-User
-Disallow: /
-
-User-agent: ClaudeBot
-Disallow: /
-
-User-agent: Claude-Web
-Disallow: /
-
-User-agent: PerplexityBot
-Disallow: /
-
-User-agent: Applebot-Extended
 Disallow: /
 
 User-agent: CCBot
@@ -27,10 +20,18 @@ Disallow: /
 User-agent: Google-Extended
 Disallow: /
 
-# 2. Allow reputable search engines so your profile is professionally visible
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# --- Everyone else ---
 User-agent: *
 Allow: /
-Disallow: /private/ # Placeholder in case you add hidden assets later
-
-# Friendly note to human developers visiting your source
-# Built with modern HTML5 standards. Focused on privacy and efficiency.
