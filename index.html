@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negarandeh | Systems Architecture</title>
     <meta name="robots" content="index, follow">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-atUuVke3gurRzTP/kNZ9b8gu0Jh3wZn/wjmHQxJoDR4='; style-src 'sha256-7f3HHW4VuGNzguTSLE9eRE9GnGL/32jq+vENs2qn6oY='; img-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'sha256-7f3HHW4VuGNzguTSLE9eRE9GnGL/32jq+vENs2qn6oY='; img-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
     <meta name="referrer" content="no-referrer">
     <style>
         :root {
@@ -126,11 +126,207 @@
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var LINK_DIST = 120;
   var COLOUR = '52, 152, 219';
+  var TEXT_COLOUR = '44, 62, 80';
 
   var width = 0, height = 0, dpr = 1;
   var particles = [];
   var rafId = null;
   var running = false;
+
+  // Cryptographic random helper using Web Crypto API
+  function randBytes(len) {
+    var arr = new Uint8Array(len);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(arr);
+    } else {
+      for (var i = 0; i < len; i++) arr[i] = Math.floor(Math.random() * 256);
+    }
+    return arr;
+  }
+
+  function toHex(bytes) {
+    var out = '';
+    for (var i = 0; i < bytes.length; i++) {
+      out += ('0' + bytes[i].toString(16)).slice(-2);
+    }
+    return out;
+  }
+
+  function randInt(min, max) {
+    var b = randBytes(2);
+    var val = (b[0] << 8) | b[1];
+    return min + (val % (max - min + 1));
+  }
+
+  function pick(list) {
+    return list[randInt(0, list.length - 1)];
+  }
+
+  // Ephemeral session state unique to each visit
+  var sessionNode = 'ng-core-' + toHex(randBytes(2));
+  var sessionKeyId = '0x' + toHex(randBytes(4));
+  var bootEpoch = Date.now();
+  var seqNum = randInt(1024, 9999);
+
+  var CIPHERS = [
+    'ML-KEM-1024+X25519',
+    'ChaCha20-Poly1305-AEAD',
+    'Ed25519-SHA512',
+    'AES-256-GCM-SIV',
+    'SLH-DSA-SHAKE-256f',
+    'BLAKE3-256-KDF'
+  ];
+
+  var SUBSYSTEMS = [
+    'kexec.seccomp',
+    'tpm2.attest',
+    'zk.plonk.verifier',
+    'wireguard.noise_ik',
+    'hsm.enclave.seal',
+    'net.ebpf.xdp',
+    'mem.mlock.guard',
+    'tls13.0rtt.anti_replay'
+  ];
+
+  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[OK]', '[LOCKED]', '[ACK]', '[VALID]'];
+
+  function generateShellLine() {
+    seqNum += randInt(1, 7);
+    var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
+    var padElapsed = ('0000' + elapsed).slice(-9);
+    var sys = pick(SUBSYSTEMS);
+    var cipher = pick(CIPHERS);
+    var tag = pick(STATUS_TAGS);
+    var mode = randInt(0, 5);
+    var payload = '';
+
+    if (mode === 0) {
+      payload = 'kem_encaps(' + cipher + ') -> ct=0x' + toHex(randBytes(8)) + '..' + toHex(randBytes(2)) + ' ss_sha3=' + toHex(randBytes(6));
+    } else if (mode === 1) {
+      payload = 'pcr_extend[0..7]bank=sha384 digest=' + toHex(randBytes(10)) + ' nonce=0x' + toHex(randBytes(4));
+    } else if (mode === 2) {
+      payload = 'aead_sealseq=' + seqNum + ' aad=' + sessionKeyId + ' tag=0x' + toHex(randBytes(8)) + ' entropy=7.9998b/B';
+    } else if (mode === 3) {
+      payload = 'zk_snark_verify(groth16) witness=0x' + toHex(randBytes(6)) + ' curve=BLS12-381 gas=' + randInt(180, 940) + 'us';
+    } else if (mode === 4) {
+      payload = 'argon2id(m=65536,t=4,p=4) salt=0x' + toHex(randBytes(6)) + ' -> dk=' + toHex(randBytes(8));
+    } else {
+      payload = 'page_isolate addr=0x7f' + toHex(randBytes(5)) + '000 prot=PROT_READ|PROT_EXEC canary=0x' + toHex(randBytes(4));
+    }
+
+    return {
+      prefix: '[' + padElapsed + '] ' + sessionNode + ' ' + sys + ': ',
+      body: payload + ' ',
+      tag: tag
+    };
+  }
+
+  // Terminal state
+  var shellLines = [];
+  var maxLines = 28;
+  var lineHeight = 18;
+  var fontSize = 11.5;
+  var activeLine = null;
+  var activeCharIndex = 0;
+  var lastTypeTime = 0;
+  var nextLineDelay = 0;
+
+  function initShell() {
+    fontSize = width < 600 ? 10 : 11.5;
+    lineHeight = width < 600 ? 15 : 18;
+    maxLines = Math.max(12, Math.floor((height - 40) / lineHeight));
+    shellLines = [
+      {
+        prefix: '[0000.0000] ' + sessionNode + ' boot.csprng: ',
+        body: 'hardware entropy pool seeded key_id=' + sessionKeyId + ' digest=0x' + toHex(randBytes(8)) + ' ',
+        tag: '[SEALED]'
+      },
+      {
+        prefix: '[0000.0004] ' + sessionNode + ' pq.handshake: ',
+        body: 'negotiated hybrid primitive ML-KEM-1024 + X25519 state=0x' + toHex(randBytes(6)) + ' ',
+        tag: '[VERIFIED]'
+      }
+    ];
+    var initialCount = Math.min(maxLines - 2, randInt(8, 14));
+    for (var i = 0; i < initialCount; i++) {
+      shellLines.push(generateShellLine());
+    }
+    activeLine = generateShellLine();
+    activeCharIndex = 0;
+  }
+
+  function updateShell(now) {
+    if (!activeLine) {
+      if (now >= nextLineDelay) {
+        activeLine = generateShellLine();
+        activeCharIndex = 0;
+      }
+      return;
+    }
+
+    if (now - lastTypeTime > 16) {
+      var fullLen = activeLine.prefix.length + activeLine.body.length + activeLine.tag.length;
+      activeCharIndex += randInt(2, 5);
+      lastTypeTime = now;
+
+      if (activeCharIndex >= fullLen) {
+        shellLines.push(activeLine);
+        if (shellLines.length > maxLines) {
+          shellLines.shift();
+        }
+        activeLine = null;
+        nextLineDelay = now + randInt(120, 480);
+      }
+    }
+  }
+
+  function drawShell(now) {
+    ctx.save();
+    ctx.font = fontSize + 'px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+    ctx.textBaseline = 'top';
+
+    var padX = width < 600 ? 14 : 28;
+    var padY = width < 600 ? 16 : 24;
+    var totalLines = shellLines.length + (activeLine ? 1 : 0);
+
+    for (var i = 0; i < shellLines.length; i++) {
+      var item = shellLines[i];
+      var y = padY + i * lineHeight;
+
+      // Subtle vertical fade near the top so older logs recede naturally
+      var fade = totalLines > 10 && i < 4 ? (i + 1) / 5 : 1;
+      var baseAlpha = 0.13 * fade;
+      var accentAlpha = 0.22 * fade;
+
+      ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
+      ctx.fillText(item.prefix, padX, y);
+      var prefixW = ctx.measureText(item.prefix).width;
+
+      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + baseAlpha + ')';
+      ctx.fillText(item.body, padX + prefixW, y);
+      var bodyW = ctx.measureText(item.body).width;
+
+      ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
+      ctx.fillText(item.tag, padX + prefixW + bodyW, y);
+    }
+
+    if (activeLine) {
+      var activeY = padY + shellLines.length * lineHeight;
+      var fullText = activeLine.prefix + activeLine.body + activeLine.tag;
+      var visibleText = fullText.slice(0, activeCharIndex);
+
+      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.18)';
+      ctx.fillText(visibleText, padX, activeY);
+
+      if (Math.floor((now || 0) / 400) % 2 === 0) {
+        var curW = ctx.measureText(visibleText).width;
+        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.28)';
+        ctx.fillRect(padX + curW + 2, activeY + 1, fontSize * 0.55, fontSize);
+      }
+    }
+
+    ctx.restore();
+  }
 
   function build() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -151,10 +347,18 @@
         r: Math.random() * 2 + 1
       });
     }
+
+    initShell();
   }
 
-  function draw(step) {
+  function draw(step, now) {
     ctx.clearRect(0, 0, width, height);
+
+    if (step) {
+      updateShell(now || performance.now());
+    }
+    drawShell(now || performance.now());
+
     ctx.fillStyle = 'rgb(' + COLOUR + ')';
     ctx.lineWidth = 0.5;
 
@@ -189,15 +393,15 @@
     }
   }
 
-  function loop() {
+  function loop(now) {
     rafId = window.requestAnimationFrame(loop);
-    draw(true);
+    draw(true, now);
   }
 
   function start() {
     if (running || reducedMotion.matches) return;
     running = true;
-    loop();
+    rafId = window.requestAnimationFrame(loop);
   }
 
   function stop() {
@@ -212,13 +416,12 @@
     build();
     if (reducedMotion.matches) {
       stop();
-      draw(false);
+      draw(false, 0);
     } else {
-      draw(false);
+      draw(false, performance.now());
       start();
     }
   }
-
 
   var resizeTimer = null;
   window.addEventListener('resize', function () {
@@ -226,11 +429,9 @@
     resizeTimer = window.setTimeout(render, 150);
   }, { passive: true });
 
-
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { stop(); } else { start(); }
   });
-
 
   if (typeof reducedMotion.addEventListener === 'function') {
     reducedMotion.addEventListener('change', render);
