@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negarandeh | Systems Architecture</title>
     <meta name="robots" content="index, follow">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'sha256-7f3HHW4VuGNzguTSLE9eRE9GnGL/32jq+vENs2qn6oY='; img-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src https://stoic-quotes.com https://dummyjson.com; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
     <meta name="referrer" content="no-referrer">
     <style>
         :root {
@@ -78,12 +78,6 @@
             font-weight: 600;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            #live-background {
-                opacity: 0.5;
-            }
-        }
-
         .enter-link {
             display: inline-block;
             margin-top: 1.75rem;
@@ -105,7 +99,57 @@
             color: #ffffff;
             outline: none;
         }
-</style>
+
+        .live-quote-layer {
+            position: fixed;
+            left: 50%;
+            bottom: max(0.85rem, env(safe-area-inset-bottom, 0.85rem));
+            transform: translateX(-50%);
+            z-index: 2;
+            width: min(92vw, 680px);
+            text-align: center;
+            padding: 0.6rem 1.2rem;
+            background: rgba(255, 255, 255, 0.66);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        .live-quote-layer.is-visible {
+            opacity: 1;
+        }
+
+        .live-quote-text {
+            font-size: clamp(0.72rem, 1.9vw, 0.82rem);
+            color: var(--text-colour);
+            font-style: italic;
+            line-height: 1.45;
+            letter-spacing: 0.25px;
+        }
+
+        .live-quote-meta {
+            margin-top: 0.28rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.64rem;
+            letter-spacing: 1px;
+            color: var(--accent-colour);
+            text-transform: uppercase;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #live-background {
+                opacity: 0.5;
+            }
+            .live-quote-layer {
+                transition: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <canvas id="live-background" aria-hidden="true"></canvas>
@@ -132,14 +176,17 @@
   var particles = [];
   var rafId = null;
   var running = false;
+  var quoteInjected = false;
 
-  // Cryptographic random helper using Web Crypto API
+  // Hardware-backed CSPRNG helper
   function randBytes(len) {
     var arr = new Uint8Array(len);
-    if (window.crypto && window.crypto.getRandomValues) {
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
       window.crypto.getRandomValues(arr);
     } else {
-      for (var i = 0; i < len; i++) arr[i] = Math.floor(Math.random() * 256);
+      for (var i = 0; i < len; i++) {
+        arr[i] = Math.floor(Math.random() * 256);
+      }
     }
     return arr;
   }
@@ -162,11 +209,39 @@
     return list[randInt(0, list.length - 1)];
   }
 
-  // Ephemeral session state unique to each visit
+  function sanitisePlainText(input, maxLen) {
+    return String(input || '')
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxLen);
+  }
+
+  // Hardware Web Crypto SHA-256 digest
+  function sha256Hex(str) {
+    if (window.crypto && window.crypto.subtle && typeof window.TextEncoder === 'function') {
+      try {
+        var buf = new TextEncoder().encode(str);
+        return window.crypto.subtle.digest('SHA-256', buf).then(function (hash) {
+          return toHex(new Uint8Array(hash));
+        }).catch(function () {
+          return toHex(randBytes(32));
+        });
+      } catch (e) {
+        return Promise.resolve(toHex(randBytes(32)));
+      }
+    }
+    return Promise.resolve(toHex(randBytes(32)));
+  }
+
+  // Per-visit ephemeral cryptographic state
   var sessionNode = 'ng-core-' + toHex(randBytes(2));
   var sessionKeyId = '0x' + toHex(randBytes(4));
+  var chainDigest = toHex(randBytes(16));
+  var stateMerkleRoot = toHex(randBytes(16));
   var bootEpoch = Date.now();
-  var seqNum = randInt(1024, 9999);
+  var seqNum = randInt(2048, 9999);
+  var memBaseAddr = (0x7ff8a000 + randInt(0, 0x0fff) * 16) >>> 0;
 
   var CIPHERS = [
     'ML-KEM-1024+X25519',
@@ -174,44 +249,57 @@
     'Ed25519-SHA512',
     'AES-256-GCM-SIV',
     'SLH-DSA-SHAKE-256f',
-    'BLAKE3-256-KDF'
+    'BLAKE3-256-KDF',
+    'HMAC-SHA3-512'
   ];
 
   var SUBSYSTEMS = [
-    'kexec.seccomp',
-    'tpm2.attest',
-    'zk.plonk.verifier',
-    'wireguard.noise_ik',
+    'crypto.kem.pq',
+    'tpm2.pcr.attest',
+    'zk.groth16.verify',
+    'wg.noise_ik.session',
     'hsm.enclave.seal',
-    'net.ebpf.xdp',
-    'mem.mlock.guard',
-    'tls13.0rtt.anti_replay'
+    'net.ebpf.xdp_filter',
+    'mm.mlock.guard',
+    'hash.merkle.commit'
   ];
 
-  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[OK]', '[LOCKED]', '[ACK]', '[VALID]'];
+  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[COMMITTED]', '[LOCKED]', '[ATTESTED]', '[VALID]'];
+
+  function evolveChainHash() {
+    var fresh = toHex(randBytes(16));
+    chainDigest = fresh;
+    if (randInt(0, 2) === 0) {
+      stateMerkleRoot = toHex(randBytes(16));
+    }
+    return fresh;
+  }
 
   function generateShellLine() {
-    seqNum += randInt(1, 7);
+    seqNum += randInt(1, 9);
     var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
     var padElapsed = ('0000' + elapsed).slice(-9);
     var sys = pick(SUBSYSTEMS);
     var cipher = pick(CIPHERS);
     var tag = pick(STATUS_TAGS);
-    var mode = randInt(0, 5);
+    var mode = randInt(0, 6);
+    var digest = evolveChainHash();
     var payload = '';
 
     if (mode === 0) {
-      payload = 'kem_encaps(' + cipher + ') -> ct=0x' + toHex(randBytes(8)) + '..' + toHex(randBytes(2)) + ' ss_sha3=' + toHex(randBytes(6));
+      payload = 'kem(' + cipher + ') ct=0x' + toHex(randBytes(6)) + '..' + toHex(randBytes(2)) + ' sha256=' + digest.slice(0, 20);
     } else if (mode === 1) {
-      payload = 'pcr_extend[0..7]bank=sha384 digest=' + toHex(randBytes(10)) + ' nonce=0x' + toHex(randBytes(4));
+      payload = 'pcr_extend[0..7] sha384=' + toHex(randBytes(12)) + ' nonce=0x' + toHex(randBytes(4));
     } else if (mode === 2) {
-      payload = 'aead_sealseq=' + seqNum + ' aad=' + sessionKeyId + ' tag=0x' + toHex(randBytes(8)) + ' entropy=7.9998b/B';
+      payload = 'aead_seal seq=' + seqNum + ' aad=' + sessionKeyId + ' tag=0x' + toHex(randBytes(8)) + ' H=7.9999b/B';
     } else if (mode === 3) {
-      payload = 'zk_snark_verify(groth16) witness=0x' + toHex(randBytes(6)) + ' curve=BLS12-381 gas=' + randInt(180, 940) + 'us';
+      payload = 'zk_proof(BLS12-381) witness=0x' + toHex(randBytes(6)) + ' root=0x' + stateMerkleRoot.slice(0, 12) + ' t=' + randInt(140, 820) + 'us';
     } else if (mode === 4) {
-      payload = 'argon2id(m=65536,t=4,p=4) salt=0x' + toHex(randBytes(6)) + ' -> dk=' + toHex(randBytes(8));
+      payload = 'blake3_tree depth=' + randInt(4, 12) + ' leaf=0x' + toHex(randBytes(6)) + ' -> digest=' + digest.slice(0, 24);
+    } else if (mode === 5) {
+      payload = 'argon2id(m=65536,t=4) salt=0x' + toHex(randBytes(6)) + ' dk_sha256=' + toHex(randBytes(10));
     } else {
-      payload = 'page_isolate addr=0x7f' + toHex(randBytes(5)) + '000 prot=PROT_READ|PROT_EXEC canary=0x' + toHex(randBytes(4));
+      payload = 'raw_frame 0x' + toHex(randBytes(4)) + ': ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' crc32=0x' + toHex(randBytes(4));
     }
 
     return {
@@ -221,41 +309,94 @@
     };
   }
 
-  // Terminal state
+  // Canonical hex + ASCII memory inspector rows
+  var hexDumpRows = [];
+  var maxHexRows = 14;
+  var lastHexTick = 0;
+
+  function generateHexRow() {
+    memBaseAddr = (memBaseAddr + 16) >>> 0;
+    var raw = randBytes(16);
+    var hexLeft = '';
+    var hexRight = '';
+    var ascii = '';
+
+    for (var i = 0; i < 16; i++) {
+      var h = ('0' + raw[i].toString(16)).slice(-2);
+      if (i < 8) hexLeft += h + ' ';
+      else hexRight += h + ' ';
+      ascii += (raw[i] >= 33 && raw[i] <= 126) ? String.fromCharCode(raw[i]) : '.';
+    }
+
+    var addrHex = ('00000000' + memBaseAddr.toString(16)).slice(-8);
+    return '0x' + addrHex + '  ' + hexLeft + ' ' + hexRight + ' |' + ascii + '|';
+  }
+
+  // Background shell stream state
   var shellLines = [];
   var maxLines = 28;
-  var lineHeight = 18;
-  var fontSize = 11.5;
+  var lineHeight = 17;
+  var fontSize = 11;
   var activeLine = null;
   var activeCharIndex = 0;
   var lastTypeTime = 0;
   var nextLineDelay = 0;
 
   function initShell() {
-    fontSize = width < 600 ? 10 : 11.5;
-    lineHeight = width < 600 ? 15 : 18;
-    maxLines = Math.max(12, Math.floor((height - 40) / lineHeight));
+    fontSize = width < 640 ? 9.5 : 11;
+    lineHeight = width < 640 ? 14 : 17;
+    maxLines = Math.max(10, Math.floor((height - 95) / lineHeight));
+
     shellLines = [
       {
         prefix: '[0000.0000] ' + sessionNode + ' boot.csprng: ',
-        body: 'hardware entropy pool seeded key_id=' + sessionKeyId + ' digest=0x' + toHex(randBytes(8)) + ' ',
+        body: 'entropy seeded key=' + sessionKeyId + ' sha256=' + chainDigest + ' ',
         tag: '[SEALED]'
       },
       {
-        prefix: '[0000.0004] ' + sessionNode + ' pq.handshake: ',
-        body: 'negotiated hybrid primitive ML-KEM-1024 + X25519 state=0x' + toHex(randBytes(6)) + ' ',
+        prefix: '[0000.0003] ' + sessionNode + ' pq.kem.init: ',
+        body: 'ML-KEM-1024 + X25519 merkle_root=0x' + stateMerkleRoot + ' ',
         tag: '[VERIFIED]'
       }
     ];
-    var initialCount = Math.min(maxLines - 2, randInt(8, 14));
+
+    var initialCount = Math.min(maxLines - 3, randInt(9, 15));
     for (var i = 0; i < initialCount; i++) {
       shellLines.push(generateShellLine());
     }
+
+    hexDumpRows = [];
+    for (var j = 0; j < maxHexRows; j++) {
+      hexDumpRows.push(generateHexRow());
+    }
+
     activeLine = generateShellLine();
     activeCharIndex = 0;
   }
 
+  function pushCustomShellEvent(subsystem, bodyText, tagText) {
+    var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
+    var padElapsed = ('0000' + elapsed).slice(-9);
+    shellLines.push({
+      prefix: '[' + padElapsed + '] ' + sessionNode + ' ' + subsystem + ': ',
+      body: bodyText + ' ',
+      tag: tagText
+    });
+    if (shellLines.length > maxLines) {
+      shellLines.shift();
+    }
+    if (reducedMotion.matches) {
+      draw(false, 0);
+    }
+  }
+
   function updateShell(now) {
+    if (now - lastHexTick > 260) {
+      hexDumpRows.push(generateHexRow());
+      if (hexDumpRows.length > maxHexRows) hexDumpRows.shift();
+      lastHexTick = now;
+    }
+
     if (!activeLine) {
       if (now >= nextLineDelay) {
         activeLine = generateShellLine();
@@ -264,9 +405,9 @@
       return;
     }
 
-    if (now - lastTypeTime > 16) {
+    if (now - lastTypeTime > 14) {
       var fullLen = activeLine.prefix.length + activeLine.body.length + activeLine.tag.length;
-      activeCharIndex += randInt(2, 5);
+      activeCharIndex += randInt(2, 6);
       lastTypeTime = now;
 
       if (activeCharIndex >= fullLen) {
@@ -275,7 +416,7 @@
           shellLines.shift();
         }
         activeLine = null;
-        nextLineDelay = now + randInt(120, 480);
+        nextLineDelay = now + randInt(90, 380);
       }
     }
   }
@@ -285,18 +426,17 @@
     ctx.font = fontSize + 'px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
     ctx.textBaseline = 'top';
 
-    var padX = width < 600 ? 14 : 28;
-    var padY = width < 600 ? 16 : 24;
+    var padX = width < 640 ? 12 : 26;
+    var padY = width < 640 ? 14 : 22;
     var totalLines = shellLines.length + (activeLine ? 1 : 0);
 
+    // Left stream: Cryptographic kernel and hash chain
     for (var i = 0; i < shellLines.length; i++) {
       var item = shellLines[i];
       var y = padY + i * lineHeight;
-
-      // Subtle vertical fade near the top so older logs recede naturally
       var fade = totalLines > 10 && i < 4 ? (i + 1) / 5 : 1;
-      var baseAlpha = 0.13 * fade;
-      var accentAlpha = 0.22 * fade;
+      var baseAlpha = 0.14 * fade;
+      var accentAlpha = 0.24 * fade;
 
       ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
       ctx.fillText(item.prefix, padX, y);
@@ -315,13 +455,31 @@
       var fullText = activeLine.prefix + activeLine.body + activeLine.tag;
       var visibleText = fullText.slice(0, activeCharIndex);
 
-      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.18)';
+      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.20)';
       ctx.fillText(visibleText, padX, activeY);
 
-      if (Math.floor((now || 0) / 400) % 2 === 0) {
+      if (Math.floor((now || 0) / 380) % 2 === 0) {
         var curW = ctx.measureText(visibleText).width;
-        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.28)';
+        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.30)';
         ctx.fillRect(padX + curW + 2, activeY + 1, fontSize * 0.55, fontSize);
+      }
+    }
+
+    // Right stream: Canonical hex memory inspector on wide viewports
+    if (width >= 1120) {
+      var rightX = width - 460;
+      var headerY = padY;
+
+      ctx.fillStyle = 'rgba(' + COLOUR + ', 0.22)';
+      ctx.fillText(':: LIVE REGISTER & HEX MEMORY INSPECTOR [' + sessionKeyId + ']', rightX, headerY);
+      ctx.fillText(':: SHA256_CHAIN ' + chainDigest, rightX, headerY + lineHeight);
+      ctx.fillText(':: MERKLE_STATE ' + stateMerkleRoot, rightX, headerY + lineHeight * 2);
+
+      var dumpStartY = headerY + lineHeight * 3.5;
+      for (var k = 0; k < hexDumpRows.length; k++) {
+        var rowAlpha = 0.11 + (k / hexDumpRows.length) * 0.06;
+        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + rowAlpha.toFixed(3) + ')';
+        ctx.fillText(hexDumpRows[k], rightX, dumpStartY + k * lineHeight);
       }
     }
 
@@ -344,7 +502,8 @@
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.5,
         vy: (Math.random() - 0.5) * 0.5,
-        r: Math.random() * 2 + 1
+        r: Math.random() * 2 + 1,
+        tag: (i % 6 === 0) ? '0x' + toHex(randBytes(2)) : null
       });
     }
 
@@ -361,6 +520,7 @@
 
     ctx.fillStyle = 'rgb(' + COLOUR + ')';
     ctx.lineWidth = 0.5;
+    ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
@@ -372,9 +532,15 @@
         if (p.y < 0 || p.y > height) p.vy = -p.vy;
       }
 
+      ctx.fillStyle = 'rgb(' + COLOUR + ')';
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
+
+      if (p.tag) {
+        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.22)';
+        ctx.fillText(p.tag, p.x + 5, p.y - 4);
+      }
 
       for (var j = i + 1; j < particles.length; j++) {
         var q = particles[j];
@@ -423,6 +589,105 @@
     }
   }
 
+  // Offline enclave quote vault if visitor has no connectivity
+  var FALLBACK_QUOTES = [
+    { text: 'The impediment to action advances action. What stands in the way becomes the way.', author: 'Marcus Aurelius' },
+    { text: 'We suffer more often in imagination than in reality.', author: 'Seneca' },
+    { text: 'No man is free who is not master of himself.', author: 'Epictetus' },
+    { text: 'Simplicity is prerequisite for reliability.', author: 'Edsger W. Dijkstra' },
+    { text: 'He who has a why to live for can bear almost any how.', author: 'Friedrich Nietzsche' }
+  ];
+
+  function fetchWithTimeout(url, ms) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? window.setTimeout(function () { ctrl.abort(); }, ms) : null;
+
+    return window.fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (res) {
+      if (timer) window.clearTimeout(timer);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }, function (err) {
+      if (timer) window.clearTimeout(timer);
+      throw err;
+    });
+  }
+
+  function injectQuoteBeforeBodyEnd(quoteText, quoteAuthor, sourceTag) {
+    if (quoteInjected) return;
+    var cleanText = sanitisePlainText(quoteText, 260);
+    var cleanAuthor = sanitisePlainText(quoteAuthor || 'Unknown', 60);
+    if (!cleanText) return;
+    quoteInjected = true;
+
+    sha256Hex(cleanText + '//' + cleanAuthor).then(function (digest) {
+      var shortHash = digest.slice(0, 16);
+
+      pushCustomShellEvent(
+        'tls13.quote_ingest',
+        'src=' + sourceTag + ' sha256=' + digest.slice(0, 24) + '.. len=' + cleanText.length + 'B',
+        '[VERIFIED]'
+      );
+
+      var footer = document.createElement('footer');
+      footer.className = 'live-quote-layer';
+      footer.setAttribute('aria-label', 'Philosophical quote of the visit');
+
+      var pQuote = document.createElement('p');
+      pQuote.className = 'live-quote-text';
+      pQuote.textContent = '"' + cleanText + '"';
+
+      var pMeta = document.createElement('p');
+      pMeta.className = 'live-quote-meta';
+      pMeta.textContent = '// ' + cleanAuthor + ' | sha256:' + shortHash;
+
+      footer.appendChild(pQuote);
+      footer.appendChild(pMeta);
+      document.body.appendChild(footer);
+
+      window.requestAnimationFrame(function () {
+        footer.classList.add('is-visible');
+      });
+    });
+  }
+
+  function loadLivePhilosophy() {
+    if (typeof window.fetch !== 'function') {
+      var local = pick(FALLBACK_QUOTES);
+      injectQuoteBeforeBodyEnd(local.text, local.author, 'local.vault');
+      return;
+    }
+
+    fetchWithTimeout('https://stoic-quotes.com/api/quote', 3500)
+      .then(function (data) {
+        if (data && typeof data.text === 'string' && data.text.trim()) {
+          injectQuoteBeforeBodyEnd(data.text, data.author, 'stoic-quotes.tls');
+        } else {
+          throw new Error('Invalid schema');
+        }
+      })
+      .catch(function () {
+        fetchWithTimeout('https://dummyjson.com/quotes/random', 3500)
+          .then(function (data) {
+            if (data && typeof data.quote === 'string' && data.quote.trim()) {
+              injectQuoteBeforeBodyEnd(data.quote, data.author, 'dummyjson.tls');
+            } else {
+              throw new Error('Invalid fallback schema');
+            }
+          })
+          .catch(function () {
+            var fallback = pick(FALLBACK_QUOTES);
+            injectQuoteBeforeBodyEnd(fallback.text, fallback.author, 'enclave.vault');
+          });
+      });
+  }
+
   var resizeTimer = null;
   window.addEventListener('resize', function () {
     if (resizeTimer) window.clearTimeout(resizeTimer);
@@ -438,6 +703,7 @@
   }
 
   render();
+  loadLivePhilosophy();
 })();
 </script>
 </body>
