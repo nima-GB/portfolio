@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Negarandeh // Live Operations Console</title>
+<title> Live Operations Console </title>
 <meta name="description" content="Negarandeh — systems architecture. A live operations console rendering real-time public data: USGS seismic activity, NOAA space weather, ISS telemetry, and service health.">
 <meta name="robots" content="index, follow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9WagtojLrOWXDo7Ko5t8dH4ZZRDPhyruO3isZLjXtRQ='; style-src 'sha256-MSboJoGlqjD4pExV8/8jZ7W0CAhANS1YNyBd/AoO/0M='; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <style>
-
 :root {
   --void:        #020408;
   --deep:        #060d14;
@@ -150,8 +149,8 @@ body {
 }
 .header-brand span { color: var(--text-muted); font-weight: 400; }
 
-.sys-nav { display: flex; gap: 4px; }
-.sys-nav a {
+.sys-nav { display: flex; gap: 4px; align-items: center; }
+.sys-nav a, .sys-nav button {
   font-family: var(--font-hud);
   font-size: 10px;
   color: var(--text-muted);
@@ -159,14 +158,24 @@ body {
   letter-spacing: 1.5px;
   padding: 6px 14px;
   border: 1px solid transparent;
+  background: transparent;
   transition: all 0.2s;
   text-transform: uppercase;
+  cursor: pointer;
 }
 .sys-nav a:hover,
-.sys-nav a:focus-visible {
+.sys-nav a:focus-visible,
+.sys-nav button:hover,
+.sys-nav button:focus-visible {
   color: var(--tac-cyan);
   border-color: var(--tac-dim);
   background: rgba(0,229,255,0.04);
+  outline: none;
+}
+
+.audio-toggle.active {
+  color: var(--tac-green);
+  border-color: rgba(57,255,158,0.3);
 }
 
 .header-status {
@@ -421,11 +430,20 @@ body {
   background: rgba(6,13,20,0.6);
 }
 .panel-head-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 9px;
   letter-spacing: 2.5px;
   color: var(--text-muted);
   text-transform: uppercase;
 }
+.sparkline-canvas {
+  height: 14px;
+  width: 80px;
+  opacity: 0.8;
+}
+
 .panel-head-status { font-size: 9px; letter-spacing: 1px; }
 .panel-body { padding: 16px; }
 .panel-src {
@@ -653,6 +671,19 @@ body {
 }
 .sys-footer a { color: var(--text-muted); text-decoration: none; }
 .sys-footer a:hover { color: var(--tac-cyan); }
+.key-legend {
+  display: flex;
+  gap: 16px;
+  color: var(--text-muted);
+}
+.key-legend kbd {
+  font-family: var(--font-hud);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--tac-dim);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--tac-cyan);
+}
 
 .tac-cyan  { color: var(--tac-cyan)  !important; }
 .tac-green { color: var(--tac-green) !important; }
@@ -669,9 +700,10 @@ body {
   .c2-panel.wide, .c2-panel.full { grid-column: span 1; }
   .section { padding: 80px 20px 40px; }
   .sys-footer { flex-direction: column; text-align: center; }
+  .key-legend { display: none; }
 }
 @media (max-width: 640px) {
-  .sys-nav a { display: none; }
+  .sys-nav a.desktop-only { display: none; }
   .sys-nav a.nav-exit { display: block; }
   .hero-name { letter-spacing: 2px; }
   .geomag-banner { flex-direction: column; gap: 16px; text-align: center; }
@@ -699,11 +731,12 @@ body {
   <header class="sys-header">
     <div class="header-brand">NEGARANDEH <span>// LIVE OPS</span></div>
     <nav class="sys-nav" aria-label="Primary navigation">
-      <a href="#profile">Profile</a>
-      <a href="#competencies">Competencies</a>
-      <a href="#telemetry">Telemetry</a>
-      <a href="#geomag">Space Weather</a>
-      <a href="index.html" class="nav-exit">⌂ Exit</a>
+      <a href="#profile" class="desktop-only" data-audio-hover>Profile</a>
+      <a href="#competencies" class="desktop-only" data-audio-hover>Competencies</a>
+      <a href="#telemetry" class="desktop-only" data-audio-hover>Telemetry</a>
+      <a href="#geomag" class="desktop-only" data-audio-hover>Space Weather</a>
+      <button type="button" id="audio-toggle" class="audio-toggle" aria-label="Toggle tactical audio">AUDIO: OFF</button>
+      <a href="index.html" class="nav-exit" data-audio-hover>⌂ Exit</a>
     </nav>
     <div class="header-status">
       <div class="pulse-dot" id="conn-dot"></div>
@@ -738,7 +771,7 @@ body {
       </div>
     </div>
 
-    <a href="#telemetry" class="hero-cta">Open Telemetry</a>
+    <a href="#telemetry" class="hero-cta" data-audio-hover>Open Telemetry</a>
 
     <div class="ticker-wrap" aria-hidden="true">
       <div class="ticker-track" id="ticker"></div>
@@ -751,7 +784,7 @@ body {
     <div class="section-rule"></div>
 
     <div class="comp-grid">
-      <div class="comp-card">
+      <div class="comp-card" data-audio-hover>
         <div class="comp-num">01 // SYSTEMS</div>
         <div class="comp-title">Systems Architecture</div>
         <p class="comp-body">Designing and deploying scalable, zero-dependency infrastructures. Ensuring operational continuity through precise resource allocation and strict environmental controls.</p>
@@ -761,7 +794,7 @@ body {
           <span class="comp-tag">HA Clusters</span>
         </div>
       </div>
-      <div class="comp-card">
+      <div class="comp-card" data-audio-hover>
         <div class="comp-num">02 // SECURITY</div>
         <div class="comp-title">Security &amp; Compliance</div>
         <p class="comp-body">Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols protecting digital assets from external vulnerabilities.</p>
@@ -771,7 +804,7 @@ body {
           <span class="comp-tag">CSP</span>
         </div>
       </div>
-      <div class="comp-card">
+      <div class="comp-card" data-audio-hover>
         <div class="comp-num">03 // LEADERSHIP</div>
         <div class="comp-title">Technical Leadership</div>
         <p class="comp-body">Guiding engineering lifecycles from initial concept to production deployment. Bridging complex technical execution with high-level strategic objectives.</p>
@@ -781,7 +814,7 @@ body {
           <span class="comp-tag">Stakeholder</span>
         </div>
       </div>
-      <div class="comp-card">
+      <div class="comp-card" data-audio-hover>
         <div class="comp-num">04 // NETOPS</div>
         <div class="comp-title">Network Operations</div>
         <p class="comp-body">Managing DNS routing, domain integrity (DMARC/SPF), and maintaining high-performance global edge deployments across distributed infrastructure.</p>
@@ -803,7 +836,10 @@ body {
 
       <div class="c2-panel wide">
         <div class="panel-head">
-          <span class="panel-head-title">Seismic Activity — M2.5+ Last 24 Hours</span>
+          <span class="panel-head-title">
+            Seismic Activity — M2.5+ Last 24 Hours
+            <canvas id="quake-sparkline" class="sparkline-canvas" width="100" height="14" aria-hidden="true"></canvas>
+          </span>
           <span class="panel-head-status tac-cyan" id="quake-head-status">CONNECTING...</span>
         </div>
         <table class="quake-table" aria-label="Latest earthquakes">
@@ -904,6 +940,12 @@ body {
 
   <footer class="sys-footer">
     <span>© 2026 NEGARANDEH // LIVE DATA: USGS · NOAA SWPC · WHERETHEISS.AT · ATLASSIAN STATUSPAGE</span>
+    <div class="key-legend">
+      <span><kbd>/</kbd> Terminal</span>
+      <span><kbd>R</kbd> Refresh</span>
+      <span><kbd>1</kbd>-<kbd>4</kbd> Nav</span>
+      <span><kbd>ESC</kbd> Blur</span>
+    </div>
     <span class="tac-cyan">NEGARIX v4.0 // <a href="index.html">RETURN TO GATEWAY</a></span>
   </footer>
 
@@ -913,6 +955,93 @@ body {
 
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* ---- Tactical Audio Engine ---- */
+var AudioEngine = (function() {
+  var ctx = null;
+  var enabled = false;
+
+  function init() {
+    if (enabled) return;
+    try {
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      ctx = new AudioContext();
+      enabled = true;
+    } catch(e) { console.warn('Web Audio not supported'); }
+  }
+
+  function beep(freq, type, duration, vol) {
+    if (!enabled || !ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq || 800, ctx.currentTime);
+    
+    gain.gain.setValueAtTime(vol || 0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (duration || 0.1));
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + (duration || 0.1));
+  }
+
+  return {
+    toggle: function() {
+      if (!enabled) init();
+      else enabled = false;
+      return enabled;
+    },
+    click: function() { beep(1200, 'square', 0.05, 0.02); },
+    type: function() { beep(2000, 'sine', 0.02, 0.01); },
+    enter: function() { beep(800, 'square', 0.1, 0.03); },
+    alert: function() { beep(400, 'sawtooth', 0.2, 0.05); }
+  };
+})();
+
+// Wire audio UI
+var audioBtn = document.getElementById('audio-toggle');
+if (audioBtn) {
+  audioBtn.addEventListener('click', function() {
+    var isOn = AudioEngine.toggle();
+    audioBtn.textContent = isOn ? 'AUDIO: ON' : 'AUDIO: OFF';
+    audioBtn.className = isOn ? 'audio-toggle active' : 'audio-toggle';
+    if (isOn) AudioEngine.click();
+  });
+}
+document.querySelectorAll('[data-audio-hover]').forEach(function(el) {
+  el.addEventListener('mouseenter', function() { AudioEngine.type(); });
+});
+
+/* ---- Global Hotkeys ---- */
+document.addEventListener('keydown', function(e) {
+  var cli = document.getElementById('cli-field');
+  
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      e.target.blur();
+      AudioEngine.click();
+    }
+    return;
+  }
+  
+  if (e.key === '/') {
+    e.preventDefault();
+    if (cli) { cli.focus(); AudioEngine.click(); }
+  } else if (e.key.toLowerCase() === 'r') {
+    e.preventDefault();
+    AudioEngine.enter();
+    refreshAllFeeds();
+  } else if (e.key === '1') { e.preventDefault(); window.location.hash = '#profile'; AudioEngine.type(); }
+  else if (e.key === '2') { e.preventDefault(); window.location.hash = '#competencies'; AudioEngine.type(); }
+  else if (e.key === '3') { e.preventDefault(); window.location.hash = '#telemetry'; AudioEngine.type(); }
+  else if (e.key === '4') { e.preventDefault(); window.location.hash = '#geomag'; AudioEngine.type(); }
+});
+
+/* ---- Data Feeds ---- */
 var FEEDS = {
   quakes: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson',
   kp:     'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
@@ -949,16 +1078,10 @@ function fetchJSON(url, timeoutMs) {
     });
 }
 
-/* ---- Data validation: bound-check every external value ---- */
-function numIn(v, lo, hi) {
-  return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
-}
-function cleanText(v, maxLen) {
-  if (typeof v !== 'string') return '';
-  return v.slice(0, maxLen || 80);
-}
+function numIn(v, lo, hi) { return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi; }
+function cleanText(v, maxLen) { return typeof v !== 'string' ? '' : v.slice(0, maxLen || 80); }
 
-/* ---- Event feed (real telemetry of this page) ---- */
+/* ---- Event Feed (Real Telemetry Log) ---- */
 var feedEl = null;
 function logFeed(src, text, cls) {
   if (!feedEl) feedEl = document.getElementById('event-feed');
@@ -974,14 +1097,14 @@ function logFeed(src, text, cls) {
   var d = document.createElement('span');
   d.className = 'feed-data';
   d.textContent = text;
-  line.appendChild(ts);
-  line.appendChild(s);
-  line.appendChild(d);
+  line.appendChild(ts); line.appendChild(s); line.appendChild(d);
   feedEl.insertBefore(line, feedEl.firstChild);
   while (feedEl.children.length > 18) feedEl.removeChild(feedEl.lastChild);
+  
+  if (cls === 'alert') AudioEngine.alert();
 }
 
-/* ---- Boot log ---- */
+/* ---- Boot Sequence ---- */
 var bootLog = document.getElementById('boot-log');
 function bootLine(cls, text) {
   if (STATE.bootDone || !bootLog) return;
@@ -1016,10 +1139,10 @@ function finishBoot() {
   bootLine('head', 'NEGARIX LIVE OPS v4.0 // INITIALISING');
   bootLine('info', '[SYS] All telemetry on this console is live public data.');
   bootLine('ok',   '[OK] Renderer initialised');
-  setTimeout(finishBoot, 4000);
+  setTimeout(finishBoot, 3500);
 })();
 
-/* ---- Clock + connection ---- */
+/* ---- Clock & Connection Monitoring ---- */
 (function initClock() {
   var el = document.getElementById('live-clock');
   var dot = document.getElementById('conn-dot');
@@ -1037,7 +1160,7 @@ function finishBoot() {
   window.addEventListener('offline', tick);
 })();
 
-/* ---- Background particles ---- */
+/* ---- Background Canvas (Nodes) ---- */
 (function initBgCanvas() {
   var canvas = document.getElementById('bg-canvas');
   if (!canvas || !canvas.getContext) return;
@@ -1049,10 +1172,8 @@ function finishBoot() {
     nodes = [];
     for (var i = 0; i < count; i++) {
       nodes.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25,
         r: Math.random() * 1.5 + 0.5
       });
     }
@@ -1073,32 +1194,25 @@ function finishBoot() {
     ctx.clearRect(0, 0, W, H);
     var i, j, dx, dy, d, n;
     for (i = 0; i < nodes.length; i++) {
-      n = nodes[i];
-      n.x += n.vx; n.y += n.vy;
+      n = nodes[i]; n.x += n.vx; n.y += n.vy;
       if (n.x < 0 || n.x > W) n.vx = -n.vx;
       if (n.y < 0 || n.y > H) n.vy = -n.vy;
     }
     for (i = 0; i < nodes.length; i++) {
       for (j = i + 1; j < nodes.length; j++) {
-        dx = nodes[i].x - nodes[j].x;
-        dy = nodes[i].y - nodes[j].y;
+        dx = nodes[i].x - nodes[j].x; dy = nodes[i].y - nodes[j].y;
         d = Math.sqrt(dx * dx + dy * dy);
         if (d < 120) {
           ctx.strokeStyle = 'rgba(0,229,255,' + ((1 - d / 120) * 0.12) + ')';
           ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
         }
       }
     }
     for (i = 0; i < nodes.length; i++) {
       n = nodes[i];
       ctx.fillStyle = 'rgba(0,229,255,0.35)';
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
     }
     if (!REDUCED_MOTION && !document.hidden) requestAnimationFrame(frame);
   }
@@ -1106,12 +1220,37 @@ function finishBoot() {
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && !REDUCED_MOTION) requestAnimationFrame(frame);
   });
-
-  resize();
-  frame();
+  resize(); frame();
 })();
 
-/* ---- Ticker (live values, updated as feeds land) ---- */
+/* ---- Sparkline Generator ---- */
+function drawSparkline(canvasId, dataArray, colorHex) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  if (!dataArray || dataArray.length === 0) return;
+  
+  var max = Math.max.apply(null, dataArray);
+  var min = Math.min.apply(null, dataArray);
+  var range = (max - min) || 1;
+  
+  ctx.beginPath();
+  ctx.strokeStyle = colorHex;
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  
+  dataArray.forEach(function(val, i) {
+    var x = (i / (dataArray.length - 1)) * w;
+    var y = h - ((val - min) / range) * (h - 4) - 2;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+/* ---- Ticker ---- */
 function updateTicker() {
   var items = ['◈ ALL TELEMETRY LIVE // SOURCES: USGS · NOAA SWPC · WHERETHEISS · STATUSPAGE'];
   if (STATE.quakes) {
@@ -1120,27 +1259,27 @@ function updateTicker() {
   }
   if (STATE.kpNow !== null) items.push('◈ PLANETARY KP INDEX: ' + STATE.kpNow.toFixed(2));
   if (STATE.iss) {
-    items.push('◈ ISS VELOCITY: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' KM/H');
-    items.push('◈ ISS ALTITUDE: ' + Math.round(STATE.iss.altitude) + ' KM');
+    items.push('◈ ISS VEL: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' KM/H');
+    items.push('◈ ISS ALT: ' + Math.round(STATE.iss.altitude) + ' KM');
   }
   Object.keys(STATE.services).forEach(function (k) {
     items.push('◈ ' + k + ': ' + STATE.services[k].toUpperCase());
   });
   var el = document.getElementById('ticker');
+  if(!el) return;
   el.textContent = '';
   items.concat(items).forEach(function (t) {
     var span = document.createElement('span');
     span.className = 'ticker-item';
     var hi = document.createElement('span');
-    hi.className = 'hi';
-    hi.textContent = '◈';
+    hi.className = 'hi'; hi.textContent = '◈';
     span.appendChild(hi);
     span.appendChild(document.createTextNode('\u00A0\u00A0' + t.replace('◈ ', '')));
     el.appendChild(span);
   });
 }
 
-/* ---- World map (real positions: quakes + ISS) ---- */
+/* ---- World Map ---- */
 var mapState = { trail: [] };
 function drawWorldMap() {
   var canvas = document.getElementById('worldmap-canvas');
@@ -1148,12 +1287,9 @@ function drawWorldMap() {
   var ctx = canvas.getContext('2d');
   var W = canvas.offsetWidth || 800;
   var H = 200;
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W; canvas.height = H;
 
-  function xy(lat, lon) {
-    return { x: ((lon + 180) / 360) * W, y: ((90 - lat) / 180) * H };
-  }
+  function xy(lat, lon) { return { x: ((lon + 180) / 360) * W, y: ((90 - lat) / 180) * H }; }
 
   ctx.fillStyle = 'rgba(6,13,20,0.8)';
   ctx.fillRect(0, 0, W, H);
@@ -1161,12 +1297,8 @@ function drawWorldMap() {
   ctx.strokeStyle = 'rgba(30,61,90,0.4)';
   ctx.lineWidth = 0.5;
   var gx, gy;
-  for (gx = 0; gx <= W; gx += W / 24) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
-  }
-  for (gy = 0; gy <= H; gy += H / 12) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
-  }
+  for (gx = 0; gx <= W; gx += W / 24) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (gy = 0; gy <= H; gy += H / 12) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(30,61,90,0.8)';
   ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
@@ -1177,21 +1309,16 @@ function drawWorldMap() {
       var r = Math.max(1.5, q.mag - 1);
       var color = q.mag >= 5.5 ? '255,51,51' : q.mag >= 4.5 ? '255,179,0' : '57,255,158';
       ctx.fillStyle = 'rgba(' + color + ',0.85)';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = 'rgba(' + color + ',0.25)';
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2); ctx.stroke();
     });
   }
 
   if (mapState.trail.length > 1) {
     ctx.strokeStyle = 'rgba(0,229,255,0.35)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([2, 4]);
+    ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
     ctx.beginPath();
     mapState.trail.forEach(function (t, i) {
       var p = xy(t.lat, t.lon);
@@ -1199,21 +1326,16 @@ function drawWorldMap() {
       else if (Math.abs(t.lon - mapState.trail[i - 1].lon) > 90) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     });
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.stroke(); ctx.setLineDash([]);
   }
 
   if (STATE.iss) {
     var ip = xy(STATE.iss.latitude, STATE.iss.longitude);
     ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(ip.x, ip.y, 3.5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(ip.x, ip.y, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = 'rgba(0,229,255,0.5)';
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(ip.x, ip.y, 8, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(ip.x, ip.y, 8, 0, Math.PI * 2); ctx.stroke();
     ctx.font = '8px ui-monospace, monospace';
     ctx.fillStyle = 'rgba(200,223,240,0.8)';
     ctx.fillText('ISS', ip.x + 10, ip.y - 4);
@@ -1229,7 +1351,7 @@ window.addEventListener('resize', function () {
   mapResizeTimer = setTimeout(drawWorldMap, 150);
 }, { passive: true });
 
-/* ---- USGS earthquakes ---- */
+/* ---- Feed Functions ---- */
 function loadQuakes() {
   return fetchJSON(FEEDS.quakes).then(function (data) {
     var feats = (data.features || []).slice();
@@ -1237,28 +1359,16 @@ function loadQuakes() {
     var events = [];
     feats.slice(0, 500).forEach(function (f) {
       if (!f || !f.properties || !f.geometry || !Array.isArray(f.geometry.coordinates)) return;
-      var mag = f.properties.mag;
-      var lon = f.geometry.coordinates[0];
-      var lat = f.geometry.coordinates[1];
-      var time = f.properties.time;
+      var mag = f.properties.mag, lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1], time = f.properties.time;
       if (!numIn(mag, -1, 10) || !numIn(lat, -90, 90) || !numIn(lon, -180, 180) || !numIn(time, 0, 4102444800000)) return;
-      events.push({
-        mag: mag,
-        place: cleanText(f.properties.place, 80) || 'Unknown location',
-        time: time,
-        lon: lon,
-        lat: lat
-      });
+      events.push({ mag: mag, place: cleanText(f.properties.place, 80) || 'Unknown location', time: time, lon: lon, lat: lat });
     });
     var maxMag = events.length ? Math.max.apply(null, events.map(function (e) { return e.mag; })) : null;
     STATE.quakes = { count: events.length, maxMag: maxMag, events: events };
 
-    var statEl = document.getElementById('stat-quakes');
-    if (statEl) statEl.textContent = events.length;
-    var maxEl = document.getElementById('stat-maxmag');
-    if (maxEl) maxEl.textContent = maxMag !== null ? 'M' + maxMag.toFixed(1) : '--';
-    var headEl = document.getElementById('quake-head-status');
-    if (headEl) headEl.textContent = events.length + ' EVENTS / 24H';
+    var statEl = document.getElementById('stat-quakes'); if (statEl) statEl.textContent = events.length;
+    var maxEl = document.getElementById('stat-maxmag'); if (maxEl) maxEl.textContent = maxMag !== null ? 'M' + maxMag.toFixed(1) : '--';
+    var headEl = document.getElementById('quake-head-status'); if (headEl) headEl.textContent = events.length + ' EVENTS / 24H';
 
     var tbody = document.getElementById('quake-tbody');
     if (tbody) {
@@ -1268,17 +1378,16 @@ function loadQuakes() {
         var tdM = document.createElement('td');
         tdM.className = 'q-mag ' + (q.mag >= 5.5 ? 'mag-high' : q.mag >= 4.5 ? 'mag-mid' : 'mag-low');
         tdM.textContent = 'M' + q.mag.toFixed(1);
-        var tdP = document.createElement('td');
-        tdP.className = 'q-place';
-        tdP.textContent = q.place;
-        var tdT = document.createElement('td');
-        tdT.className = 'q-time';
-        tdT.textContent = new Date(q.time).toISOString().slice(11, 16) + ' UTC';
-        tr.appendChild(tdM);
-        tr.appendChild(tdP);
-        tr.appendChild(tdT);
-        tbody.appendChild(tr);
+        var tdP = document.createElement('td'); tdP.className = 'q-place'; tdP.textContent = q.place;
+        var tdT = document.createElement('td'); tdT.className = 'q-time'; tdT.textContent = new Date(q.time).toISOString().slice(11, 16) + ' UTC';
+        tr.appendChild(tdM); tr.appendChild(tdP); tr.appendChild(tdT); tbody.appendChild(tr);
       });
+    }
+
+    // Sparkline of last 30 quakes
+    if (events.length > 1) {
+      var sparkData = events.slice(0, 30).map(function(e) { return e.mag; }).reverse();
+      drawSparkline('quake-sparkline', sparkData, '#00e5ff');
     }
 
     if (events.length) {
@@ -1286,8 +1395,7 @@ function loadQuakes() {
       logFeed('USGS', 'M' + latest.mag.toFixed(1) + ' :: ' + latest.place, latest.mag >= 5.5 ? 'alert' : '');
     }
     bootLine('ok', '[OK] USGS seismic feed :: ' + events.length + ' events (24h)');
-    drawWorldMap();
-    updateTicker();
+    drawWorldMap(); updateTicker();
   }).catch(function (e) {
     bootLine('err', '[ERR] USGS seismic feed :: ' + e.message);
     logFeed('USGS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
@@ -1296,24 +1404,11 @@ function loadQuakes() {
   });
 }
 
-/* ---- NOAA Kp index ---- */
-function kpClass(v) { return v >= 5 ? 'warn' : v >= 4 ? 'hot' : ''; }
-function gScale(kp) {
-  if (kp >= 9) return { label: 'G5 // EXTREME STORM', cls: 'storm' };
-  if (kp >= 8) return { label: 'G4 // SEVERE STORM', cls: 'storm' };
-  if (kp >= 7) return { label: 'G3 // STRONG STORM', cls: 'storm' };
-  if (kp >= 6) return { label: 'G2 // MODERATE STORM', cls: 'storm' };
-  if (kp >= 5) return { label: 'G1 // MINOR STORM', cls: 'storm' };
-  if (kp >= 4) return { label: 'KP ' + kp.toFixed(1) + ' // ACTIVE CONDITIONS', cls: 'active' };
-  return { label: 'KP ' + kp.toFixed(1) + ' // QUIET FIELD', cls: 'quiet' };
-}
-
 function loadKp() {
   return fetchJSON(FEEDS.kp).then(function (rows) {
     if (!Array.isArray(rows)) throw new Error('malformed feed');
-    var series = rows.slice(1).map(function (r) {
-      return { t: cleanText(Array.isArray(r) ? r[0] : '', 20), kp: parseFloat(Array.isArray(r) ? r[1] : NaN) };
-    }).filter(function (r) { return numIn(r.kp, 0, 9); });
+    var series = rows.slice(1).map(function (r) { return { t: cleanText(Array.isArray(r) ? r[0] : '', 20), kp: parseFloat(Array.isArray(r) ? r[1] : NaN) }; })
+                     .filter(function (r) { return numIn(r.kp, 0, 9); });
     var recent = series.slice(-48);
     var now = recent.length ? recent[recent.length - 1].kp : null;
     STATE.kpNow = now;
@@ -1323,7 +1418,7 @@ function loadKp() {
       viz.textContent = '';
       recent.forEach(function (r) {
         var b = document.createElement('div');
-        b.className = 'kp-bar ' + kpClass(r.kp);
+        b.className = 'kp-bar ' + (r.kp >= 5 ? 'warn' : r.kp >= 4 ? 'hot' : '');
         b.style.height = Math.max(2, (r.kp / 9) * 82) + 'px';
         b.title = r.t + ' UTC :: Kp ' + r.kp;
         viz.appendChild(b);
@@ -1331,12 +1426,14 @@ function loadKp() {
     }
 
     if (now !== null) {
-      var g = gScale(now);
+      var cls = now >= 5 ? 'storm' : now >= 4 ? 'active' : 'quiet';
+      var label = now >= 5 ? 'G' + Math.floor(now-4) + ' // STORM' : 'KP ' + now.toFixed(1) + (now >= 4 ? ' // ACTIVE' : ' // QUIET');
+      
       var banner = document.getElementById('geomag-banner');
       var lvl = document.getElementById('geomag-level');
       var sub = document.getElementById('geomag-sub');
-      if (banner) banner.className = 'geomag-banner ' + g.cls;
-      if (lvl) lvl.textContent = g.label;
+      if (banner) banner.className = 'geomag-banner ' + cls;
+      if (lvl) lvl.textContent = label;
       if (sub) sub.textContent = 'NOAA SWPC PLANETARY K-INDEX // LAST READING ' + recent[recent.length - 1].t + ' UTC';
 
       var blocks = document.getElementById('geomag-blocks');
@@ -1344,19 +1441,14 @@ function loadKp() {
         blocks.textContent = '';
         for (var i = 1; i <= 9; i++) {
           var blk = document.createElement('div');
-          blk.className = 'geomag-block';
+          blk.className = 'geomag-block' + (now >= i ? (i >= 5 ? ' lit-red' : i >= 4 ? ' lit-amber' : ' lit-green') : '');
           blk.textContent = i;
-          if (now >= i) {
-            blk.className += i >= 5 ? ' lit-red' : i >= 4 ? ' lit-amber' : ' lit-green';
-          }
           blocks.appendChild(blk);
         }
       }
 
-      var kpHead = document.getElementById('kp-head-status');
-      if (kpHead) kpHead.textContent = 'KP ' + now.toFixed(2);
-      var statKp = document.getElementById('stat-kp');
-      if (statKp) statKp.textContent = now.toFixed(1);
+      var kpHead = document.getElementById('kp-head-status'); if (kpHead) kpHead.textContent = 'KP ' + now.toFixed(2);
+      var statKp = document.getElementById('stat-kp'); if (statKp) statKp.textContent = now.toFixed(1);
       logFeed('SWPC', 'Planetary Kp :: ' + now.toFixed(2), now >= 5 ? 'alert' : 'ok');
     }
     bootLine('ok', '[OK] NOAA SWPC K-index feed :: current Kp ' + (now !== null ? now.toFixed(2) : '--'));
@@ -1364,185 +1456,99 @@ function loadKp() {
   }).catch(function (e) {
     bootLine('err', '[ERR] NOAA SWPC feed :: ' + e.message);
     logFeed('SWPC', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
-    var lvl = document.getElementById('geomag-level');
-    if (lvl) lvl.textContent = 'FEED UNAVAILABLE';
   });
 }
 
-/* ---- ISS ---- */
-var orbitCtx = null;
-function drawOrbit() {
-  var canvas = document.getElementById('orbit-canvas');
-  if (!canvas || !canvas.getContext) return;
-  if (!orbitCtx) orbitCtx = canvas.getContext('2d');
-  var ctx = orbitCtx;
-  var W = 180, H = 180, CX = 90, CY = 90, R = 70;
-  ctx.clearRect(0, 0, W, H);
-
-  for (var i = 1; i <= 3; i++) {
-    ctx.strokeStyle = 'rgba(0,229,255,0.12)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(CX, CY, R / 3 * i, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.strokeStyle = 'rgba(0,229,255,0.08)';
-  ctx.lineWidth = 0.5;
-  ctx.beginPath(); ctx.moveTo(CX - R, CY); ctx.lineTo(CX + R, CY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke();
-
-  ctx.fillStyle = 'rgba(74,122,155,0.9)';
-  ctx.font = '8px ui-monospace, monospace';
-  ctx.fillText('0°', CX + R + 2, CY + 3);
-  ctx.fillText('180°', CX - R - 22, CY + 3);
-
-  if (STATE.iss) {
-    var a = STATE.iss.longitude * Math.PI / 180;
-    var rr = R * (1 - Math.abs(STATE.iss.latitude) / 120);
-    var x = CX + Math.cos(a) * rr;
-    var y = CY + Math.sin(a) * rr;
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,229,255,0.4)';
-    ctx.beginPath();
-    ctx.arc(x, y, 8, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(0,229,255,0.15)';
-    ctx.beginPath();
-    ctx.moveTo(CX, CY);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  }
-}
-
-var issFirst = true;
 function loadISS() {
   return fetchJSON(FEEDS.iss, 8000).then(function (d) {
     if (!d || !numIn(d.latitude, -90, 90) || !numIn(d.longitude, -180, 180) ||
         !numIn(d.altitude, 100, 2000) || !numIn(d.velocity, 1000, 50000)) {
       throw new Error('telemetry out of bounds');
     }
-    d.visibility = cleanText(d.visibility, 20);
     STATE.iss = d;
     mapState.trail.push({ lat: d.latitude, lon: d.longitude });
     if (mapState.trail.length > 60) mapState.trail.shift();
 
-    function set(id, v) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = v;
-    }
+    function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
     set('iss-lat', d.latitude.toFixed(2) + '°');
     set('iss-lon', d.longitude.toFixed(2) + '°');
     set('iss-alt', Math.round(d.altitude) + ' km');
     set('iss-vel', Math.round(d.velocity).toLocaleString('en-GB') + ' km/h');
-    set('iss-vis', (d.visibility || '--').toUpperCase());
+    set('iss-vis', (cleanText(d.visibility, 20) || '--').toUpperCase());
+    
     var head = document.getElementById('iss-head-status');
     if (head) { head.textContent = 'TRACKING'; head.className = 'panel-head-status tac-green'; }
-    var statV = document.getElementById('stat-iss');
-    if (statV) statV.textContent = Math.round(d.velocity).toLocaleString('en-GB');
+    var statV = document.getElementById('stat-iss'); if (statV) statV.textContent = Math.round(d.velocity).toLocaleString('en-GB');
 
-    if (issFirst) {
-      issFirst = false;
-      bootLine('ok', '[OK] ISS telemetry :: ' + Math.round(d.velocity).toLocaleString('en-GB') + ' km/h @ ' + Math.round(d.altitude) + ' km');
-      logFeed('ISS', 'Acquired :: ' + d.latitude.toFixed(1) + '°, ' + d.longitude.toFixed(1) + '°', 'ok');
-    }
-    drawOrbit();
-    drawWorldMap();
-    updateTicker();
+    var orbitCtx = document.getElementById('orbit-canvas').getContext('2d');
+    orbitCtx.clearRect(0,0,180,180);
+    orbitCtx.strokeStyle = 'rgba(0,229,255,0.12)'; orbitCtx.lineWidth = 1;
+    for (var j = 1; j <= 3; j++) { orbitCtx.beginPath(); orbitCtx.arc(90, 90, 70/3*j, 0, 6.28); orbitCtx.stroke(); }
+    var a = d.longitude * Math.PI / 180;
+    var rr = 70 * (1 - Math.abs(d.latitude) / 120);
+    var ox = 90 + Math.cos(a) * rr, oy = 90 + Math.sin(a) * rr;
+    orbitCtx.fillStyle = '#00e5ff'; orbitCtx.beginPath(); orbitCtx.arc(ox, oy, 3.5, 0, 6.28); orbitCtx.fill();
+    orbitCtx.strokeStyle = 'rgba(0,229,255,0.4)'; orbitCtx.beginPath(); orbitCtx.arc(ox, oy, 8, 0, 6.28); orbitCtx.stroke();
+
+    drawWorldMap(); updateTicker();
   }).catch(function (e) {
-    if (issFirst) {
-      issFirst = false;
-      bootLine('err', '[ERR] ISS telemetry :: ' + e.message);
-    }
     logFeed('ISS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
     var head = document.getElementById('iss-head-status');
     if (head) { head.textContent = 'NO SIGNAL'; head.className = 'panel-head-status tac-red'; }
   });
 }
 
-/* ---- Service status pages ---- */
 function loadStatus() {
   var list = document.getElementById('node-list');
   if (!list) return Promise.resolve();
   list.textContent = '';
   var rows = {};
   FEEDS.status.forEach(function (svc) {
-    var row = document.createElement('div');
-    row.className = 'node-row pending';
-    var name = document.createElement('span');
-    name.className = 'node-name';
-    name.textContent = svc.name;
-    var detail = document.createElement('span');
-    detail.className = 'node-detail';
-    detail.textContent = 'QUERYING...';
-    var badge = document.createElement('span');
-    badge.className = 'node-status-badge badge-dim';
-    badge.textContent = 'PENDING';
-    row.appendChild(name);
-    row.appendChild(detail);
-    row.appendChild(badge);
-    list.appendChild(row);
+    var row = document.createElement('div'); row.className = 'node-row pending';
+    var name = document.createElement('span'); name.className = 'node-name'; name.textContent = svc.name;
+    var detail = document.createElement('span'); detail.className = 'node-detail'; detail.textContent = 'QUERYING...';
+    var badge = document.createElement('span'); badge.className = 'node-status-badge badge-dim'; badge.textContent = 'PENDING';
+    row.appendChild(name); row.appendChild(detail); row.appendChild(badge); list.appendChild(row);
     rows[svc.name] = { row: row, detail: detail, badge: badge };
   });
 
   var okCount = 0;
   return Promise.all(FEEDS.status.map(function (svc) {
     return fetchJSON(svc.url, 8000).then(function (d) {
-      var rawInd = d && d.status ? String(d.status.indicator) : '';
-      var allowed = ['none', 'minor', 'major', 'critical', 'maintenance'];
-      var ind = allowed.indexOf(rawInd) !== -1 ? rawInd : 'unknown';
+      var ind = ['none', 'minor', 'major', 'critical', 'maintenance'].indexOf(String(d && d.status ? d.status.indicator : '')) !== -1 ? String(d.status.indicator) : 'unknown';
       var desc = cleanText(d && d.status ? d.status.description : '', 60) || 'Unknown';
       STATE.services[svc.name] = desc;
       var r = rows[svc.name];
       r.detail.textContent = desc.toUpperCase();
-      if (ind === 'none') {
-        r.row.className = 'node-row online';
-        r.badge.className = 'node-status-badge badge-green';
-        r.badge.textContent = 'NOMINAL';
-        okCount++;
-      } else if (ind === 'minor' || ind === 'maintenance') {
-        r.row.className = 'node-row warn';
-        r.badge.className = 'node-status-badge badge-amber';
-        r.badge.textContent = ind.toUpperCase();
-      } else {
-        r.row.className = 'node-row err';
-        r.badge.className = 'node-status-badge badge-red';
-        r.badge.textContent = ind.toUpperCase();
-        logFeed('STATUS', svc.name + ' :: ' + desc, 'alert');
-      }
+      if (ind === 'none') { r.row.className = 'node-row online'; r.badge.className = 'node-status-badge badge-green'; r.badge.textContent = 'NOMINAL'; okCount++; }
+      else if (ind === 'minor' || ind === 'maintenance') { r.row.className = 'node-row warn'; r.badge.className = 'node-status-badge badge-amber'; r.badge.textContent = ind.toUpperCase(); }
+      else { r.row.className = 'node-row err'; r.badge.className = 'node-status-badge badge-red'; r.badge.textContent = ind.toUpperCase(); logFeed('STATUS', svc.name + ' :: ' + desc, 'alert'); }
     }).catch(function (e) {
       var r = rows[svc.name];
-      r.row.className = 'node-row err';
-      r.detail.textContent = 'UNREACHABLE';
-      r.badge.className = 'node-status-badge badge-red';
-      r.badge.textContent = 'NO DATA';
-      logFeed('STATUS', svc.name + ' :: query failed (' + e.message + ')', 'alert');
+      r.row.className = 'node-row err'; r.detail.textContent = 'UNREACHABLE'; r.badge.className = 'node-status-badge badge-red'; r.badge.textContent = 'NO DATA';
+      logFeed('STATUS', svc.name + ' :: ' + e.message, 'alert');
     });
   })).then(function () {
     var head = document.getElementById('status-head-status');
-    if (head) {
-      head.textContent = okCount + '/' + FEEDS.status.length + ' NOMINAL';
-      head.className = 'panel-head-status ' + (okCount === FEEDS.status.length ? 'tac-green' : 'tac-amber');
-    }
-    bootLine('ok', '[OK] Service status probes :: ' + okCount + '/' + FEEDS.status.length + ' nominal');
+    if (head) { head.textContent = okCount + '/' + FEEDS.status.length + ' NOMINAL'; head.className = 'panel-head-status ' + (okCount === FEEDS.status.length ? 'tac-green' : 'tac-amber'); }
     updateTicker();
   });
 }
 
-/* ---- CLI (answers from live state) ---- */
+function refreshAllFeeds() {
+  logFeed('SYS', 'Manual refresh triggered', '');
+  Promise.allSettled([loadQuakes(), loadKp(), loadISS(), loadStatus()]);
+}
+
+/* ---- Command Line Interface ---- */
 (function initCLI() {
   var field = document.getElementById('cli-field');
   var output = document.getElementById('cli-output');
   if (!field || !output) return;
 
   function addLine(text, cls) {
-    var el = document.createElement('div');
-    el.className = cls || 'cli-line-out';
-    el.textContent = text;
-    output.appendChild(el);
-    output.scrollTop = output.scrollHeight;
+    var el = document.createElement('div'); el.className = cls || 'cli-line-out'; el.textContent = text;
+    output.appendChild(el); output.scrollTop = output.scrollHeight;
   }
 
   function run(cmd) {
@@ -1560,14 +1566,11 @@ function loadStatus() {
       case 'quakes':
         if (!STATE.quakes) { addLine('USGS feed not loaded.', 'cli-line-err'); break; }
         addLine('SEISMIC :: ' + STATE.quakes.count + ' events M2.5+ in 24h');
-        STATE.quakes.events.slice(0, 5).forEach(function (q) {
-          addLine('  M' + q.mag.toFixed(1) + ' :: ' + q.place);
-        });
+        STATE.quakes.events.slice(0, 5).forEach(function (q) { addLine('  M' + q.mag.toFixed(1) + ' :: ' + q.place); });
         break;
       case 'kp':
         if (STATE.kpNow === null) { addLine('SWPC feed not loaded.', 'cli-line-err'); break; }
         addLine('PLANETARY KP :: ' + STATE.kpNow.toFixed(2));
-        addLine('CONDITION :: ' + gScale(STATE.kpNow).label);
         break;
       case 'iss':
         if (!STATE.iss) { addLine('ISS feed not loaded.', 'cli-line-err'); break; }
@@ -1587,8 +1590,7 @@ function loadStatus() {
         addLine('  statuspage APIs — GitHub / Cloudflare / Netlify');
         break;
       case 'refresh':
-        addLine('Re-polling all feeds...');
-        loadQuakes(); loadKp(); loadISS(); loadStatus();
+        addLine('Re-polling all feeds...'); refreshAllFeeds();
         break;
       case 'clear':
         output.textContent = '';
@@ -1599,18 +1601,18 @@ function loadStatus() {
   }
 
   addLine('NEGARIX CLI v4.0 // Live data console. Type "help".');
-
   field.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
     var cmd = field.value.trim().toLowerCase();
     field.value = '';
     if (!cmd) return;
+    AudioEngine.enter();
     addLine('▶ ' + cmd, 'cli-line-in');
     run(cmd);
   });
 })();
 
-/* ---- Kick off feeds + polling ---- */
+/* ---- Start Up ---- */
 logFeed('SYS', 'Console initialised // all telemetry is live public data', 'ok');
 Promise.allSettled([loadQuakes(), loadKp(), loadISS(), loadStatus()]).then(function () {
   bootLine('info', '[SYS] Initialisation complete.');
