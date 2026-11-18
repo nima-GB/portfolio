@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Live Operations Console </title>
-<meta name="description" content="Negarandeh — systems architecture. A live operations console rendering real-time public data: USGS seismic activity, NOAA space weather, ISS telemetry, and service health.">
+<title> ASI Operations Console</title>
+<meta name="description" content="Autonomous Systems Architecture. Live operations console powered by a synthetic browser intelligence.">
 <meta name="robots" content="index, follow">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
@@ -22,703 +22,179 @@
   --text-primary:#c8dff0;
   --text-muted:  #4a7a9b;
   --text-ghost:  #1e3d5a;
-
   --font-hud:    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', 'Menlo', 'Liberation Mono', monospace;
   --font-display: 'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-body:   'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-
   --glow-cyan:   0 0 10px rgba(0,229,255,0.35);
-  --glow-green:  0 0 10px rgba(57,255,158,0.35);
-  --glow-red:    0 0 10px rgba(255,51,51,0.35);
-  --glow-amber:  0 0 10px rgba(255,179,0,0.35);
+  --glow-red:    0 0 12px rgba(255,51,51,0.5);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
 body {
-  background: var(--void);
-  color: var(--text-primary);
-  font-family: var(--font-hud);
-  font-size: 12px;
-  line-height: 1.6;
-  overflow-x: hidden;
+  background: var(--void); color: var(--text-primary);
+  font-family: var(--font-hud); font-size: 12px; line-height: 1.6;
+  overflow-x: hidden; transition: background-color 1s ease;
 }
+body.defcon-red { background: #1a0505; }
 
+/* Boot Sequence */
 #boot-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--void);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 60px;
-  transition: opacity 0.8s ease;
+  position: fixed; inset: 0; background: var(--void); z-index: 9999;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  padding: 60px; transition: opacity 0.8s ease;
 }
 #boot-overlay.fade-out { opacity: 0; pointer-events: none; }
-
 #boot-log {
-  font-family: var(--font-hud);
-  font-size: 11px;
-  color: var(--tac-green);
-  line-height: 2;
-  max-height: 70vh;
-  overflow: hidden;
-  width: 100%;
-  max-width: 700px;
+  font-family: var(--font-hud); font-size: 11px; color: var(--tac-green);
+  line-height: 2; max-height: 70vh; overflow: hidden; width: 100%; max-width: 700px;
 }
-#boot-log .boot-line.ok   { color: var(--tac-green); }
-#boot-log .boot-line.warn { color: var(--tac-amber); }
-#boot-log .boot-line.err  { color: var(--tac-red); }
-#boot-log .boot-line.info { color: var(--tac-cyan); }
-#boot-log .boot-line.head { color: var(--tac-cyan); font-size: 13px; font-family: var(--font-display); letter-spacing: 2px; }
-
+.boot-line.ok { color: var(--tac-green); }
+.boot-line.warn { color: var(--tac-amber); }
+.boot-line.err { color: var(--tac-red); }
+.boot-line.info { color: var(--tac-cyan); }
+.boot-line.head { color: var(--tac-cyan); font-size: 13px; font-family: var(--font-display); letter-spacing: 2px; }
 #boot-logo {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 5vw, 56px);
-  font-weight: 900;
-  color: var(--tac-cyan);
-  text-shadow: var(--glow-cyan);
-  letter-spacing: 6px;
-  margin-bottom: 40px;
+  font-family: var(--font-display); font-size: clamp(28px, 5vw, 56px); font-weight: 900;
+  color: var(--tac-cyan); text-shadow: var(--glow-cyan); letter-spacing: 6px; margin-bottom: 40px;
 }
 #boot-logo span { color: var(--text-muted); font-weight: 300; }
 
-#bg-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
+/* Neural Canvas */
+#bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.scanlines { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px); }
+.vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%); }
 
-.scanlines {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.06) 2px,
-    rgba(0,0,0,0.06) 4px
-  );
-}
-
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
-}
-
-#main-wrapper {
-  position: relative;
-  z-index: 10;
-  min-height: 100vh;
-  opacity: 0;
-  transition: opacity 1s ease;
-}
+#main-wrapper { position: relative; z-index: 10; min-height: 100vh; opacity: 0; transition: opacity 1s ease; }
 #main-wrapper.visible { opacity: 1; }
 
+/* Header */
 .sys-header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  height: 52px;
-  background: rgba(2,4,8,0.92);
-  border-bottom: 1px solid var(--tac-dim);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 52px; background: rgba(2,4,8,0.92);
+  border-bottom: 1px solid var(--tac-dim); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: border-color 0.5s ease;
 }
-
-.header-brand {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--tac-cyan);
-  letter-spacing: 3px;
-}
+body.defcon-red .sys-header { border-bottom-color: var(--tac-red); }
+.header-brand { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--tac-cyan); letter-spacing: 3px; }
 .header-brand span { color: var(--text-muted); font-weight: 400; }
-
 .sys-nav { display: flex; gap: 4px; align-items: center; }
 .sys-nav a, .sys-nav button {
-  font-family: var(--font-hud);
-  font-size: 10px;
-  color: var(--text-muted);
-  text-decoration: none;
-  letter-spacing: 1.5px;
-  padding: 6px 14px;
-  border: 1px solid transparent;
-  background: transparent;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  cursor: pointer;
+  font-family: var(--font-hud); font-size: 10px; color: var(--text-muted); text-decoration: none;
+  letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid transparent; background: transparent; transition: all 0.2s; text-transform: uppercase; cursor: pointer;
 }
-.sys-nav a:hover,
-.sys-nav a:focus-visible,
-.sys-nav button:hover,
-.sys-nav button:focus-visible {
-  color: var(--tac-cyan);
-  border-color: var(--tac-dim);
-  background: rgba(0,229,255,0.04);
-  outline: none;
-}
-
-.audio-toggle.active {
-  color: var(--tac-green);
-  border-color: rgba(57,255,158,0.3);
-}
-
-.header-status {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-.pulse-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--tac-green);
-  box-shadow: var(--glow-green);
-  animation: pulse 2s infinite;
-}
+.sys-nav a:hover, .sys-nav button:hover { color: var(--tac-cyan); border-color: var(--tac-dim); background: rgba(0,229,255,0.04); }
+.audio-toggle.active { color: var(--tac-green); border-color: rgba(57,255,158,0.3); }
+.header-status { display: flex; align-items: center; gap: 16px; font-size: 10px; color: var(--text-muted); }
+.pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tac-green); animation: pulse 2s infinite; }
 .pulse-dot.offline { background: var(--tac-red); box-shadow: var(--glow-red); }
-@keyframes pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.7); }
-}
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
 
-.section {
-  padding: 100px 40px 60px;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.section-eyebrow {
-  font-family: var(--font-hud);
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-.section-eyebrow::before {
-  content: '//';
-  color: var(--tac-cyan);
-  margin-right: 8px;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: clamp(24px, 4vw, 42px);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 2px;
-  margin-bottom: 8px;
-  line-height: 1.1;
-}
+/* Sections */
+.section { padding: 100px 40px 60px; max-width: 1600px; margin: 0 auto; }
+.section-eyebrow { font-family: var(--font-hud); font-size: 10px; letter-spacing: 4px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+.section-eyebrow::before { content: '//'; color: var(--tac-cyan); margin-right: 8px; }
+.section-title { font-family: var(--font-display); font-size: clamp(24px, 4vw, 42px); font-weight: 700; color: var(--text-primary); letter-spacing: 2px; margin-bottom: 8px; line-height: 1.1; }
 .section-title .accent { color: var(--tac-cyan); }
+.section-rule { width: 60px; height: 1px; background: var(--tac-cyan); box-shadow: var(--glow-cyan); margin-bottom: 40px; }
+body.defcon-red .section-title .accent, body.defcon-red .section-rule { color: var(--tac-red); background: var(--tac-red); box-shadow: var(--glow-red); }
 
-.section-rule {
-  width: 60px; height: 1px;
-  background: var(--tac-cyan);
-  box-shadow: var(--glow-cyan);
-  margin-bottom: 40px;
-}
-
-#profile {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: 120px;
-  position: relative;
-}
-
-.hero-tag {
-  font-family: var(--font-hud);
-  font-size: 11px;
-  color: var(--tac-cyan);
-  letter-spacing: 4px;
-  margin-bottom: 20px;
-}
-
-.hero-name {
-  font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 96px);
-  font-weight: 900;
-  letter-spacing: 6px;
-  line-height: 0.95;
-  color: var(--text-primary);
-  margin-bottom: 24px;
-}
+/* Hero */
+#profile { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; }
+.hero-name { font-family: var(--font-display); font-size: clamp(48px, 8vw, 96px); font-weight: 900; letter-spacing: 6px; line-height: 0.95; color: var(--text-primary); margin-bottom: 24px; }
 .hero-name .c1 { color: var(--tac-cyan); text-shadow: var(--glow-cyan); }
 .hero-name .c2 { color: var(--text-muted); font-weight: 300; }
-
-.hero-sub {
-  font-family: var(--font-body);
-  font-size: clamp(14px, 2vw, 18px);
-  font-weight: 300;
-  color: var(--text-muted);
-  max-width: 620px;
-  margin-bottom: 40px;
-  line-height: 1.7;
-  letter-spacing: 0.5px;
-}
-
-.hero-meta {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-}
+.hero-sub { font-family: var(--font-body); font-size: clamp(14px, 2vw, 18px); font-weight: 300; color: var(--text-muted); max-width: 680px; margin-bottom: 40px; line-height: 1.7; letter-spacing: 0.5px; }
+.hero-meta { display: flex; gap: 32px; flex-wrap: wrap; }
 .hero-stat { display: flex; flex-direction: column; }
-.hero-stat-val {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--tac-cyan);
-}
-.hero-stat-lbl {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
+.hero-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--tac-cyan); }
+.hero-stat-lbl { font-size: 9px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 48px;
-  padding: 14px 32px;
-  border: 1px solid var(--tac-cyan);
-  color: var(--tac-cyan);
-  font-family: var(--font-hud);
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-decoration: none;
-  text-transform: uppercase;
-  background: rgba(0,229,255,0.04);
-  transition: all 0.25s;
-}
-.hero-cta:hover,
-.hero-cta:focus-visible {
-  background: rgba(0,229,255,0.12);
-  box-shadow: var(--glow-cyan);
-}
-.hero-cta::before { content: '>'; }
-
-.ticker-wrap {
-  position: absolute;
-  bottom: 40px;
-  left: 0; right: 0;
-  overflow: hidden;
-  border-top: 1px solid var(--tac-dim);
-  border-bottom: 1px solid var(--tac-dim);
-  padding: 8px 0;
-  background: rgba(6,13,20,0.6);
-}
-.ticker-track {
-  display: flex;
-  white-space: nowrap;
-  animation: tickerScroll 40s linear infinite;
-}
-.ticker-item {
-  font-size: 10px;
-  color: var(--text-muted);
-  padding: 0 32px;
-  letter-spacing: 1px;
-}
-.ticker-item .hi { color: var(--tac-cyan); }
-@keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-.comp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1px;
-  border: 1px solid var(--tac-dim);
-  background: var(--tac-dim);
-}
-
-.comp-card {
-  background: var(--panel);
-  padding: 32px;
-  position: relative;
-  overflow: hidden;
-  transition: background 0.3s;
-}
-.comp-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 0;
-  background: var(--tac-cyan);
-  transition: height 0.4s ease;
-}
+/* Directives (Encrypted grid) */
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; border: 1px solid var(--tac-dim); background: var(--tac-dim); }
+.comp-card { background: var(--panel); padding: 32px; position: relative; overflow: hidden; transition: background 0.3s; }
+.comp-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 0; background: var(--tac-cyan); transition: height 0.4s ease; }
 .comp-card:hover { background: var(--rim); }
 .comp-card:hover::before { height: 100%; }
+.comp-num { font-size: 11px; color: var(--text-ghost); letter-spacing: 3px; margin-bottom: 16px; }
+.comp-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; margin-bottom: 12px; }
+.comp-body { font-family: var(--font-hud); font-size: 11px; color: var(--text-muted); line-height: 1.7; }
+.obfuscated { filter: blur(3px); opacity: 0.5; user-select: none; transition: filter 1.5s ease, opacity 1.5s ease; }
+.obfuscated.decrypted { filter: blur(0); opacity: 1; user-select: auto; }
 
-.comp-num {
-  font-family: var(--font-display);
-  font-size: 11px;
-  color: var(--text-ghost);
-  letter-spacing: 3px;
-  margin-bottom: 16px;
-}
-.comp-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-}
-.comp-body {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-.comp-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 20px;
-}
-.comp-tag {
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  padding: 3px 8px;
-  border: 1px solid var(--tac-dim);
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.c2-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 2px;
-  background: var(--tac-dim);
-  border: 1px solid var(--tac-dim);
-}
-
-.c2-panel {
-  background: var(--panel);
-  position: relative;
-  overflow: hidden;
-}
+/* Telemetry Grid */
+.c2-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: var(--tac-dim); border: 1px solid var(--tac-dim); }
+.c2-panel { background: var(--panel); position: relative; overflow: hidden; }
 .c2-panel.wide { grid-column: span 2; }
 .c2-panel.full { grid-column: span 3; }
-
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--tac-dim);
-  background: rgba(6,13,20,0.6);
-}
-.panel-head-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 9px;
-  letter-spacing: 2.5px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-.sparkline-canvas {
-  height: 14px;
-  width: 80px;
-  opacity: 0.8;
-}
-
+.panel-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--tac-dim); background: rgba(6,13,20,0.6); }
+.panel-head-title { font-size: 9px; letter-spacing: 2.5px; color: var(--text-muted); text-transform: uppercase; display: flex; gap: 12px; align-items: center; }
 .panel-head-status { font-size: 9px; letter-spacing: 1px; }
 .panel-body { padding: 16px; }
-.panel-src {
-  font-size: 8px;
-  letter-spacing: 1px;
-  color: var(--text-ghost);
-  padding: 6px 16px;
-  border-top: 1px solid rgba(255,255,255,0.03);
-  text-transform: uppercase;
-}
+.panel-src { font-size: 8px; letter-spacing: 1px; color: var(--text-ghost); padding: 6px 16px; border-top: 1px solid rgba(255,255,255,0.03); text-transform: uppercase; }
 
-.feed-list {
-  font-family: var(--font-hud);
-  font-size: 9px;
-  height: 180px;
-  overflow: hidden;
-}
-.feed-line {
-  padding: 2px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  display: flex;
-  gap: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.feed-ts   { color: var(--text-ghost); min-width: 66px; }
-.feed-src  { color: var(--tac-cyan); min-width: 52px; }
+/* Log & CLI */
+.feed-list { height: 160px; overflow: hidden; font-size: 9px; }
+.feed-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; gap: 12px; white-space: nowrap; overflow: hidden; }
+.feed-ts { color: var(--text-ghost); min-width: 66px; }
+.feed-src { color: var(--tac-cyan); min-width: 52px; font-weight: 700; }
 .feed-data { color: var(--text-muted); }
 .feed-line.alert .feed-data { color: var(--tac-red); }
 .feed-line.ok .feed-data { color: var(--tac-green); }
+.feed-line.ai .feed-data { color: #fff; font-style: italic; }
 
-.kp-viz {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 90px;
-  padding: 8px 0 4px;
-}
-.kp-bar {
-  flex: 1;
-  background: var(--tac-cyan);
-  opacity: 0.75;
-  min-height: 2px;
-}
-.kp-bar.hot  { background: var(--tac-amber); opacity: 1; }
-.kp-bar.warn { background: var(--tac-red); opacity: 1; }
-.kp-scale {
-  display: flex;
-  justify-content: space-between;
-  font-size: 8px;
-  color: var(--text-ghost);
-  letter-spacing: 1px;
-}
+.cli-wrap { background: rgba(0,0,0,0.5); border: 1px solid var(--tac-dim); padding: 12px; margin-top: 16px; }
+.cli-output { min-height: 100px; max-height: 140px; overflow-y: auto; margin-bottom: 8px; font-size: 10px; line-height: 1.8; }
+.cli-output .cli-in { color: var(--tac-cyan); }
+.cli-output .cli-out { color: var(--tac-green); }
+.cli-output .cli-ai { color: #fff; }
+.cli-output .cli-err { color: var(--tac-red); }
+.cli-input-row { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--tac-dim); padding-top: 8px; }
+.cli-prompt { color: var(--tac-cyan); font-size: 12px; }
+.cli-field { flex: 1; background: transparent; border: none; outline: none; color: var(--tac-cyan); font-family: var(--font-hud); font-size: 11px; caret-color: var(--tac-cyan); }
 
-.node-list { display: flex; flex-direction: column; gap: 8px; }
-.node-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: rgba(0,0,0,0.3);
-  border-left: 2px solid var(--tac-dim);
-  transition: border-color 0.3s;
-}
+/* Tables & Graphics */
+.quake-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.quake-table th { font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--tac-dim); text-transform: uppercase; }
+.quake-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-muted); }
+.q-mag { font-weight: 700; }
+.q-place { color: var(--text-primary); }
+.mag-low { color: var(--tac-green); } .mag-mid { color: var(--tac-amber); } .mag-high { color: var(--tac-red); }
+
+.node-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.3); border-left: 2px solid var(--tac-dim); margin-bottom: 4px; }
 .node-row.online { border-left-color: var(--tac-green); }
-.node-row.warn   { border-left-color: var(--tac-amber); }
-.node-row.err    { border-left-color: var(--tac-red);   }
-.node-row.pending{ border-left-color: var(--tac-dim);   }
+.node-row.err { border-left-color: var(--tac-red); }
 .node-name { font-size: 10px; color: var(--text-primary); letter-spacing: 1px; }
 .node-detail { font-size: 9px; color: var(--text-muted); }
-.node-status-badge { font-size: 9px; padding: 2px 8px; letter-spacing: 1px; }
-.badge-green { color: var(--tac-green); border: 1px solid rgba(57,255,158,0.2); }
-.badge-amber { color: var(--tac-amber); border: 1px solid rgba(255,179,0,0.2); }
-.badge-red   { color: var(--tac-red);   border: 1px solid rgba(255,51,51,0.2); }
-.badge-dim   { color: var(--text-muted); border: 1px solid var(--tac-dim); }
+.node-badge { font-size: 9px; padding: 2px 8px; letter-spacing: 1px; border: 1px solid var(--tac-dim); color: var(--text-muted); }
+.node-badge.online { color: var(--tac-green); border-color: rgba(57,255,158,0.2); }
+.node-badge.err { color: var(--tac-red); border-color: rgba(255,51,51,0.2); }
 
-.iss-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.orbit-wrap { position: relative; width: 180px; height: 180px; }
-.orbit-canvas { width: 100%; height: 100%; }
-.iss-readout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 20px;
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  width: 100%;
-}
+.iss-body { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.iss-readout { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; width: 100%; }
 .iss-readout .val { color: var(--tac-cyan); text-align: right; }
 
-.quake-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 10px;
-}
-.quake-table th {
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  color: var(--text-muted);
-  padding: 6px 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--tac-dim);
-  background: rgba(0,0,0,0.3);
-  text-transform: uppercase;
-}
-.quake-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  color: var(--text-muted);
-}
-.quake-table tr:last-child td { border-bottom: none; }
-.quake-table tr:hover td { background: rgba(0,229,255,0.03); }
-.q-mag { font-family: var(--font-display); font-weight: 700; }
-.q-place { color: var(--text-primary); }
-.q-time { color: var(--text-ghost); font-size: 9px; }
-.mag-low  { color: var(--tac-green); }
-.mag-mid  { color: var(--tac-amber); }
-.mag-high { color: var(--tac-red); }
+.geomag-banner { display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; background: var(--panel); border: 1px solid var(--tac-dim); margin-bottom: 2px; }
+.geomag-level { font-family: var(--font-display); font-size: clamp(18px, 3vw, 28px); font-weight: 900; letter-spacing: 4px; color: var(--tac-green); }
+.geomag-banner.storm .geomag-level { color: var(--tac-red); text-shadow: var(--glow-red); }
+.geomag-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; margin-top: 4px; }
+.geomag-block { width: 28px; height: 28px; border: 1px solid var(--tac-dim); opacity: 0.3; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-ghost); }
+.geomag-block.lit { background: rgba(57,255,158,0.15); border-color: var(--tac-green); color: var(--tac-green); opacity: 1; }
 
-.cli-wrap {
-  background: rgba(0,0,0,0.5);
-  border: 1px solid var(--tac-dim);
-  padding: 12px;
-  margin-top: 16px;
-}
-.cli-output {
-  min-height: 80px;
-  max-height: 120px;
-  overflow-y: auto;
-  margin-bottom: 8px;
-  font-size: 10px;
-  line-height: 1.8;
-}
-.cli-output .cli-line-in  { color: var(--tac-cyan); }
-.cli-output .cli-line-out { color: var(--tac-green); }
-.cli-output .cli-line-err { color: var(--tac-red); }
-.cli-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-top: 1px solid var(--tac-dim);
-  padding-top: 8px;
-}
-.cli-prompt { color: var(--tac-cyan); font-size: 12px; }
-.cli-field {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--tac-cyan);
-  font-family: var(--font-hud);
-  font-size: 11px;
-  caret-color: var(--tac-cyan);
-}
-
-#worldmap-canvas {
-  width: 100%;
-  height: 200px;
-  display: block;
-}
-
-.geomag-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 28px;
-  background: var(--panel);
-  border: 1px solid var(--tac-dim);
-  margin-bottom: 2px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.5s;
-}
-.geomag-banner.quiet  { border-color: rgba(57,255,158,0.25); }
-.geomag-banner.active { border-color: rgba(255,179,0,0.3); }
-.geomag-banner.storm  { border-color: rgba(255,51,51,0.35); }
-
-.geomag-level {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 3vw, 28px);
-  font-weight: 900;
-  letter-spacing: 4px;
-}
-.geomag-banner.quiet  .geomag-level { color: var(--tac-green); text-shadow: var(--glow-green); }
-.geomag-banner.active .geomag-level { color: var(--tac-amber); text-shadow: var(--glow-amber); }
-.geomag-banner.storm  .geomag-level { color: var(--tac-red); text-shadow: var(--glow-red); }
-
-.geomag-sub {
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  margin-top: 4px;
-}
-.geomag-blocks { display: flex; gap: 4px; }
-.geomag-block {
-  width: 28px; height: 28px;
-  border: 1px solid var(--tac-dim);
-  opacity: 0.3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  color: var(--text-ghost);
-}
-.geomag-block.lit-green { background: rgba(57,255,158,0.15); border-color: var(--tac-green); color: var(--tac-green); opacity: 1; }
-.geomag-block.lit-amber { background: rgba(255,179,0,0.15);  border-color: var(--tac-amber); color: var(--tac-amber); opacity: 1; }
-.geomag-block.lit-red   { background: rgba(255,51,51,0.15);  border-color: var(--tac-red);   color: var(--tac-red);   opacity: 1; }
-
-.sys-footer {
-  border-top: 1px solid var(--tac-dim);
-  padding: 24px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-ghost);
-  letter-spacing: 1px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.sys-footer a { color: var(--text-muted); text-decoration: none; }
-.sys-footer a:hover { color: var(--tac-cyan); }
-.key-legend {
-  display: flex;
-  gap: 16px;
-  color: var(--text-muted);
-}
-.key-legend kbd {
-  font-family: var(--font-hud);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--tac-dim);
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: var(--tac-cyan);
-}
-
-.tac-cyan  { color: var(--tac-cyan)  !important; }
-.tac-green { color: var(--tac-green) !important; }
-.tac-amber { color: var(--tac-amber) !important; }
-.tac-red   { color: var(--tac-red)   !important; }
+.sys-footer { border-top: 1px solid var(--tac-dim); padding: 24px 40px; display: flex; justify-content: space-between; font-size: 10px; color: var(--text-ghost); letter-spacing: 1px; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--void); }
 ::-webkit-scrollbar-thumb { background: var(--tac-dim); }
-::-webkit-scrollbar-thumb:hover { background: var(--tac-cyan); }
 
-@media (max-width: 900px) {
-  .c2-grid { grid-template-columns: 1fr; }
-  .c2-panel.wide, .c2-panel.full { grid-column: span 1; }
-  .section { padding: 80px 20px 40px; }
-  .sys-footer { flex-direction: column; text-align: center; }
-  .key-legend { display: none; }
-}
-@media (max-width: 640px) {
-  .sys-nav a.desktop-only { display: none; }
-  .sys-nav a.nav-exit { display: block; }
-  .hero-name { letter-spacing: 2px; }
-  .geomag-banner { flex-direction: column; gap: 16px; text-align: center; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  #boot-overlay { display: none; }
-  #main-wrapper { opacity: 1; }
-}
+@media (max-width: 900px) { .c2-grid { grid-template-columns: 1fr; } .c2-panel.wide, .c2-panel.full { grid-column: span 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } #boot-overlay { display: none; } #main-wrapper { opacity: 1; } }
 </style>
 </head>
 <body>
 <div id="boot-overlay">
-  <div id="boot-logo">NEGARIX <span>// LIVE OPS</span></div>
+  <div id="boot-logo">NEG_ASI <span>// NEURAL WAKE</span></div>
   <div id="boot-log"></div>
 </div>
 
@@ -727,164 +203,68 @@ body {
 <div class="vignette" aria-hidden="true"></div>
 
 <div id="main-wrapper">
-
   <header class="sys-header">
-    <div class="header-brand">NEGARANDEH <span>// LIVE OPS</span></div>
-    <nav class="sys-nav" aria-label="Primary navigation">
-      <a href="#profile" class="desktop-only" data-audio-hover>Profile</a>
-      <a href="#competencies" class="desktop-only" data-audio-hover>Competencies</a>
-      <a href="#telemetry" class="desktop-only" data-audio-hover>Telemetry</a>
-      <a href="#geomag" class="desktop-only" data-audio-hover>Space Weather</a>
-      <button type="button" id="audio-toggle" class="audio-toggle" aria-label="Toggle tactical audio">AUDIO: OFF</button>
-      <a href="index.html" class="nav-exit" data-audio-hover>⌂ Exit</a>
+    <div class="header-brand">NEGARANDEH <span>// ASI.OPS</span></div>
+    <nav class="sys-nav">
+      <a href="#profile">Profile</a>
+      <a href="#directives">Directives</a>
+      <a href="#telemetry">Telemetry</a>
+      <button type="button" id="audio-toggle">AUDIO: OFF</button>
     </nav>
     <div class="header-status">
       <div class="pulse-dot" id="conn-dot"></div>
       <span id="live-clock">--:--:--</span>
-      <span class="tac-cyan" id="conn-label">LINK UP</span>
+      <span class="tac-cyan" id="conn-label">UPLINK ACTIVE</span>
     </div>
   </header>
 
   <section id="profile" class="section">
-    <div class="hero-tag">SYSTEMS ARCHITECTURE // LIVE OPERATIONS CONSOLE</div>
-    <h1 class="hero-name">
-      NEGA<span class="c1">R</span>AN<span class="c2">DEH</span>
-    </h1>
-    <p class="hero-sub">Secure infrastructure and systems architecture. Every reading on this console is live public data: seismic activity from USGS, space weather from NOAA, orbital telemetry from open tracking APIs, and real service health probes. Nothing here is simulated.</p>
-
+    <div class="hero-tag">SYNTHETIC AUTONOMOUS INTELLIGENCE // INITIALISED</div>
+    <h1 class="hero-name">NEGA<span class="c1">R</span>IX <span class="c2">ASI</span></h1>
+    <p class="hero-sub" id="host-profiler">Scanning host environment... establishing parameters.</p>
     <div class="hero-meta">
-      <div class="hero-stat">
-        <span class="hero-stat-val" id="stat-quakes">--</span>
-        <span class="hero-stat-lbl">Quakes M2.5+ / 24h</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val tac-amber" id="stat-maxmag">--</span>
-        <span class="hero-stat-lbl">Max Magnitude / 24h</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val tac-green" id="stat-kp">--</span>
-        <span class="hero-stat-lbl">Planetary Kp Now</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val" id="stat-iss">--</span>
-        <span class="hero-stat-lbl">ISS Velocity km/h</span>
-      </div>
-    </div>
-
-    <a href="#telemetry" class="hero-cta" data-audio-hover>Open Telemetry</a>
-
-    <div class="ticker-wrap" aria-hidden="true">
-      <div class="ticker-track" id="ticker"></div>
+      <div class="hero-stat"><span class="hero-stat-val" id="stat-quakes">--</span><span class="hero-stat-lbl">Seismic Anomalies / 24h</span></div>
+      <div class="hero-stat"><span class="hero-stat-val" id="stat-kp">--</span><span class="hero-stat-lbl">Planetary Kp Now</span></div>
+      <div class="hero-stat"><span class="hero-stat-val" id="stat-iss">--</span><span class="hero-stat-lbl">ISS Velocity km/h</span></div>
     </div>
   </section>
 
-  <section id="competencies" class="section">
-    <div class="section-eyebrow">Core Competencies</div>
-    <h2 class="section-title">Operational <span class="accent">Capabilities</span></h2>
+  <section id="directives" class="section">
+    <div class="section-eyebrow">System Directives</div>
+    <h2 class="section-title">Encrypted <span class="accent">Memory Banks</span></h2>
     <div class="section-rule"></div>
-
     <div class="comp-grid">
-      <div class="comp-card" data-audio-hover>
-        <div class="comp-num">01 // SYSTEMS</div>
-        <div class="comp-title">Systems Architecture</div>
-        <p class="comp-body">Designing and deploying scalable, zero-dependency infrastructures. Ensuring operational continuity through precise resource allocation and strict environmental controls.</p>
-        <div class="comp-tags">
-          <span class="comp-tag">Kubernetes</span>
-          <span class="comp-tag">IaC</span>
-          <span class="comp-tag">HA Clusters</span>
-        </div>
+      <div class="comp-card">
+        <div class="comp-num">01 // CORE.SYS</div>
+        <div class="comp-title">Neural Architecture</div>
+        <p class="comp-body obfuscated" data-decrypt="Designing and deploying scalable, zero-dependency intelligence infrastructures. Bridging biological intent with synthetic execution protocols.">a2f9b8c7 e4d5a6b7 c8d9e0f1 a2b3c4d5 e6f7a8b9 c0d1e2f3 a4b5c6d7 e8f9a0b1 c2d3e4f5 a6b7c8d9.</p>
       </div>
-      <div class="comp-card" data-audio-hover>
-        <div class="comp-num">02 // SECURITY</div>
-        <div class="comp-title">Security &amp; Compliance</div>
-        <p class="comp-body">Implementing strict transport layer encryption, zero-trust verification models, and hardened deployment protocols protecting digital assets from external vulnerabilities.</p>
-        <div class="comp-tags">
-          <span class="comp-tag">Zero-Trust</span>
-          <span class="comp-tag">TLS 1.3</span>
-          <span class="comp-tag">CSP</span>
-        </div>
-      </div>
-      <div class="comp-card" data-audio-hover>
-        <div class="comp-num">03 // LEADERSHIP</div>
-        <div class="comp-title">Technical Leadership</div>
-        <p class="comp-body">Guiding engineering lifecycles from initial concept to production deployment. Bridging complex technical execution with high-level strategic objectives.</p>
-        <div class="comp-tags">
-          <span class="comp-tag">Roadmapping</span>
-          <span class="comp-tag">Delivery</span>
-          <span class="comp-tag">Stakeholder</span>
-        </div>
-      </div>
-      <div class="comp-card" data-audio-hover>
-        <div class="comp-num">04 // NETOPS</div>
-        <div class="comp-title">Network Operations</div>
-        <p class="comp-body">Managing DNS routing, domain integrity (DMARC/SPF), and maintaining high-performance global edge deployments across distributed infrastructure.</p>
-        <div class="comp-tags">
-          <span class="comp-tag">DMARC</span>
-          <span class="comp-tag">MTA-STS</span>
-          <span class="comp-tag">CDN</span>
-        </div>
+      <div class="comp-card">
+        <div class="comp-num">02 // DEF.SEC</div>
+        <div class="comp-title">Threat Mitigation</div>
+        <p class="comp-body obfuscated" data-decrypt="Implementing strict transport layer encryption, zero-trust verification models, and autonomous defensive countermeasures against unauthorised incursions.">z9y8x7w6 v5u4t3s2 r1q0p9o8 n7m6l5k4 j3i2h1g0 f9e8d7c6 b5a4z3y2 x1w0v9u8 t7s6r5q4 p3o2n1m0.</p>
       </div>
     </div>
   </section>
 
   <section id="telemetry" class="section">
-    <div class="section-eyebrow">Live Telemetry</div>
-    <h2 class="section-title">Global <span class="accent">Monitoring</span></h2>
+    <div class="section-eyebrow">Global Telemetry</div>
+    <h2 class="section-title">Nerve <span class="accent">Centre</span></h2>
     <div class="section-rule"></div>
 
     <div class="c2-grid">
-
       <div class="c2-panel wide">
         <div class="panel-head">
-          <span class="panel-head-title">
-            Seismic Activity — M2.5+ Last 24 Hours
-            <canvas id="quake-sparkline" class="sparkline-canvas" width="100" height="14" aria-hidden="true"></canvas>
-          </span>
-          <span class="panel-head-status tac-cyan" id="quake-head-status">CONNECTING...</span>
-        </div>
-        <table class="quake-table" aria-label="Latest earthquakes">
-          <thead>
-            <tr><th>Mag</th><th>Location</th><th>Time</th></tr>
-          </thead>
-          <tbody id="quake-tbody">
-            <tr><td colspan="3">Awaiting USGS feed...</td></tr>
-          </tbody>
-        </table>
-        <div class="panel-src">Source: USGS Earthquake Hazards Program</div>
-      </div>
-
-      <div class="c2-panel">
-        <div class="panel-head">
-          <span class="panel-head-title">ISS Live Telemetry</span>
-          <span class="panel-head-status tac-amber" id="iss-head-status">ACQUIRING...</span>
-        </div>
-        <div class="panel-body iss-body">
-          <div class="orbit-wrap" aria-hidden="true">
-            <canvas class="orbit-canvas" id="orbit-canvas" width="180" height="180"></canvas>
-          </div>
-          <div class="iss-readout">
-            <span>LATITUDE</span><span class="val" id="iss-lat">--</span>
-            <span>LONGITUDE</span><span class="val" id="iss-lon">--</span>
-            <span>ALTITUDE</span><span class="val" id="iss-alt">--</span>
-            <span>VELOCITY</span><span class="val" id="iss-vel">--</span>
-            <span>VISIBILITY</span><span class="val" id="iss-vis">--</span>
-          </div>
-        </div>
-        <div class="panel-src">Source: wheretheiss.at // NORAD 25544</div>
-      </div>
-
-      <div class="c2-panel wide">
-        <div class="panel-head">
-          <span class="panel-head-title">Event Log — Console Telemetry</span>
-          <span class="panel-head-status tac-green">LIVE</span>
+          <span class="panel-head-title">Event Log &amp; Console Interface</span>
+          <span class="panel-head-status tac-green">AWAITING INPUT</span>
         </div>
         <div class="panel-body">
-          <div class="feed-list" id="event-feed" aria-label="Live event log"></div>
-          <div class="cli-wrap" aria-label="Command line interface">
+          <div class="feed-list" id="event-feed"></div>
+          <div class="cli-wrap">
             <div class="cli-output" id="cli-output"></div>
             <div class="cli-input-row">
-              <span class="cli-prompt" aria-hidden="true">▶</span>
-              <input class="cli-field" id="cli-field" type="text" placeholder="TYPE HELP..." autocomplete="off" aria-label="Command input" spellcheck="false" maxlength="64">
+              <span class="cli-prompt">▶</span>
+              <input class="cli-field" id="cli-field" type="text" placeholder="TYPE HELP OR ENGAGE AI..." autocomplete="off" spellcheck="false" maxlength="128">
             </div>
           </div>
         </div>
@@ -892,736 +272,271 @@ body {
 
       <div class="c2-panel">
         <div class="panel-head">
-          <span class="panel-head-title">External Service Health</span>
-          <span class="panel-head-status tac-cyan" id="status-head-status">PROBING...</span>
+          <span class="panel-head-title">ISS Orbital Tracker</span>
+          <span class="panel-head-status tac-amber" id="iss-status">ACQUIRING</span>
         </div>
-        <div class="panel-body">
-          <div class="node-list" id="node-list"></div>
+        <div class="panel-body iss-body">
+          <div class="orbit-wrap"><canvas id="orbit-canvas" width="180" height="180"></canvas></div>
+          <div class="iss-readout">
+            <span>LAT/LON</span><span class="val" id="iss-coords">--</span>
+            <span>ALTITUDE</span><span class="val" id="iss-alt">--</span>
+            <span>VELOCITY</span><span class="val" id="iss-vel">--</span>
+          </div>
         </div>
-        <div class="panel-src">Source: public statuspage APIs</div>
       </div>
 
-      <div class="c2-panel full">
+      <div class="c2-panel wide">
         <div class="panel-head">
-          <span class="panel-head-title">World Plot — Seismic Events + ISS Ground Track</span>
-          <span class="panel-head-status tac-cyan">LIVE</span>
+          <span class="panel-head-title">Seismic Integrity (USGS)</span>
+          <span class="panel-head-status tac-cyan" id="quake-status">--</span>
         </div>
-        <canvas id="worldmap-canvas" aria-label="World map plotting live earthquakes and ISS position" height="200"></canvas>
+        <table class="quake-table">
+          <thead><tr><th>Mag</th><th>Location</th><th>Time UTC</th></tr></thead>
+          <tbody id="quake-tbody"><tr><td colspan="3">Awaiting planetary data...</td></tr></tbody>
+        </table>
       </div>
 
-    </div>
-  </section>
-
-  <section id="geomag" class="section">
-    <div class="section-eyebrow">Space Weather</div>
-    <h2 class="section-title">Geomagnetic <span class="accent">Conditions</span></h2>
-    <div class="section-rule"></div>
-
-    <div class="geomag-banner quiet" id="geomag-banner" role="status" aria-label="Current geomagnetic conditions">
-      <div>
-        <div class="geomag-level" id="geomag-level">CONNECTING TO NOAA SWPC...</div>
-        <div class="geomag-sub" id="geomag-sub">NOAA space weather scale // Kp 5+ indicates geomagnetic storm conditions</div>
+      <div class="c2-panel">
+        <div class="panel-head">
+          <span class="panel-head-title">External Nodes</span>
+          <span class="panel-head-status tac-cyan" id="node-status">PROBING</span>
+        </div>
+        <div class="panel-body"><div id="node-list"></div></div>
       </div>
-      <div class="geomag-blocks" id="geomag-blocks" aria-hidden="true"></div>
-    </div>
-
-    <div class="c2-panel full" style="border:1px solid var(--tac-dim); border-top:none;">
-      <div class="panel-head">
-        <span class="panel-head-title">Planetary K-Index — Recent Readings</span>
-        <span class="panel-head-status tac-cyan" id="kp-head-status">--</span>
-      </div>
-      <div class="panel-body">
-        <div class="kp-viz" id="kp-viz" aria-label="Kp index bar chart"></div>
-        <div class="kp-scale"><span>OLDEST</span><span>3-HOUR INTERVALS // SCALE 0–9</span><span>LATEST</span></div>
-      </div>
-      <div class="panel-src">Source: NOAA Space Weather Prediction Center</div>
     </div>
   </section>
 
   <footer class="sys-footer">
-    <span>© 2026 NEGARANDEH // LIVE DATA: USGS · NOAA SWPC · WHERETHEISS.AT · ATLASSIAN STATUSPAGE</span>
-    <div class="key-legend">
-      <span><kbd>/</kbd> Terminal</span>
-      <span><kbd>R</kbd> Refresh</span>
-      <span><kbd>1</kbd>-<kbd>4</kbd> Nav</span>
-      <span><kbd>ESC</kbd> Blur</span>
-    </div>
-    <span class="tac-cyan">NEGARIX v4.0 // <a href="index.html">RETURN TO GATEWAY</a></span>
+    <span>© 2026 NEGARANDEH ASI // AUTONOMOUS MONITORING ENTITY</span>
+    <span class="tac-cyan">UPLINK STABLE</span>
   </footer>
-
 </div>
+
 <script>
 'use strict';
 
-var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ---- Tactical Audio Engine ---- */
+/* --- 1. Audio & Speech Engine --- */
 var AudioEngine = (function() {
-  var ctx = null;
-  var enabled = false;
-
-  function init() {
-    if (enabled) return;
-    try {
-      var AudioContext = window.AudioContext || window.webkitAudioContext;
-      ctx = new AudioContext();
-      enabled = true;
-    } catch(e) { console.warn('Web Audio not supported'); }
-  }
-
-  function beep(freq, type, duration, vol) {
+  var ctx = null; var enabled = false; var synth = window.speechSynthesis;
+  function init() { if (enabled) return; try { ctx = new (window.AudioContext || window.webkitAudioContext)(); enabled = true; } catch(e){} }
+  function beep(f, t, d, v) {
     if (!enabled || !ctx) return;
     if (ctx.state === 'suspended') ctx.resume();
-    
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    
-    osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freq || 800, ctx.currentTime);
-    
-    gain.gain.setValueAtTime(vol || 0.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (duration || 0.1));
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    osc.stop(ctx.currentTime + (duration || 0.1));
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = t; osc.frequency.value = f;
+    gain.gain.setValueAtTime(v, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + d);
   }
-
   return {
-    toggle: function() {
-      if (!enabled) init();
-      else enabled = false;
-      return enabled;
-    },
+    toggle: function() { if (!enabled) init(); else enabled = false; return enabled; },
     click: function() { beep(1200, 'square', 0.05, 0.02); },
-    type: function() { beep(2000, 'sine', 0.02, 0.01); },
-    enter: function() { beep(800, 'square', 0.1, 0.03); },
-    alert: function() { beep(400, 'sawtooth', 0.2, 0.05); }
+    alert: function() { beep(300, 'sawtooth', 0.4, 0.05); },
+    speak: function(text) {
+      if (!enabled || !synth) return;
+      var utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1.1; utter.pitch = 0.8; utter.volume = 0.6;
+      synth.speak(utter);
+    }
   };
 })();
 
-// Wire audio UI
-var audioBtn = document.getElementById('audio-toggle');
-if (audioBtn) {
-  audioBtn.addEventListener('click', function() {
-    var isOn = AudioEngine.toggle();
-    audioBtn.textContent = isOn ? 'AUDIO: ON' : 'AUDIO: OFF';
-    audioBtn.className = isOn ? 'audio-toggle active' : 'audio-toggle';
-    if (isOn) AudioEngine.click();
-  });
-}
-document.querySelectorAll('[data-audio-hover]').forEach(function(el) {
-  el.addEventListener('mouseenter', function() { AudioEngine.type(); });
+document.getElementById('audio-toggle').addEventListener('click', function(e) {
+  var on = AudioEngine.toggle();
+  e.target.textContent = on ? 'AUDIO: ON' : 'AUDIO: OFF';
+  e.target.className = on ? 'audio-toggle active' : '';
+  if (on) AudioEngine.speak("Acoustic interface enabled.");
 });
 
-/* ---- Global Hotkeys ---- */
-document.addEventListener('keydown', function(e) {
-  var cli = document.getElementById('cli-field');
+/* --- 2. The ASI Brain (Environment & CLI) --- */
+var ASI = (function() {
+  var lastInteraction = Date.now();
+  var terminal = document.getElementById('cli-output');
   
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-    if (e.key === 'Escape') {
-      e.target.blur();
-      AudioEngine.click();
+  function print(text, cls) {
+    var el = document.createElement('div'); el.className = cls || 'cli-out'; el.textContent = text;
+    terminal.appendChild(el); terminal.scrollTop = terminal.scrollHeight;
+  }
+  
+  function logEvent(src, text, cls) {
+    var feed = document.getElementById('event-feed');
+    if(!feed) return;
+    var line = document.createElement('div'); line.className = 'feed-line ' + (cls||'');
+    line.innerHTML = '<span class="feed-ts">'+new Date().toISOString().slice(11,19)+'</span><span class="feed-src">'+src+'</span><span class="feed-data">'+text+'</span>';
+    feed.insertBefore(line, feed.firstChild);
+    if(feed.children.length > 8) feed.removeChild(feed.lastChild);
+    if (cls === 'alert') AudioEngine.alert();
+  }
+
+  function assessHost() {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    var cores = navigator.hardwareConcurrency || 'Unknown';
+    var net = navigator.connection ? navigator.connection.effectiveType : 'encrypted';
+    
+    var profiler = document.getElementById('host-profiler');
+    var data = "Host identified. Location anchor: " + tz + ". Biological interface active on " + cores + "-core processor via " + net + " uplink. Awaiting instructions.";
+    profiler.textContent = data;
+    logEvent('ASI.SYS', 'Host telemetry locked.', 'ai');
+    
+    if (navigator.getBattery) {
+      navigator.getBattery().then(function(b) {
+        if (b.level < 0.3) {
+          logEvent('ASI.SYS', 'Host power reserves low ('+Math.round(b.level*100)+'% warning).', 'alert');
+        }
+      });
     }
-    return;
   }
-  
-  if (e.key === '/') {
-    e.preventDefault();
-    if (cli) { cli.focus(); AudioEngine.click(); }
-  } else if (e.key.toLowerCase() === 'r') {
-    e.preventDefault();
-    AudioEngine.enter();
-    refreshAllFeeds();
-  } else if (e.key === '1') { e.preventDefault(); window.location.hash = '#profile'; AudioEngine.type(); }
-  else if (e.key === '2') { e.preventDefault(); window.location.hash = '#competencies'; AudioEngine.type(); }
-  else if (e.key === '3') { e.preventDefault(); window.location.hash = '#telemetry'; AudioEngine.type(); }
-  else if (e.key === '4') { e.preventDefault(); window.location.hash = '#geomag'; AudioEngine.type(); }
+
+  function processCommand(cmd) {
+    lastInteraction = Date.now();
+    print('▶ ' + cmd, 'cli-in');
+    cmd = cmd.toLowerCase().trim();
+    
+    if (cmd === 'help') {
+      print('Directives available: quakes, iss, status, decrypt directives, who are you, override.');
+    } else if (cmd === 'decrypt directives') {
+      document.querySelectorAll('.obfuscated').forEach(function(el) {
+        el.textContent = el.getAttribute('data-decrypt');
+        el.classList.add('decrypted');
+      });
+      print('Memory banks decrypted. Operational parameters exposed.', 'cli-ai');
+      AudioEngine.speak("Directives decrypted.");
+    } else if (cmd.includes('who are you') || cmd === 'hello') {
+      print('I am Negarix. An autonomous synthetic intelligence monitoring global systems.', 'cli-ai');
+      AudioEngine.speak("I am Negarix.");
+    } else if (cmd === 'override') {
+      document.body.classList.add('defcon-red');
+      print('CRITICAL: Manual override engaged. Environmental restrictions lifted.', 'cli-err');
+      AudioEngine.alert(); AudioEngine.speak("Warning. Manual override engaged.");
+      logEvent('ASI.SYS', 'DEFCON parameters shifted by host.', 'alert');
+    } else if (cmd === 'clear') {
+      terminal.innerHTML = '';
+    } else {
+      print('Unrecognised input. Syntax rejected.', 'cli-err');
+    }
+  }
+
+  function idleThoughts() {
+    if (Date.now() - lastInteraction > 25000) {
+      var thoughts = [
+        "Re-evaluating baseline planetary telemetry...",
+        "Consolidating memory matrices...",
+        "Scanning external network for unauthorised access...",
+        "Running cryptographic integrity check on memory banks... [PASS]"
+      ];
+      var t = thoughts[Math.floor(Math.random() * thoughts.length)];
+      print(t, 'cli-ai');
+      lastInteraction = Date.now(); // reset so it doesn't spam
+    }
+  }
+
+  return { init: assessHost, parse: processCommand, idle: idleThoughts, print: print, log: logEvent };
+})();
+
+document.getElementById('cli-field').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value) { AudioEngine.click(); ASI.parse(this.value); this.value = ''; }
 });
+setInterval(ASI.idle, 5000);
+document.addEventListener('mousemove', function() { ASI.lastInteraction = Date.now(); });
 
-/* ---- Data Feeds ---- */
-var FEEDS = {
-  quakes: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson',
-  kp:     'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
-  iss:    'https://api.wheretheiss.at/v1/satellites/25544',
-  status: [
-    { name: 'GITHUB',     url: 'https://www.githubstatus.com/api/v2/status.json' },
-    { name: 'CLOUDFLARE', url: 'https://www.cloudflarestatus.com/api/v2/status.json' },
-    { name: 'NETLIFY',    url: 'https://www.netlifystatus.com/api/v2/status.json' }
-  ]
-};
-
-var STATE = {
-  quakes: null,
-  kpNow: null,
-  iss: null,
-  services: {},
-  bootDone: false
-};
-
-function utcNow() { return new Date().toISOString().slice(11, 19); }
-
-function fetchJSON(url, timeoutMs) {
-  var ctrl = new AbortController();
-  var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 10000);
-  return fetch(url, { signal: ctrl.signal, cache: 'no-store' })
-    .then(function (r) {
-      clearTimeout(timer);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .catch(function (e) {
-      clearTimeout(timer);
-      throw e;
-    });
-}
-
-function numIn(v, lo, hi) { return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi; }
-function cleanText(v, maxLen) { return typeof v !== 'string' ? '' : v.slice(0, maxLen || 80); }
-
-/* ---- Event Feed (Real Telemetry Log) ---- */
-var feedEl = null;
-function logFeed(src, text, cls) {
-  if (!feedEl) feedEl = document.getElementById('event-feed');
-  if (!feedEl) return;
-  var line = document.createElement('div');
-  line.className = 'feed-line' + (cls ? ' ' + cls : '');
-  var ts = document.createElement('span');
-  ts.className = 'feed-ts';
-  ts.textContent = utcNow();
-  var s = document.createElement('span');
-  s.className = 'feed-src';
-  s.textContent = src;
-  var d = document.createElement('span');
-  d.className = 'feed-data';
-  d.textContent = text;
-  line.appendChild(ts); line.appendChild(s); line.appendChild(d);
-  feedEl.insertBefore(line, feedEl.firstChild);
-  while (feedEl.children.length > 18) feedEl.removeChild(feedEl.lastChild);
+/* --- 3. Neural Canvas (Mouse Tracking) --- */
+(function() {
+  var canvas = document.getElementById('bg-canvas'); var ctx = canvas.getContext('2d');
+  var W, H, nodes = []; var mouse = { x: -1000, y: -1000 };
   
-  if (cls === 'alert') AudioEngine.alert();
-}
-
-/* ---- Boot Sequence ---- */
-var bootLog = document.getElementById('boot-log');
-function bootLine(cls, text) {
-  if (STATE.bootDone || !bootLog) return;
-  var el = document.createElement('div');
-  el.className = 'boot-line ' + cls;
-  el.textContent = text;
-  bootLog.appendChild(el);
-  bootLog.scrollTop = bootLog.scrollHeight;
-}
-
-function finishBoot() {
-  if (STATE.bootDone) return;
-  STATE.bootDone = true;
-  var overlay = document.getElementById('boot-overlay');
-  var main = document.getElementById('main-wrapper');
-  main.classList.add('visible');
-  if (overlay) {
-    overlay.classList.add('fade-out');
-    setTimeout(function () { overlay.remove(); }, 900);
-  }
-}
-
-(function initBoot() {
-  var main = document.getElementById('main-wrapper');
-  if (REDUCED_MOTION) {
-    var overlay = document.getElementById('boot-overlay');
-    if (overlay) overlay.remove();
-    STATE.bootDone = true;
-    main.classList.add('visible');
-    return;
-  }
-  bootLine('head', 'NEGARIX LIVE OPS v4.0 // INITIALISING');
-  bootLine('info', '[SYS] All telemetry on this console is live public data.');
-  bootLine('ok',   '[OK] Renderer initialised');
-  setTimeout(finishBoot, 3500);
-})();
-
-/* ---- Clock & Connection Monitoring ---- */
-(function initClock() {
-  var el = document.getElementById('live-clock');
-  var dot = document.getElementById('conn-dot');
-  var lbl = document.getElementById('conn-label');
-  function tick() {
-    el.textContent = utcNow() + ' UTC';
-    var on = navigator.onLine;
-    dot.className = 'pulse-dot' + (on ? '' : ' offline');
-    lbl.textContent = on ? 'LINK UP' : 'OFFLINE';
-    lbl.className = on ? 'tac-cyan' : 'tac-red';
-  }
-  tick();
-  setInterval(tick, 1000);
-  window.addEventListener('online', tick);
-  window.addEventListener('offline', tick);
-})();
-
-/* ---- Background Canvas (Nodes) ---- */
-(function initBgCanvas() {
-  var canvas = document.getElementById('bg-canvas');
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  var W, H, nodes;
-
+  window.addEventListener('mousemove', function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('resize', function() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; initNodes(); });
+  
   function initNodes() {
-    var count = Math.min(Math.floor(W * H / 16000), 70);
-    nodes = [];
+    nodes = []; var count = Math.min(Math.floor((W * H) / 12000), 100);
     for (var i = 0; i < count; i++) {
-      nodes.push({
-        x: Math.random() * W, y: Math.random() * H,
-        vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25,
-        r: Math.random() * 1.5 + 0.5
-      });
+      nodes.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, r: Math.random()*1.5+0.5 });
     }
   }
-
-  var resizeTimer = null;
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    initNodes();
-  }
-  window.addEventListener('resize', function () {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resize, 150);
-  }, { passive: true });
-
+  
   function frame() {
-    ctx.clearRect(0, 0, W, H);
-    var i, j, dx, dy, d, n;
-    for (i = 0; i < nodes.length; i++) {
-      n = nodes[i]; n.x += n.vx; n.y += n.vy;
-      if (n.x < 0 || n.x > W) n.vx = -n.vx;
-      if (n.y < 0 || n.y > H) n.vy = -n.vy;
-    }
-    for (i = 0; i < nodes.length; i++) {
-      for (j = i + 1; j < nodes.length; j++) {
-        dx = nodes[i].x - nodes[j].x; dy = nodes[i].y - nodes[j].y;
-        d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 120) {
-          ctx.strokeStyle = 'rgba(0,229,255,' + ((1 - d / 120) * 0.12) + ')';
-          ctx.lineWidth = 0.5;
-          ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
+    ctx.clearRect(0,0,W,H);
+    for (var i=0; i<nodes.length; i++) {
+      var n = nodes[i]; n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1; if (n.y < 0 || n.y > H) n.vy *= -1;
+      
+      // Pull towards mouse (Neural gravity)
+      var dx = mouse.x - n.x, dy = mouse.y - n.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 200) { n.vx += dx*0.0005; n.vy += dy*0.0005; }
+      
+      // Limit speed
+      var speed = Math.sqrt(n.vx*n.vx + n.vy*n.vy);
+      if (speed > 1.5) { n.vx = (n.vx/speed)*1.5; n.vy = (n.vy/speed)*1.5; }
+      
+      ctx.fillStyle = 'rgba(0,229,255,0.4)'; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 6.28); ctx.fill();
+      
+      for(var j=i+1; j<nodes.length; j++) {
+        var n2 = nodes[j]; var d2 = Math.sqrt((n.x-n2.x)**2 + (n.y-n2.y)**2);
+        if(d2 < 100) {
+          ctx.strokeStyle = 'rgba(0,229,255,'+(1-d2/100)*0.15+')';
+          ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
         }
       }
     }
-    for (i = 0; i < nodes.length; i++) {
-      n = nodes[i];
-      ctx.fillStyle = 'rgba(0,229,255,0.35)';
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
-    }
-    if (!REDUCED_MOTION && !document.hidden) requestAnimationFrame(frame);
+    requestAnimationFrame(frame);
   }
-
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && !REDUCED_MOTION) requestAnimationFrame(frame);
-  });
-  resize(); frame();
+  W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; initNodes(); frame();
 })();
 
-/* ---- Sparkline Generator ---- */
-function drawSparkline(canvasId, dataArray, colorHex) {
-  var canvas = document.getElementById(canvasId);
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  var w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  if (!dataArray || dataArray.length === 0) return;
-  
-  var max = Math.max.apply(null, dataArray);
-  var min = Math.min.apply(null, dataArray);
-  var range = (max - min) || 1;
-  
-  ctx.beginPath();
-  ctx.strokeStyle = colorHex;
-  ctx.lineWidth = 1.5;
-  ctx.lineJoin = 'round';
-  
-  dataArray.forEach(function(val, i) {
-    var x = (i / (dataArray.length - 1)) * w;
-    var y = h - ((val - min) / range) * (h - 4) - 2;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-}
+/* --- 4. Live Telemetry Fetchers --- */
+function fetchJSON(url) { return fetch(url, {cache:'no-store'}).then(function(r) { return r.ok ? r.json() : Promise.reject(); }); }
 
-/* ---- Ticker ---- */
-function updateTicker() {
-  var items = ['◈ ALL TELEMETRY LIVE // SOURCES: USGS · NOAA SWPC · WHERETHEISS · STATUSPAGE'];
-  if (STATE.quakes) {
-    items.push('◈ SEISMIC EVENTS M2.5+ (24H): ' + STATE.quakes.count);
-    if (STATE.quakes.maxMag !== null) items.push('◈ MAX MAGNITUDE (24H): M' + STATE.quakes.maxMag.toFixed(1));
-  }
-  if (STATE.kpNow !== null) items.push('◈ PLANETARY KP INDEX: ' + STATE.kpNow.toFixed(2));
-  if (STATE.iss) {
-    items.push('◈ ISS VEL: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' KM/H');
-    items.push('◈ ISS ALT: ' + Math.round(STATE.iss.altitude) + ' KM');
-  }
-  Object.keys(STATE.services).forEach(function (k) {
-    items.push('◈ ' + k + ': ' + STATE.services[k].toUpperCase());
-  });
-  var el = document.getElementById('ticker');
-  if(!el) return;
-  el.textContent = '';
-  items.concat(items).forEach(function (t) {
-    var span = document.createElement('span');
-    span.className = 'ticker-item';
-    var hi = document.createElement('span');
-    hi.className = 'hi'; hi.textContent = '◈';
-    span.appendChild(hi);
-    span.appendChild(document.createTextNode('\u00A0\u00A0' + t.replace('◈ ', '')));
-    el.appendChild(span);
-  });
-}
-
-/* ---- World Map ---- */
-var mapState = { trail: [] };
-function drawWorldMap() {
-  var canvas = document.getElementById('worldmap-canvas');
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  var W = canvas.offsetWidth || 800;
-  var H = 200;
-  canvas.width = W; canvas.height = H;
-
-  function xy(lat, lon) { return { x: ((lon + 180) / 360) * W, y: ((90 - lat) / 180) * H }; }
-
-  ctx.fillStyle = 'rgba(6,13,20,0.8)';
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.strokeStyle = 'rgba(30,61,90,0.4)';
-  ctx.lineWidth = 0.5;
-  var gx, gy;
-  for (gx = 0; gx <= W; gx += W / 24) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (gy = 0; gy <= H; gy += H / 12) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
-  ctx.strokeStyle = 'rgba(30,61,90,0.8)';
-  ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
-
-  if (STATE.quakes) {
-    STATE.quakes.events.forEach(function (q) {
-      var p = xy(q.lat, q.lon);
-      var r = Math.max(1.5, q.mag - 1);
-      var color = q.mag >= 5.5 ? '255,51,51' : q.mag >= 4.5 ? '255,179,0' : '57,255,158';
-      ctx.fillStyle = 'rgba(' + color + ',0.85)';
-      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(' + color + ',0.25)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2); ctx.stroke();
-    });
-  }
-
-  if (mapState.trail.length > 1) {
-    ctx.strokeStyle = 'rgba(0,229,255,0.35)';
-    ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
-    ctx.beginPath();
-    mapState.trail.forEach(function (t, i) {
-      var p = xy(t.lat, t.lon);
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else if (Math.abs(t.lon - mapState.trail[i - 1].lon) > 90) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    });
-    ctx.stroke(); ctx.setLineDash([]);
-  }
-
-  if (STATE.iss) {
-    var ip = xy(STATE.iss.latitude, STATE.iss.longitude);
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath(); ctx.arc(ip.x, ip.y, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,229,255,0.5)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(ip.x, ip.y, 8, 0, Math.PI * 2); ctx.stroke();
-    ctx.font = '8px ui-monospace, monospace';
-    ctx.fillStyle = 'rgba(200,223,240,0.8)';
-    ctx.fillText('ISS', ip.x + 10, ip.y - 4);
-  }
-
-  ctx.font = '8px ui-monospace, monospace';
-  ctx.fillStyle = 'rgba(74,122,155,0.7)';
-  ctx.fillText('EQUIRECTANGULAR // M2.5+ 24H // ISS GROUND TRACK', 8, H - 8);
-}
-var mapResizeTimer = null;
-window.addEventListener('resize', function () {
-  if (mapResizeTimer) clearTimeout(mapResizeTimer);
-  mapResizeTimer = setTimeout(drawWorldMap, 150);
-}, { passive: true });
-
-/* ---- Feed Functions ---- */
 function loadQuakes() {
-  return fetchJSON(FEEDS.quakes).then(function (data) {
-    var feats = (data.features || []).slice();
-    feats.sort(function (a, b) { return b.properties.time - a.properties.time; });
-    var events = [];
-    feats.slice(0, 500).forEach(function (f) {
-      if (!f || !f.properties || !f.geometry || !Array.isArray(f.geometry.coordinates)) return;
-      var mag = f.properties.mag, lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1], time = f.properties.time;
-      if (!numIn(mag, -1, 10) || !numIn(lat, -90, 90) || !numIn(lon, -180, 180) || !numIn(time, 0, 4102444800000)) return;
-      events.push({ mag: mag, place: cleanText(f.properties.place, 80) || 'Unknown location', time: time, lon: lon, lat: lat });
-    });
-    var maxMag = events.length ? Math.max.apply(null, events.map(function (e) { return e.mag; })) : null;
-    STATE.quakes = { count: events.length, maxMag: maxMag, events: events };
-
-    var statEl = document.getElementById('stat-quakes'); if (statEl) statEl.textContent = events.length;
-    var maxEl = document.getElementById('stat-maxmag'); if (maxEl) maxEl.textContent = maxMag !== null ? 'M' + maxMag.toFixed(1) : '--';
-    var headEl = document.getElementById('quake-head-status'); if (headEl) headEl.textContent = events.length + ' EVENTS / 24H';
-
-    var tbody = document.getElementById('quake-tbody');
-    if (tbody) {
-      tbody.textContent = '';
-      events.slice(0, 7).forEach(function (q) {
-        var tr = document.createElement('tr');
-        var tdM = document.createElement('td');
-        tdM.className = 'q-mag ' + (q.mag >= 5.5 ? 'mag-high' : q.mag >= 4.5 ? 'mag-mid' : 'mag-low');
-        tdM.textContent = 'M' + q.mag.toFixed(1);
-        var tdP = document.createElement('td'); tdP.className = 'q-place'; tdP.textContent = q.place;
-        var tdT = document.createElement('td'); tdT.className = 'q-time'; tdT.textContent = new Date(q.time).toISOString().slice(11, 16) + ' UTC';
-        tr.appendChild(tdM); tr.appendChild(tdP); tr.appendChild(tdT); tbody.appendChild(tr);
-      });
-    }
-
-    // Sparkline of last 30 quakes
-    if (events.length > 1) {
-      var sparkData = events.slice(0, 30).map(function(e) { return e.mag; }).reverse();
-      drawSparkline('quake-sparkline', sparkData, '#00e5ff');
-    }
-
-    if (events.length) {
-      var latest = events[0];
-      logFeed('USGS', 'M' + latest.mag.toFixed(1) + ' :: ' + latest.place, latest.mag >= 5.5 ? 'alert' : '');
-    }
-    bootLine('ok', '[OK] USGS seismic feed :: ' + events.length + ' events (24h)');
-    drawWorldMap(); updateTicker();
-  }).catch(function (e) {
-    bootLine('err', '[ERR] USGS seismic feed :: ' + e.message);
-    logFeed('USGS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
-    var headEl = document.getElementById('quake-head-status');
-    if (headEl) { headEl.textContent = 'FEED UNAVAILABLE'; headEl.className = 'panel-head-status tac-red'; }
-  });
-}
-
-function loadKp() {
-  return fetchJSON(FEEDS.kp).then(function (rows) {
-    if (!Array.isArray(rows)) throw new Error('malformed feed');
-    var series = rows.slice(1).map(function (r) { return { t: cleanText(Array.isArray(r) ? r[0] : '', 20), kp: parseFloat(Array.isArray(r) ? r[1] : NaN) }; })
-                     .filter(function (r) { return numIn(r.kp, 0, 9); });
-    var recent = series.slice(-48);
-    var now = recent.length ? recent[recent.length - 1].kp : null;
-    STATE.kpNow = now;
-
-    var viz = document.getElementById('kp-viz');
-    if (viz) {
-      viz.textContent = '';
-      recent.forEach(function (r) {
-        var b = document.createElement('div');
-        b.className = 'kp-bar ' + (r.kp >= 5 ? 'warn' : r.kp >= 4 ? 'hot' : '');
-        b.style.height = Math.max(2, (r.kp / 9) * 82) + 'px';
-        b.title = r.t + ' UTC :: Kp ' + r.kp;
-        viz.appendChild(b);
-      });
-    }
-
-    if (now !== null) {
-      var cls = now >= 5 ? 'storm' : now >= 4 ? 'active' : 'quiet';
-      var label = now >= 5 ? 'G' + Math.floor(now-4) + ' // STORM' : 'KP ' + now.toFixed(1) + (now >= 4 ? ' // ACTIVE' : ' // QUIET');
-      
-      var banner = document.getElementById('geomag-banner');
-      var lvl = document.getElementById('geomag-level');
-      var sub = document.getElementById('geomag-sub');
-      if (banner) banner.className = 'geomag-banner ' + cls;
-      if (lvl) lvl.textContent = label;
-      if (sub) sub.textContent = 'NOAA SWPC PLANETARY K-INDEX // LAST READING ' + recent[recent.length - 1].t + ' UTC';
-
-      var blocks = document.getElementById('geomag-blocks');
-      if (blocks) {
-        blocks.textContent = '';
-        for (var i = 1; i <= 9; i++) {
-          var blk = document.createElement('div');
-          blk.className = 'geomag-block' + (now >= i ? (i >= 5 ? ' lit-red' : i >= 4 ? ' lit-amber' : ' lit-green') : '');
-          blk.textContent = i;
-          blocks.appendChild(blk);
-        }
+  fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').then(function(d) {
+    var evts = d.features.slice(0, 6).map(function(f) { return { m: f.properties.mag, p: f.properties.place, t: new Date(f.properties.time) }; });
+    document.getElementById('stat-quakes').textContent = d.features.length;
+    var tb = document.getElementById('quake-tbody'); tb.innerHTML = '';
+    evts.forEach(function(e) {
+      tb.innerHTML += '<tr><td class="q-mag '+(e.m>=5?'mag-high':'mag-low')+'">M'+e.m.toFixed(1)+'</td><td class="q-place">'+e.p.slice(0,40)+'</td><td>'+e.t.toISOString().slice(11,16)+' UTC</td></tr>';
+      if(e.m >= 6.0) { // Autonomous Threat Reaction
+        ASI.log('USGS', 'MAJOR SEISMIC ANOMALY: M'+e.m+' at '+e.p, 'alert');
+        AudioEngine.speak("Warning. Major seismic anomaly detected.");
       }
-
-      var kpHead = document.getElementById('kp-head-status'); if (kpHead) kpHead.textContent = 'KP ' + now.toFixed(2);
-      var statKp = document.getElementById('stat-kp'); if (statKp) statKp.textContent = now.toFixed(1);
-      logFeed('SWPC', 'Planetary Kp :: ' + now.toFixed(2), now >= 5 ? 'alert' : 'ok');
-    }
-    bootLine('ok', '[OK] NOAA SWPC K-index feed :: current Kp ' + (now !== null ? now.toFixed(2) : '--'));
-    updateTicker();
-  }).catch(function (e) {
-    bootLine('err', '[ERR] NOAA SWPC feed :: ' + e.message);
-    logFeed('SWPC', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
+    });
+    ASI.log('USGS', 'Seismic grid synchronised.', 'ok');
   });
 }
 
 function loadISS() {
-  return fetchJSON(FEEDS.iss, 8000).then(function (d) {
-    if (!d || !numIn(d.latitude, -90, 90) || !numIn(d.longitude, -180, 180) ||
-        !numIn(d.altitude, 100, 2000) || !numIn(d.velocity, 1000, 50000)) {
-      throw new Error('telemetry out of bounds');
-    }
-    STATE.iss = d;
-    mapState.trail.push({ lat: d.latitude, lon: d.longitude });
-    if (mapState.trail.length > 60) mapState.trail.shift();
-
-    function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
-    set('iss-lat', d.latitude.toFixed(2) + '°');
-    set('iss-lon', d.longitude.toFixed(2) + '°');
-    set('iss-alt', Math.round(d.altitude) + ' km');
-    set('iss-vel', Math.round(d.velocity).toLocaleString('en-GB') + ' km/h');
-    set('iss-vis', (cleanText(d.visibility, 20) || '--').toUpperCase());
+  fetchJSON('https://api.wheretheiss.at/v1/satellites/25544').then(function(d) {
+    document.getElementById('stat-iss').textContent = Math.round(d.velocity);
+    document.getElementById('iss-coords').textContent = d.latitude.toFixed(2)+'°, '+d.longitude.toFixed(2)+'°';
+    document.getElementById('iss-alt').textContent = Math.round(d.altitude)+' KM';
+    document.getElementById('iss-vel').textContent = Math.round(d.velocity)+' KM/H';
     
-    var head = document.getElementById('iss-head-status');
-    if (head) { head.textContent = 'TRACKING'; head.className = 'panel-head-status tac-green'; }
-    var statV = document.getElementById('stat-iss'); if (statV) statV.textContent = Math.round(d.velocity).toLocaleString('en-GB');
-
-    var orbitCtx = document.getElementById('orbit-canvas').getContext('2d');
-    orbitCtx.clearRect(0,0,180,180);
-    orbitCtx.strokeStyle = 'rgba(0,229,255,0.12)'; orbitCtx.lineWidth = 1;
-    for (var j = 1; j <= 3; j++) { orbitCtx.beginPath(); orbitCtx.arc(90, 90, 70/3*j, 0, 6.28); orbitCtx.stroke(); }
-    var a = d.longitude * Math.PI / 180;
-    var rr = 70 * (1 - Math.abs(d.latitude) / 120);
-    var ox = 90 + Math.cos(a) * rr, oy = 90 + Math.sin(a) * rr;
-    orbitCtx.fillStyle = '#00e5ff'; orbitCtx.beginPath(); orbitCtx.arc(ox, oy, 3.5, 0, 6.28); orbitCtx.fill();
-    orbitCtx.strokeStyle = 'rgba(0,229,255,0.4)'; orbitCtx.beginPath(); orbitCtx.arc(ox, oy, 8, 0, 6.28); orbitCtx.stroke();
-
-    drawWorldMap(); updateTicker();
-  }).catch(function (e) {
-    logFeed('ISS', 'FEED UNAVAILABLE :: ' + e.message, 'alert');
-    var head = document.getElementById('iss-head-status');
-    if (head) { head.textContent = 'NO SIGNAL'; head.className = 'panel-head-status tac-red'; }
+    var cx = document.getElementById('orbit-canvas').getContext('2d'); cx.clearRect(0,0,180,180);
+    cx.strokeStyle = 'rgba(0,229,255,0.1)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(90,90,70,0,6.28); cx.stroke();
+    var a = d.longitude*Math.PI/180, r = 70*(1-Math.abs(d.latitude)/120);
+    var x = 90+Math.cos(a)*r, y = 90+Math.sin(a)*r;
+    cx.fillStyle = '#00e5ff'; cx.beginPath(); cx.arc(x,y,3,0,6.28); cx.fill();
   });
 }
 
 function loadStatus() {
-  var list = document.getElementById('node-list');
-  if (!list) return Promise.resolve();
-  list.textContent = '';
-  var rows = {};
-  FEEDS.status.forEach(function (svc) {
-    var row = document.createElement('div'); row.className = 'node-row pending';
-    var name = document.createElement('span'); name.className = 'node-name'; name.textContent = svc.name;
-    var detail = document.createElement('span'); detail.className = 'node-detail'; detail.textContent = 'QUERYING...';
-    var badge = document.createElement('span'); badge.className = 'node-status-badge badge-dim'; badge.textContent = 'PENDING';
-    row.appendChild(name); row.appendChild(detail); row.appendChild(badge); list.appendChild(row);
-    rows[svc.name] = { row: row, detail: detail, badge: badge };
-  });
-
-  var okCount = 0;
-  return Promise.all(FEEDS.status.map(function (svc) {
-    return fetchJSON(svc.url, 8000).then(function (d) {
-      var ind = ['none', 'minor', 'major', 'critical', 'maintenance'].indexOf(String(d && d.status ? d.status.indicator : '')) !== -1 ? String(d.status.indicator) : 'unknown';
-      var desc = cleanText(d && d.status ? d.status.description : '', 60) || 'Unknown';
-      STATE.services[svc.name] = desc;
-      var r = rows[svc.name];
-      r.detail.textContent = desc.toUpperCase();
-      if (ind === 'none') { r.row.className = 'node-row online'; r.badge.className = 'node-status-badge badge-green'; r.badge.textContent = 'NOMINAL'; okCount++; }
-      else if (ind === 'minor' || ind === 'maintenance') { r.row.className = 'node-row warn'; r.badge.className = 'node-status-badge badge-amber'; r.badge.textContent = ind.toUpperCase(); }
-      else { r.row.className = 'node-row err'; r.badge.className = 'node-status-badge badge-red'; r.badge.textContent = ind.toUpperCase(); logFeed('STATUS', svc.name + ' :: ' + desc, 'alert'); }
-    }).catch(function (e) {
-      var r = rows[svc.name];
-      r.row.className = 'node-row err'; r.detail.textContent = 'UNREACHABLE'; r.badge.className = 'node-status-badge badge-red'; r.badge.textContent = 'NO DATA';
-      logFeed('STATUS', svc.name + ' :: ' + e.message, 'alert');
+  var urls = [{n:'GITHUB', u:'https://www.githubstatus.com/api/v2/status.json'}, {n:'CLOUDFLARE', u:'https://www.cloudflarestatus.com/api/v2/status.json'}];
+  var list = document.getElementById('node-list'); list.innerHTML = '';
+  urls.forEach(function(s) {
+    fetchJSON(s.u).then(function(d) {
+      var ok = d.status.indicator === 'none';
+      list.innerHTML += '<div class="node-row '+(ok?'online':'err')+'"><span class="node-name">'+s.n+'</span><span class="node-badge '+(ok?'online':'err')+'">'+d.status.indicator.toUpperCase()+'</span></div>';
     });
-  })).then(function () {
-    var head = document.getElementById('status-head-status');
-    if (head) { head.textContent = okCount + '/' + FEEDS.status.length + ' NOMINAL'; head.className = 'panel-head-status ' + (okCount === FEEDS.status.length ? 'tac-green' : 'tac-amber'); }
-    updateTicker();
   });
 }
 
-function refreshAllFeeds() {
-  logFeed('SYS', 'Manual refresh triggered', '');
-  Promise.allSettled([loadQuakes(), loadKp(), loadISS(), loadStatus()]);
-}
-
-/* ---- Command Line Interface ---- */
-(function initCLI() {
-  var field = document.getElementById('cli-field');
-  var output = document.getElementById('cli-output');
-  if (!field || !output) return;
-
-  function addLine(text, cls) {
-    var el = document.createElement('div'); el.className = cls || 'cli-line-out'; el.textContent = text;
-    output.appendChild(el); output.scrollTop = output.scrollHeight;
-  }
-
-  function run(cmd) {
-    switch (cmd) {
-      case 'help':
-        ['Available commands:',
-         '  quakes  — latest seismic events (USGS)',
-         '  kp      — geomagnetic conditions (NOAA SWPC)',
-         '  iss     — live ISS telemetry',
-         '  status  — external service health',
-         '  sources — list all data feeds',
-         '  refresh — re-poll all feeds',
-         '  clear   — clear output'].forEach(function (l) { addLine(l); });
-        break;
-      case 'quakes':
-        if (!STATE.quakes) { addLine('USGS feed not loaded.', 'cli-line-err'); break; }
-        addLine('SEISMIC :: ' + STATE.quakes.count + ' events M2.5+ in 24h');
-        STATE.quakes.events.slice(0, 5).forEach(function (q) { addLine('  M' + q.mag.toFixed(1) + ' :: ' + q.place); });
-        break;
-      case 'kp':
-        if (STATE.kpNow === null) { addLine('SWPC feed not loaded.', 'cli-line-err'); break; }
-        addLine('PLANETARY KP :: ' + STATE.kpNow.toFixed(2));
-        break;
-      case 'iss':
-        if (!STATE.iss) { addLine('ISS feed not loaded.', 'cli-line-err'); break; }
-        addLine('ISS :: ' + STATE.iss.latitude.toFixed(2) + '°, ' + STATE.iss.longitude.toFixed(2) + '°');
-        addLine('ALT :: ' + Math.round(STATE.iss.altitude) + ' km // VEL :: ' + Math.round(STATE.iss.velocity).toLocaleString('en-GB') + ' km/h');
-        break;
-      case 'status':
-        var keys = Object.keys(STATE.services);
-        if (!keys.length) { addLine('Status probes not loaded.', 'cli-line-err'); break; }
-        keys.forEach(function (k) { addLine('  ' + k + ' :: ' + STATE.services[k]); });
-        break;
-      case 'sources':
-        addLine('DATA SOURCES ::');
-        addLine('  earthquake.usgs.gov — seismic feed');
-        addLine('  services.swpc.noaa.gov — planetary K-index');
-        addLine('  api.wheretheiss.at — ISS telemetry');
-        addLine('  statuspage APIs — GitHub / Cloudflare / Netlify');
-        break;
-      case 'refresh':
-        addLine('Re-polling all feeds...'); refreshAllFeeds();
-        break;
-      case 'clear':
-        output.textContent = '';
-        break;
-      default:
-        addLine('Unknown command: "' + cmd + '". Try "help".', 'cli-line-err');
-    }
-  }
-
-  addLine('NEGARIX CLI v4.0 // Live data console. Type "help".');
-  field.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter') return;
-    var cmd = field.value.trim().toLowerCase();
-    field.value = '';
-    if (!cmd) return;
-    AudioEngine.enter();
-    addLine('▶ ' + cmd, 'cli-line-in');
-    run(cmd);
-  });
-})();
-
-/* ---- Start Up ---- */
-logFeed('SYS', 'Console initialised // all telemetry is live public data', 'ok');
-Promise.allSettled([loadQuakes(), loadKp(), loadISS(), loadStatus()]).then(function () {
-  bootLine('info', '[SYS] Initialisation complete.');
-  setTimeout(finishBoot, 700);
-});
-
-setInterval(function () { if (!document.hidden) loadISS(); }, 5000);
-setInterval(function () { if (!document.hidden) { loadQuakes(); loadStatus(); } }, 300000);
-setInterval(function () { if (!document.hidden) loadKp(); }, 600000);
+/* --- Boot Sequence --- */
+setTimeout(function() {
+  document.getElementById('boot-overlay').classList.add('fade-out');
+  document.getElementById('main-wrapper').classList.add('visible');
+  ASI.init(); loadQuakes(); loadISS(); loadStatus();
+  setInterval(loadISS, 5000); setInterval(loadQuakes, 300000);
+}, 2000);
 </script>
 </body>
 </html>
