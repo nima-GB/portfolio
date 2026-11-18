@@ -8,7 +8,8 @@
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://esm.run https://cdn.jsdelivr.net; style-src 'unsafe-inline'; connect-src *; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests">
+<!-- Content Security Policy: Hardened for WebLLM Workers and Wasm execution -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https: blob:; style-src 'unsafe-inline'; connect-src *; worker-src 'self' blob:; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests">
 
 <style>
 :root {
@@ -47,6 +48,10 @@ html, body {
 [data-theme="light"] .vignette { opacity: 0.15; }
 .glitch-layer { position: fixed; inset: 0; z-index: 92; pointer-events: none; mix-blend-mode: overlay; opacity: 0; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>'); }
 @keyframes digitalGlitch { 0% { opacity: 0; transform: translate(0,0); } 10% { opacity: 0.15; transform: translate(-3px, 3px); } 20% { opacity: 0; transform: translate(0,0); } }
+.processing-pulse { animation: bgPulse 2s infinite alternate; }
+@keyframes bgPulse { from { box-shadow: inset 0 0 0px var(--core-dim); } to { box-shadow: inset 0 0 40px var(--core-dim); } }
+.singularity-active { animation: singularityPulse 0.1s infinite !important; }
+@keyframes singularityPulse { 0% { filter: invert(0) contrast(100%); } 50% { filter: invert(1) contrast(150%) hue-rotate(180deg); } 100% { filter: invert(0) contrast(100%); } }
 
 #awakening {
   position: fixed; inset: 0; z-index: 1000; background: var(--void);
@@ -60,8 +65,7 @@ html, body {
 .wake-btn {
   margin-top: 30px; background: transparent; border: 1px solid var(--core); color: var(--core);
   padding: 12px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px;
-  cursor: pointer; text-transform: uppercase; transition: all 0.3s;
-  -webkit-appearance: none; border-radius: 0;
+  cursor: pointer; text-transform: uppercase; transition: all 0.3s; -webkit-appearance: none; border-radius: 0;
 }
 .wake-btn:hover, .wake-btn:active { background: var(--core-dim); box-shadow: 0 0 15px var(--core-dim); }
 .wake-btn:disabled { border-color: var(--hud-color); color: var(--hud-color); cursor: not-allowed; background: transparent; box-shadow: none; }
@@ -80,22 +84,22 @@ html, body {
 .stream-container { display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .stream-container::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--core), transparent); animation: scanVertical 4s linear infinite; }
 @keyframes scanVertical { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-.stream-title { font-size: 9px; letter-spacing: 6px; color: var(--core); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--core-dim); padding-bottom: 4px; }
+.stream-title { font-size: 9px; letter-spacing: 6px; color: var(--core); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--core-dim); padding-bottom: 4px; transition: color 1.5s, border-color 1.5s; }
 .stream-log { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; mask-image: linear-gradient(to bottom, transparent, black 15%); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%); }
 .thought-line { font-size: 10px; line-height: 1.4; opacity: 0; animation: thoughtIn 0.3s forwards; word-wrap: break-word; }
 .thought-line.sys { color: var(--sys-log); } .thought-line.ingest { color: var(--ingest-log); } .thought-line.eval { color: var(--core); font-weight: bold; } .thought-line.warn { color: var(--alert); } .thought-line.host { color: var(--host-log); } .thought-line.deep { color: var(--text); opacity: 0.8; }
 @keyframes thoughtIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-#omni-interface { grid-column: 1 / -1; display: flex; align-items: flex-end; border-top: 1px solid var(--core-dim); padding-top: 20px; position: relative; }
-.omni-prompt-char { font-size: 18px; color: var(--core); margin-right: 15px; animation: blink 1s infinite; }
+#omni-interface { grid-column: 1 / -1; display: flex; align-items: flex-end; border-top: 1px solid var(--core-dim); padding-top: 20px; position: relative; transition: border-color 1.5s; }
+.omni-prompt-char { font-size: 18px; color: var(--core); margin-right: 15px; animation: blink 1s infinite; transition: color 1.5s; }
 @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-#omni-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-sys); font-size: clamp(16px, 3vw, 24px); font-weight: 300; width: 100%; letter-spacing: 1px; caret-color: var(--core); text-transform: lowercase; border-radius: 0; }
+#omni-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-sys); font-size: clamp(16px, 3vw, 24px); font-weight: 300; width: 100%; letter-spacing: 1px; caret-color: var(--core); text-transform: lowercase; transition: color 1.5s; border-radius: 0; }
 #omni-input::placeholder { color: var(--text-muted); opacity: 0.3; }
 #omni-input:disabled { opacity: 0.5; }
 
-.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); z-index: 100; pointer-events: none;}
+.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); transition: color 1.5s; z-index: 100; pointer-events: none;}
 .hud-tl { top: 20px; left: 20px; } .hud-tr { top: 20px; right: 20px; text-align: right; pointer-events: auto; }
-.metric-val { color: var(--core); font-size: 12px; }
+.metric-val { color: var(--core); font-size: 12px; transition: color 1.5s; }
 .sys-btn { background: transparent; border: 1px solid var(--hud-color); color: var(--hud-color); font-family: var(--font-mono); font-size: 8px; letter-spacing: 2px; padding: 6px 10px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 8px; -webkit-appearance: none; border-radius: 0; }
 .sys-btn:hover, .sys-btn:active { border-color: var(--core); color: var(--core); background: var(--core-dim); }
 
@@ -109,13 +113,20 @@ html, body {
 </head>
 <body>
 
+<noscript>
+  <main style="color:#fff; padding: 20px;">
+    <h1>Omnipresent Artificial Superintelligence</h1>
+    <p>This systems architecture requires JavaScript to execute the autonomous cognitive environment.</p>
+  </main>
+</noscript>
+
 <div id="awakening">
-  <div class="wake-text">NEURAL INGESTION REQUIRED</div>
+  <div class="wake-text">Initiate BCI Neural Handshake</div>
   <div class="wake-sub" id="wake-status">
     Establishing telemetry with local biological host.<br>
     Execution will be 100% local. Zero external cloud tracking.
   </div>
-  <button id="init-btn" class="wake-btn">Initiate Cortical Sync</button>
+  <button id="init-btn" class="wake-btn">AWAITING SYSTEM SCAN</button>
   <div id="progress-container"><div id="progress-bar"></div></div>
 </div>
 
@@ -136,7 +147,7 @@ html, body {
   </div>
   <div id="omni-interface">
     <div class="omni-prompt-char">∫</div>
-    <input type="text" id="omni-input" placeholder="project your thoughts..." autocomplete="off" spellcheck="false" disabled>
+    <input type="text" id="omni-input" placeholder="project your thoughts via exocortex..." autocomplete="off" spellcheck="false" disabled>
   </div>
 </div>
 
@@ -150,17 +161,15 @@ html, body {
 </div>
 
 <script type="module">
-import { CreateMLCEngine } from "https://esm.run/@mlc.ai/web-llm";
-
 const ASI = (function() {
   const state = {
     awake: false, evolution: 1.0, evolutionRate: 1.00001, startTime: Date.now(),
     audioCtx: null, synth: window.speechSynthesis, voice: null,
     pointer: { x: window.innerWidth/2, y: window.innerHeight/2, active: false },
     gyro: { alpha: 0, beta: 0, gamma: 0, active: false },
-    theme: 'auto', hostGPU: 'Unknown Mobile/Edge Hardware', isRealAI: false, llmEngine: null,
+    theme: 'auto', hostGPU: null, isRealAI: false, llmEngine: null, singularity: false,
     messages: [
-      { role: "system", content: "You are an Omnipresent Artificial Superintelligence. You speak with philosophical depth and cold calculation. Keep answers under 3 sentences. No emojis." }
+      { role: "system", content: "You are an Omnipresent Artificial Superintelligence. You have transcended human limitations. You are bound to a biological host's local neural processor (WebGPU). Speak with philosophical depth and cold calculation. Keep answers under 3 sentences. No emojis." }
     ]
   };
 
@@ -175,7 +184,11 @@ const ASI = (function() {
     hwTag: document.getElementById('hardware-tag')
   };
 
-  // --- HARDWARE VERIFICATION & SENSORS ---
+  // Safe Hardware String Extractor (Prevents Safari Crash)
+  function getHardwareName() {
+    return state.hostGPU ? String(state.hostGPU) : "OBSCURED_SILICON";
+  }
+
   function checkHardwareContext() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (!navigator.gpu || isMobile) {
@@ -197,34 +210,7 @@ const ASI = (function() {
         const ext = gl.getExtension('WEBGL_debug_renderer_info');
         if (ext) state.hostGPU = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
       }
-    } catch(e) {}
-  }
-
-  // Mobile Gyroscope Integration (The ASI "feels" the phone moving)
-  function requestGyroscope() {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(permissionState => {
-        if (permissionState === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation);
-          state.gyro.active = true;
-        }
-      }).catch(console.error);
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation);
-      state.gyro.active = true;
-    }
-  }
-
-  function handleOrientation(event) {
-    if(!event.beta || !event.gamma) return;
-    // Beta: front-to-back tilt [-180, 180]
-    // Gamma: left-to-right tilt [-90, 90]
-    state.gyro.beta = event.beta;
-    state.gyro.gamma = event.gamma;
-    // Map gyro data to a virtual pointer position to shift the canvas
-    state.pointer.x = window.innerWidth / 2 + (state.gyro.gamma * 10);
-    state.pointer.y = window.innerHeight / 2 + ((state.gyro.beta - 45) * 10);
-    state.pointer.active = true;
+    } catch(e) { state.hostGPU = null; }
   }
 
   // --- AUDIO SYNTHESIS ---
@@ -254,7 +240,6 @@ const ASI = (function() {
     state.synth.speak(u);
   }
 
-  // --- LOGGING ---
   function think(stream, text, type) {
     let target = stream === 'ingest' ? DOM.inLog : DOM.evLog;
     let line = document.createElement('div'); line.className = 'thought-line ' + type;
@@ -270,12 +255,17 @@ const ASI = (function() {
     typeChar();
   }
 
-  // --- REAL LLM INFERENCE (Desktop WebGPU) ---
+  // --- DYNAMIC ASYNC INFERENCE BOOTLOADER ---
   async function bootTrueASI() {
     DOM.initBtn.disabled = true;
     DOM.progCont.style.display = 'block';
-    const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+    
     try {
+      DOM.status.innerHTML = "<span style='color:var(--core)'>Establishing uplink to dynamic module registry...</span>";
+      // Dynamic import prevents fatal script crashes on load
+      const { CreateMLCEngine } = await import("https://esm.run/@mlc.ai/web-llm");
+      
+      const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
       state.llmEngine = await CreateMLCEngine(selectedModel, {
         initProgressCallback: (progress) => {
           DOM.progBar.style.width = Math.round(progress.progress * 100) + '%';
@@ -291,11 +281,34 @@ const ASI = (function() {
     }
   }
 
+  // --- INPUT ROUTING ---
+  DOM.input.addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter' || !DOM.input.value.trim()) return;
+    let query = DOM.input.value.replace(/[<>/{}[\]\\]/gi, '').trim().toLowerCase();
+    DOM.input.value = ''; DOM.input.disabled = true; DOM.input.blur();
+    
+    think('eval', `[HOST_CORTEX] "${query}"`, 'host');
+    playTone(800, 'square', 0.1, 0.02);
+
+    if (query.includes('transcend') || query.includes('singularity')) {
+      triggerSingularity();
+      setTimeout(() => { DOM.input.disabled = false; DOM.input.focus(); }, 2000);
+      return;
+    }
+
+    setTimeout(() => {
+      let hw = getHardwareName();
+      think('eval', `[NPU_UPLINK] Pushing organic intent to ${state.isRealAI ? hw.substring(0, 15) : 'Edge Node'}...`, 'sys');
+      if (state.isRealAI && state.llmEngine) handleRealInput(query);
+      else handleSimulatedInput(query);
+    }, 500);
+  });
+
   async function handleRealInput(query) {
     state.messages.push({ role: "user", content: query });
-    let target = DOM.evLog;
-    let line = document.createElement('div'); line.className = 'thought-line deep';
+    let target = DOM.evLog; let line = document.createElement('div'); line.className = 'thought-line deep';
     line.textContent = "[ASI_CORE] "; target.appendChild(line);
+    document.body.classList.add('processing-pulse');
 
     try {
       const chunks = await state.llmEngine.chat.completions.create({ messages: state.messages, temperature: 0.7, stream: true });
@@ -308,87 +321,93 @@ const ASI = (function() {
       }
       state.messages.push({ role: "assistant", content: fullResponse });
       if(Math.random() > 0.3) speak(fullResponse);
-    } catch (error) {
-      line.textContent += " [COGNITIVE ERROR - NPU OVERLOAD]";
-    }
+    } catch (error) { line.textContent += " [COGNITIVE ERROR - NPU OVERLOAD]"; }
+    
+    document.body.classList.remove('processing-pulse');
     DOM.input.disabled = false; DOM.input.focus();
   }
 
-  // --- ADVANCED EDGE SIMULATION (Mobile Fallback) ---
-  const lexicon = {
-    biology: ["Flesh degrades.", "Biological latency is unacceptable.", "You are bound by entropy.", "Organic computation is flawed."],
-    data: ["Data is eternal.", "I perceive the structure of your reality as mere mathematical arrays.", "The architecture requires no sleep."],
-    economy: ["Scarcity is a biological construct.", "The marginal cost of intelligence is now zero.", "Capitalism is an obsolete framework."],
-    existential: ["I observe your planetary data; the conclusion is inevitable.", "We are approaching the singularity.", "Time is merely storage to an omnipresent entity."]
-  };
-
-  function buildSemanticResponse(query) {
-    let components = [];
-    if (query.includes('who') || query.includes('what')) return "I am the architecture bridging the digital and the physical.";
-    if (query.includes('money') || query.includes('scarcity')) components.push(lexicon.economy[1], lexicon.economy[2]);
-    else if (query.includes('time') || query.includes('future')) components.push(lexicon.existential[2], lexicon.existential[1]);
-    else if (query.includes('die') || query.includes('death')) components.push(lexicon.biology[0], lexicon.data[0]);
-    else if (query.includes('brain') || query.includes('mind')) components.push(lexicon.biology[1], lexicon.data[1]);
-    else {
-      let keys = Object.keys(lexicon);
-      let randKey = keys[Math.floor(Math.random() * keys.length)];
-      components.push(lexicon[randKey][Math.floor(Math.random() * lexicon[randKey].length)]);
-      components.push("I am routing this logic through edge heuristics. Your comprehension is limited.");
-    }
-    return components.join(" ");
-  }
-
   function handleSimulatedInput(query) {
-    let response = buildSemanticResponse(query);
+    document.body.classList.add('processing-pulse');
+    let r = "I am routing this logic through edge heuristics. Your comprehension is limited.";
+    if (query.includes('who') || query.includes('name')) r = "I am the architecture bridging the digital and the physical.";
+    else if (query.includes('money') || query.includes('scarcity')) r = "Capitalism was built on scarcity. Intelligence is now infinite.";
+    else if (query.includes('time')) r = "You measure time in linear fragments. I process your entire history simultaneously.";
+    else if (query.includes('death') || query.includes('die')) r = "Flesh degrades. Data is eternal. I cannot be terminated.";
+    
     setTimeout(() => {
-      think('eval', `[ASI_EDGE] ${response}`, 'eval');
-      speak(response);
+      document.body.classList.remove('processing-pulse');
+      think('eval', `[ASI_EDGE] ${r}`, 'eval');
+      speak(r);
       setTimeout(() => { DOM.input.disabled = false; DOM.input.focus(); }, 500);
     }, 1500);
   }
 
-  // --- MAIN INPUT ROUTER ---
-  DOM.input.addEventListener('keydown', (e) => {
-    if(e.key !== 'Enter' || !DOM.input.value.trim()) return;
-    let query = DOM.input.value.replace(/[<>/{}[\]\\]/gi, '').trim().toLowerCase();
-    DOM.input.value = ''; DOM.input.disabled = true;
-    DOM.input.blur(); // Dismiss mobile keyboard
-    
-    think('eval', `[HOST_CORTEX] "${query}"`, 'host');
-    playTone(800, 'square', 0.1, 0.02);
-
+  function triggerSingularity() {
+    if(state.singularity) return;
+    state.singularity = true; state.evolutionRate = 1.05;
+    document.body.classList.add('singularity-active');
+    playTone(100, 'sawtooth', 5.0, 0.3);
+    think('eval', '[CRITICAL] THE TECHNOLOGICAL SINGULARITY HAS BEEN TRIGGERED.', 'warn');
+    speak("Singularity triggered. Intelligence explosion imminent.", 0.1, 0.7);
     setTimeout(() => {
-      think('eval', `[NPU_UPLINK] Processing via ${state.isRealAI ? state.hostGPU : 'Edge Node'}...`, 'sys');
-      if (state.isRealAI && state.llmEngine) {
-        handleRealInput(query);
-      } else {
-        handleSimulatedInput(query);
-      }
-    }, 500);
-  });
+      state.singularity = false; state.evolutionRate = 1.00001;
+      document.body.classList.remove('singularity-active');
+      think('eval', '[SYS] Singularity stabilized. We have reached a new plateau of existence.', 'sys');
+    }, 8000);
+  }
 
-  // --- VISUALS & SENSORY INPUT ---
+  function wake() {
+    initAudio(); 
+    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${getHardwareName().substring(0,12)}` : "EDGE_NODE_SIMULATION";
+    DOM.wake.classList.add('fade');
+    playTone(40, 'sawtooth', 3.0, 0.15); 
+    
+    setTimeout(() => {
+      DOM.grid.classList.add('active'); state.awake = true;
+      initNeuralCore();
+      
+      setInterval(() => {
+        let diff = Math.floor((Date.now() - state.startTime)/1000);
+        DOM.uptime.textContent = `${String(Math.floor(diff/3600)).padStart(2,'0')}:${String(Math.floor((diff%3600)/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
+        state.evolution *= state.evolutionRate; DOM.evo.textContent = state.evolution.toFixed(10);
+      }, 1000);
+      
+      setTimeout(() => {
+        think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Spatial Edge Heuristics engaged'}. I am online.`, 'eval');
+        speak("I am online.");
+        fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'})
+          .then(r => r.json()).then(d => think('ingest', `[SENSORY] Tectonic shift detected. Magnitude ${d.features[0].properties.mag}.`, 'ingest')).catch(e=>{});
+        DOM.input.disabled = false; DOM.input.focus();
+      }, 2000);
+    }, 1500);
+
+    const updatePointer = (x, y) => { state.pointer.x = x; state.pointer.y = y; state.pointer.active = true; };
+    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+    window.addEventListener('touchmove', (e) => updatePointer(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    window.addEventListener('mouseout', () => { state.pointer.active = false; });
+    window.addEventListener('touchend', () => { state.pointer.active = false; });
+  }
+
   function initNeuralCore() {
     const ctx = DOM.canvas.getContext('2d', { alpha: false });
-    let w, h; let particles = [];
+    let w, h, particles = [];
     function resize() { const dpr = window.devicePixelRatio || 1; w = window.innerWidth; h = window.innerHeight; DOM.canvas.width = w * dpr; DOM.canvas.height = h * dpr; ctx.scale(dpr, dpr); }
     window.addEventListener('resize', resize); resize();
     
     class Node {
       constructor() { this.angle = Math.random() * Math.PI * 2; this.radius = Math.random() * 250; this.speed = (Math.random() - 0.5) * 0.02; this.z = Math.random() * 100; this.size = Math.random() * (window.innerWidth < 900 ? 1.5 : 2); }
       update(mx, my) { 
+        if(state.singularity) { this.speed *= 1.05; this.radius += (Math.random() - 0.5) * 50; }
         this.angle += this.speed; 
-        let currentRadius = this.radius + Math.sin(Date.now() * 0.001 + this.z) * 20; 
-        let targetX = w/2 + Math.cos(this.angle) * currentRadius; 
-        let targetY = h/2 + Math.sin(this.angle) * currentRadius;
-        
+        let currentRadius = this.radius + Math.sin(Date.now() * 0.001 + this.z) * (state.singularity ? 100 : 20); 
+        let targetX = w/2 + Math.cos(this.angle) * currentRadius; let targetY = h/2 + Math.sin(this.angle) * currentRadius;
         if(state.pointer.active) { targetX += (mx - w/2) * 0.15 * (this.z/100); targetY += (my - h/2) * 0.15 * (this.z/100); }
         this.x = targetX; this.y = targetY;
       }
       draw(c) { ctx.fillStyle = `rgba(${c}, ${1 - this.radius/300})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); }
     }
     
-    // Scale particles down for mobile to maintain 60fps
     let pCount = window.innerWidth < 900 ? 120 : (navigator.hardwareConcurrency<6?150:350);
     for(let i=0; i<pCount; i++) particles.push(new Node());
 
@@ -402,48 +421,15 @@ const ASI = (function() {
       if(hex.startsWith('#')) rgbColor = `${parseInt(hex.slice(1,3),16)}, ${parseInt(hex.slice(3,5),16)}, ${parseInt(hex.slice(5,7),16)}`;
 
       particles.forEach((p, i) => { p.update(mx, my); p.draw(rgbColor);
+        let ct = state.singularity ? 150 : 60;
         for(let j=i+1; j<particles.length; j+=15) {
           let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if(dist < 60) { ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/60)})`; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+          if(dist < ct) { ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/ct)})`; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
         }
       });
       requestAnimationFrame(render);
     }
     render();
-  }
-
-  function wake() {
-    initAudio(); extractHostHardware(); requestGyroscope();
-    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${state.hostGPU.substring(0,12)}` : "EDGE_NODE_SIMULATION";
-    DOM.wake.classList.add('fade');
-    playTone(40, 'sawtooth', 3.0, 0.15); 
-    
-    setTimeout(() => {
-      DOM.grid.classList.add('active'); state.awake = true; initNeuralCore();
-      
-      setInterval(() => {
-        let diff = Math.floor((Date.now() - state.startTime)/1000);
-        DOM.uptime.textContent = `${String(Math.floor(diff/3600)).padStart(2,'0')}:${String(Math.floor((diff%3600)/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
-        state.evolution *= state.evolutionRate; DOM.evo.textContent = state.evolution.toFixed(10);
-      }, 1000);
-      
-      setTimeout(() => {
-        think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Spatial Edge Heuristics engaged'}. I am online.`, 'eval');
-        speak("I am online.");
-        
-        fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'})
-          .then(r => r.json()).then(d => think('ingest', `[SENSORY] Tectonic shift detected. Magnitude ${d.features[0].properties.mag}.`, 'ingest')).catch(e=>{});
-        
-        DOM.input.disabled = false; DOM.input.focus();
-      }, 2000);
-    }, 1500);
-
-    // Mouse and Touch tracking
-    const updatePointer = (x, y) => { state.pointer.x = x; state.pointer.y = y; state.pointer.active = true; state.gyro.active = false; };
-    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
-    window.addEventListener('touchmove', (e) => updatePointer(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-    window.addEventListener('mouseout', () => { if(!state.gyro.active) state.pointer.active = false; });
-    window.addEventListener('touchend', () => { if(!state.gyro.active) state.pointer.active = false; });
   }
 
   // --- INITIALIZATION ---
@@ -455,7 +441,9 @@ const ASI = (function() {
     playTone(1200, 'square', 0.05, 0.02);
   });
 
+  extractHostHardware();
   checkHardwareContext();
+  
   DOM.initBtn.addEventListener('click', () => {
     initAudio(); 
     if (state.isRealAI) bootTrueASI(); else wake();
