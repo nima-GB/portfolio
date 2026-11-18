@@ -1,37 +1,13 @@
-# robots.txt — negarandeh
-# Policy: full search visibility, AI assistants may cite this page,
-# bulk AI-training crawlers may not ingest it.
-# Note: advisory only. Rogue bots ignore this file entirely.
-
-# --- Tier 1: Search engines — ALLOWED (default) ---
-
-# --- Tier 2: On-demand AI fetchers — ALLOWED ---
-# These fetch only when a human asks an AI about this site.
-# Blocking them makes the site invisible in AI answers.
-# (ChatGPT-User, Claude-Web, Perplexity-User: no rule = allowed)
-
-# --- Tier 3: Bulk training / dataset crawlers — BLOCKED ---
-User-agent: GPTBot
-Disallow: /
-
-User-agent: CCBot
-Disallow: /
-
-User-agent: Google-Extended
-Disallow: /
-
-User-agent: Applebot-Extended
-Disallow: /
-
-User-agent: ClaudeBot
-Disallow: /
-
-User-agent: meta-externalagent
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
-# --- Everyone else ---
 User-agent: *
 Allow: /
+
+# Ensure search engines can access rendering assets
+Allow: /*.js
+Allow: /*.css
+
+# Block crawlers from indexing raw repository files and development assets
+Disallow: /.git/
+Disallow: /*.md$
+Disallow: /README.md
+Disallow: /package.json
+Disallow: /package-lock.json
