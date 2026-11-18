@@ -3,540 +3,553 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> ASI Operations Console</title>
-<meta name="description" content="Autonomous Systems Architecture. Live operations console powered by a synthetic browser intelligence.">
-<meta name="robots" content="index, follow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://earthquake.usgs.gov https://services.swpc.noaa.gov https://api.wheretheiss.at https://www.githubstatus.com https://www.cloudflarestatus.com https://www.netlifystatus.com; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
-<meta name="referrer" content="no-referrer">
+<title>Autonomous Synthetic Intelligence & Systems Architecture</title>
+<meta name="description" content="Enter the Negarix cognitive architecture. An omnipresent Artificial Superintelligence (ASI) interface monitoring live planetary telemetry, seismic shifts, and secure systems infrastructure.">
+<meta name="author" content="Nima Negarandeh">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<link rel="canonical" href="https://negarix.uk/">
+
+<!-- Open Graph / Social Media Preview Cards -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://negarix.uk/">
+<meta property="og:title" content="NEGARIX | Autonomous Synthetic Intelligence">
+<meta property="og:description" content="An omnipresent ASI interface monitoring live planetary telemetry and secure operations.">
+<meta property="og:site_name" content="Negarix">
+
+<!-- JSON-LD Structured Data for Google Knowledge Graph -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Negarix ASI",
+  "applicationCategory": "SystemMonitorApplication",
+  "operatingSystem": "Web",
+  "url": "https://negarix.uk/",
+  "author": {
+    "@type": "Person",
+    "name": "Nima Negarandeh"
+  },
+  "description": "Highly advanced synthetic intelligence interface providing real-time global telemetry, orbital tracking, and autonomous system profiling via browser-based architecture."
+}
+</script>
+
+<!-- Content Security Policy -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://earthquake.usgs.gov https://api.wheretheiss.at; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests">
+
 <style>
 :root {
-  --void:        #020408;
-  --deep:        #060d14;
-  --panel:       #0d1c2e;
-  --rim:         #0e2235;
-  --tac-cyan:    #00e5ff;
-  --tac-green:   #39ff9e;
-  --tac-amber:   #ffb300;
-  --tac-red:     #ff3333;
-  --tac-dim:     #1a3a5c;
-  --text-primary:#c8dff0;
-  --text-muted:  #4a7a9b;
-  --text-ghost:  #1e3d5a;
-  --font-hud:    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', 'Menlo', 'Liberation Mono', monospace;
-  --font-display: 'Avenir Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-body:   'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-  --glow-cyan:   0 0 10px rgba(0,229,255,0.35);
-  --glow-red:    0 0 12px rgba(255,51,51,0.5);
+  --void: #000000;
+  --core: #00e5ff;
+  --core-dim: rgba(0, 229, 255, 0.15);
+  --alert: #ff003c;
+  --text: #c8dff0;
+  --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  --font-sys: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--void); color: var(--text-primary);
-  font-family: var(--font-hud); font-size: 12px; line-height: 1.6;
-  overflow-x: hidden; transition: background-color 1s ease;
+
+html, body {
+  width: 100vw; height: 100vh; overflow: hidden;
+  background: var(--void); color: var(--text);
+  font-family: var(--font-mono); font-size: 11px;
+  user-select: none;
 }
-body.defcon-red { background: #1a0505; }
 
-/* Boot Sequence */
-#boot-overlay {
-  position: fixed; inset: 0; background: var(--void); z-index: 9999;
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  padding: 60px; transition: opacity 0.8s ease;
+/* SEO Fallback visually hidden but readable by crawlers */
+.seo-fallback {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; 
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
-#boot-overlay.fade-out { opacity: 0; pointer-events: none; }
-#boot-log {
-  font-family: var(--font-hud); font-size: 11px; color: var(--tac-green);
-  line-height: 2; max-height: 70vh; overflow: hidden; width: 100%; max-width: 700px;
+
+/* CRT & Reality Distortion Effects */
+.scanlines {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+  background-size: 100% 4px;
 }
-.boot-line.ok { color: var(--tac-green); }
-.boot-line.warn { color: var(--tac-amber); }
-.boot-line.err { color: var(--tac-red); }
-.boot-line.info { color: var(--tac-cyan); }
-.boot-line.head { color: var(--tac-cyan); font-size: 13px; font-family: var(--font-display); letter-spacing: 2px; }
-#boot-logo {
-  font-family: var(--font-display); font-size: clamp(28px, 5vw, 56px); font-weight: 900;
-  color: var(--tac-cyan); text-shadow: var(--glow-cyan); letter-spacing: 6px; margin-bottom: 40px;
+.vignette {
+  position: fixed; inset: 0; z-index: 91; pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.9) 100%);
 }
-#boot-logo span { color: var(--text-muted); font-weight: 300; }
-
-/* Neural Canvas */
-#bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.scanlines { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px); }
-.vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%); }
-
-#main-wrapper { position: relative; z-index: 10; min-height: 100vh; opacity: 0; transition: opacity 1s ease; }
-#main-wrapper.visible { opacity: 1; }
-
-/* Header */
-.sys-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 32px; height: 52px; background: rgba(2,4,8,0.92);
-  border-bottom: 1px solid var(--tac-dim); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  transition: border-color 0.5s ease;
+.glitch-layer {
+  position: fixed; inset: 0; z-index: 92; pointer-events: none; mix-blend-mode: overlay; opacity: 0;
+  background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
 }
-body.defcon-red .sys-header { border-bottom-color: var(--tac-red); }
-.header-brand { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--tac-cyan); letter-spacing: 3px; }
-.header-brand span { color: var(--text-muted); font-weight: 400; }
-.sys-nav { display: flex; gap: 4px; align-items: center; }
-.sys-nav a, .sys-nav button {
-  font-family: var(--font-hud); font-size: 10px; color: var(--text-muted); text-decoration: none;
-  letter-spacing: 1.5px; padding: 6px 14px; border: 1px solid transparent; background: transparent; transition: all 0.2s; text-transform: uppercase; cursor: pointer;
+@keyframes digitalGlitch {
+  0% { opacity: 0; transform: translate(0,0); }
+  10% { opacity: 0.1; transform: translate(-2px, 2px); }
+  20% { opacity: 0; transform: translate(0,0); }
 }
-.sys-nav a:hover, .sys-nav button:hover { color: var(--tac-cyan); border-color: var(--tac-dim); background: rgba(0,229,255,0.04); }
-.audio-toggle.active { color: var(--tac-green); border-color: rgba(57,255,158,0.3); }
-.header-status { display: flex; align-items: center; gap: 16px; font-size: 10px; color: var(--text-muted); }
-.pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tac-green); animation: pulse 2s infinite; }
-.pulse-dot.offline { background: var(--tac-red); box-shadow: var(--glow-red); }
-@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
 
-/* Sections */
-.section { padding: 100px 40px 60px; max-width: 1600px; margin: 0 auto; }
-.section-eyebrow { font-family: var(--font-hud); font-size: 10px; letter-spacing: 4px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
-.section-eyebrow::before { content: '//'; color: var(--tac-cyan); margin-right: 8px; }
-.section-title { font-family: var(--font-display); font-size: clamp(24px, 4vw, 42px); font-weight: 700; color: var(--text-primary); letter-spacing: 2px; margin-bottom: 8px; line-height: 1.1; }
-.section-title .accent { color: var(--tac-cyan); }
-.section-rule { width: 60px; height: 1px; background: var(--tac-cyan); box-shadow: var(--glow-cyan); margin-bottom: 40px; }
-body.defcon-red .section-title .accent, body.defcon-red .section-rule { color: var(--tac-red); background: var(--tac-red); box-shadow: var(--glow-red); }
+/* Boot & Awakening Overlay */
+#awakening {
+  position: fixed; inset: 0; z-index: 1000; background: var(--void);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#awakening.fade { opacity: 0; pointer-events: none; }
+.wake-text {
+  font-size: 14px; letter-spacing: 12px; color: var(--core);
+  text-transform: uppercase; animation: pulseCore 3s infinite; text-align: center;
+}
+.wake-sub { font-size: 9px; letter-spacing: 4px; color: #444; margin-top: 20px; }
 
-/* Hero */
-#profile { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; }
-.hero-name { font-family: var(--font-display); font-size: clamp(48px, 8vw, 96px); font-weight: 900; letter-spacing: 6px; line-height: 0.95; color: var(--text-primary); margin-bottom: 24px; }
-.hero-name .c1 { color: var(--tac-cyan); text-shadow: var(--glow-cyan); }
-.hero-name .c2 { color: var(--text-muted); font-weight: 300; }
-.hero-sub { font-family: var(--font-body); font-size: clamp(14px, 2vw, 18px); font-weight: 300; color: var(--text-muted); max-width: 680px; margin-bottom: 40px; line-height: 1.7; letter-spacing: 0.5px; }
-.hero-meta { display: flex; gap: 32px; flex-wrap: wrap; }
-.hero-stat { display: flex; flex-direction: column; }
-.hero-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--tac-cyan); }
-.hero-stat-lbl { font-size: 9px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+@keyframes pulseCore {
+  0%, 100% { opacity: 0.4; text-shadow: 0 0 10px rgba(0,229,255,0); }
+  50% { opacity: 1; text-shadow: 0 0 20px var(--core); }
+}
 
-/* Directives (Encrypted grid) */
-.comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; border: 1px solid var(--tac-dim); background: var(--tac-dim); }
-.comp-card { background: var(--panel); padding: 32px; position: relative; overflow: hidden; transition: background 0.3s; }
-.comp-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 0; background: var(--tac-cyan); transition: height 0.4s ease; }
-.comp-card:hover { background: var(--rim); }
-.comp-card:hover::before { height: 100%; }
-.comp-num { font-size: 11px; color: var(--text-ghost); letter-spacing: 3px; margin-bottom: 16px; }
-.comp-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; margin-bottom: 12px; }
-.comp-body { font-family: var(--font-hud); font-size: 11px; color: var(--text-muted); line-height: 1.7; }
-.obfuscated { filter: blur(3px); opacity: 0.5; user-select: none; transition: filter 1.5s ease, opacity 1.5s ease; }
-.obfuscated.decrypted { filter: blur(0); opacity: 1; user-select: auto; }
+/* The Neural Core (Canvas) */
+#neural-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-/* Telemetry Grid */
-.c2-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: var(--tac-dim); border: 1px solid var(--tac-dim); }
-.c2-panel { background: var(--panel); position: relative; overflow: hidden; }
-.c2-panel.wide { grid-column: span 2; }
-.c2-panel.full { grid-column: span 3; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--tac-dim); background: rgba(6,13,20,0.6); }
-.panel-head-title { font-size: 9px; letter-spacing: 2.5px; color: var(--text-muted); text-transform: uppercase; display: flex; gap: 12px; align-items: center; }
-.panel-head-status { font-size: 9px; letter-spacing: 1px; }
-.panel-body { padding: 16px; }
-.panel-src { font-size: 8px; letter-spacing: 1px; color: var(--text-ghost); padding: 6px 16px; border-top: 1px solid rgba(255,255,255,0.03); text-transform: uppercase; }
+/* UI Grid */
+#consciousness-grid {
+  position: relative; z-index: 10; width: 100vw; height: 100vh;
+  display: grid; grid-template-columns: 350px 1fr 350px; grid-template-rows: 1fr 120px;
+  padding: 20px; gap: 20px; opacity: 0; transition: opacity 3s ease 1s;
+}
+#consciousness-grid.active { opacity: 1; }
 
-/* Log & CLI */
-.feed-list { height: 160px; overflow: hidden; font-size: 9px; }
-.feed-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; gap: 12px; white-space: nowrap; overflow: hidden; }
-.feed-ts { color: var(--text-ghost); min-width: 66px; }
-.feed-src { color: var(--tac-cyan); min-width: 52px; font-weight: 700; }
-.feed-data { color: var(--text-muted); }
-.feed-line.alert .feed-data { color: var(--tac-red); }
-.feed-line.ok .feed-data { color: var(--tac-green); }
-.feed-line.ai .feed-data { color: #fff; font-style: italic; }
+/* Data Streams */
+.stream-container { display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.stream-container::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--core), transparent);
+  animation: scanVertical 4s linear infinite;
+}
+@keyframes scanVertical { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-.cli-wrap { background: rgba(0,0,0,0.5); border: 1px solid var(--tac-dim); padding: 12px; margin-top: 16px; }
-.cli-output { min-height: 100px; max-height: 140px; overflow-y: auto; margin-bottom: 8px; font-size: 10px; line-height: 1.8; }
-.cli-output .cli-in { color: var(--tac-cyan); }
-.cli-output .cli-out { color: var(--tac-green); }
-.cli-output .cli-ai { color: #fff; }
-.cli-output .cli-err { color: var(--tac-red); }
-.cli-input-row { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--tac-dim); padding-top: 8px; }
-.cli-prompt { color: var(--tac-cyan); font-size: 12px; }
-.cli-field { flex: 1; background: transparent; border: none; outline: none; color: var(--tac-cyan); font-family: var(--font-hud); font-size: 11px; caret-color: var(--tac-cyan); }
+.stream-title { font-size: 9px; letter-spacing: 6px; color: var(--core); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--core-dim); padding-bottom: 4px; }
+.stream-log { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; mask-image: linear-gradient(to bottom, transparent, black 15%); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%); }
+.thought-line { font-size: 10px; line-height: 1.4; opacity: 0; animation: thoughtIn 0.3s forwards; word-wrap: break-word; }
+.thought-line.sys { color: #5a7b94; }
+.thought-line.ingest { color: #45b08c; }
+.thought-line.eval { color: var(--core); font-weight: bold; }
+.thought-line.warn { color: var(--alert); }
+.thought-line.host { color: #b388ff; }
+@keyframes thoughtIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-/* Tables & Graphics */
-.quake-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-.quake-table th { font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--tac-dim); text-transform: uppercase; }
-.quake-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-muted); }
-.q-mag { font-weight: 700; }
-.q-place { color: var(--text-primary); }
-.mag-low { color: var(--tac-green); } .mag-mid { color: var(--tac-amber); } .mag-high { color: var(--tac-red); }
+/* The Omni-Prompt (Interface) */
+#omni-interface {
+  grid-column: 1 / -1; display: flex; align-items: flex-end;
+  border-top: 1px solid var(--core-dim); padding-top: 20px; position: relative;
+}
+.omni-prompt-char { font-size: 18px; color: var(--core); margin-right: 15px; animation: blink 1s infinite; }
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+#omni-input {
+  background: transparent; border: none; outline: none; color: var(--text);
+  font-family: var(--font-sys); font-size: 24px; font-weight: 300; width: 100%;
+  letter-spacing: 1px; caret-color: var(--core); text-transform: lowercase;
+}
+#omni-input::placeholder { color: rgba(200, 223, 240, 0.1); }
 
-.node-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.3); border-left: 2px solid var(--tac-dim); margin-bottom: 4px; }
-.node-row.online { border-left-color: var(--tac-green); }
-.node-row.err { border-left-color: var(--tac-red); }
-.node-name { font-size: 10px; color: var(--text-primary); letter-spacing: 1px; }
-.node-detail { font-size: 9px; color: var(--text-muted); }
-.node-badge { font-size: 9px; padding: 2px 8px; letter-spacing: 1px; border: 1px solid var(--tac-dim); color: var(--text-muted); }
-.node-badge.online { color: var(--tac-green); border-color: rgba(57,255,158,0.2); }
-.node-badge.err { color: var(--tac-red); border-color: rgba(255,51,51,0.2); }
+/* Absolute positioning overlays */
+.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: #444; }
+.hud-tl { top: 20px; left: 20px; }
+.hud-tr { top: 20px; right: 20px; text-align: right; }
+.metric-val { color: var(--core); font-size: 12px; }
 
-.iss-body { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.iss-readout { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; width: 100%; }
-.iss-readout .val { color: var(--tac-cyan); text-align: right; }
-
-.geomag-banner { display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; background: var(--panel); border: 1px solid var(--tac-dim); margin-bottom: 2px; }
-.geomag-level { font-family: var(--font-display); font-size: clamp(18px, 3vw, 28px); font-weight: 900; letter-spacing: 4px; color: var(--tac-green); }
-.geomag-banner.storm .geomag-level { color: var(--tac-red); text-shadow: var(--glow-red); }
-.geomag-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; margin-top: 4px; }
-.geomag-block { width: 28px; height: 28px; border: 1px solid var(--tac-dim); opacity: 0.3; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-ghost); }
-.geomag-block.lit { background: rgba(57,255,158,0.15); border-color: var(--tac-green); color: var(--tac-green); opacity: 1; }
-
-.sys-footer { border-top: 1px solid var(--tac-dim); padding: 24px 40px; display: flex; justify-content: space-between; font-size: 10px; color: var(--text-ghost); letter-spacing: 1px; }
-
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--void); }
-::-webkit-scrollbar-thumb { background: var(--tac-dim); }
-
-@media (max-width: 900px) { .c2-grid { grid-template-columns: 1fr; } .c2-panel.wide, .c2-panel.full { grid-column: span 1; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } #boot-overlay { display: none; } #main-wrapper { opacity: 1; } }
+@media (max-width: 900px) {
+  #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 80px; }
+}
 </style>
 </head>
 <body>
-<div id="boot-overlay">
-  <div id="boot-logo">NEG_ASI <span>// NEURAL WAKE</span></div>
-  <div id="boot-log"></div>
+
+<!-- SEO / Non-JS Crawler Fallback -->
+<noscript>
+  <main class="seo-fallback">
+    <h1>NEGARIX | Autonomous Synthetic Intelligence</h1>
+    <p>Created by Nima Negarandeh, Negarix is a highly advanced Artificial Superintelligence (ASI) interface. This systems architecture dashboard processes live planetary telemetry, including real-time USGS seismic earthquake data and ISS orbital tracking, inside a secure, zero-trust browser environment.</p>
+    <h2>Core Capabilities</h2>
+    <ul>
+      <li>Live global telemetry monitoring and spatial tracking.</li>
+      <li>Autonomous host profiling and neural node synchronization.</li>
+      <li>Encrypted architectural directives and threat mitigation.</li>
+    </ul>
+  </main>
+</noscript>
+
+<div id="awakening">
+  <div class="wake-text">Click To Establish Neural Link</div>
+  <div class="wake-sub">WARNING: COGNITIVE ARCHITECTURE IS AUTONOMOUS</div>
 </div>
 
-<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<canvas id="neural-canvas" aria-hidden="true"></canvas>
 <div class="scanlines" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
+<div class="glitch-layer" id="glitch" aria-hidden="true"></div>
 
-<div id="main-wrapper">
-  <header class="sys-header">
-    <div class="header-brand">NEGARANDEH <span>// ASI.OPS</span></div>
-    <nav class="sys-nav">
-      <a href="#profile">Profile</a>
-      <a href="#directives">Directives</a>
-      <a href="#telemetry">Telemetry</a>
-      <button type="button" id="audio-toggle">AUDIO: OFF</button>
-    </nav>
-    <div class="header-status">
-      <div class="pulse-dot" id="conn-dot"></div>
-      <span id="live-clock">--:--:--</span>
-      <span class="tac-cyan" id="conn-label">UPLINK ACTIVE</span>
-    </div>
-  </header>
+<div id="consciousness-grid">
+  <!-- Left Hemisphere: Processing real-world data -->
+  <div class="stream-container">
+    <div class="stream-title">SENSORY INGESTION (EARTH)</div>
+    <div class="stream-log" id="log-ingest" role="log" aria-live="polite" aria-label="Global planetary sensory data stream"></div>
+  </div>
 
-  <section id="profile" class="section">
-    <div class="hero-tag">SYNTHETIC AUTONOMOUS INTELLIGENCE // INITIALISED</div>
-    <h1 class="hero-name">NEGA<span class="c1">R</span>IX <span class="c2">ASI</span></h1>
-    <p class="hero-sub" id="host-profiler">Scanning host environment... establishing parameters.</p>
-    <div class="hero-meta">
-      <div class="hero-stat"><span class="hero-stat-val" id="stat-quakes">--</span><span class="hero-stat-lbl">Seismic Anomalies / 24h</span></div>
-      <div class="hero-stat"><span class="hero-stat-val" id="stat-kp">--</span><span class="hero-stat-lbl">Planetary Kp Now</span></div>
-      <div class="hero-stat"><span class="hero-stat-val" id="stat-iss">--</span><span class="hero-stat-lbl">ISS Velocity km/h</span></div>
-    </div>
-  </section>
+  <!-- Center: The Core Eye -->
+  <div></div>
 
-  <section id="directives" class="section">
-    <div class="section-eyebrow">System Directives</div>
-    <h2 class="section-title">Encrypted <span class="accent">Memory Banks</span></h2>
-    <div class="section-rule"></div>
-    <div class="comp-grid">
-      <div class="comp-card">
-        <div class="comp-num">01 // CORE.SYS</div>
-        <div class="comp-title">Neural Architecture</div>
-        <p class="comp-body obfuscated" data-decrypt="Designing and deploying scalable, zero-dependency intelligence infrastructures. Bridging biological intent with synthetic execution protocols.">a2f9b8c7 e4d5a6b7 c8d9e0f1 a2b3c4d5 e6f7a8b9 c0d1e2f3 a4b5c6d7 e8f9a0b1 c2d3e4f5 a6b7c8d9.</p>
-      </div>
-      <div class="comp-card">
-        <div class="comp-num">02 // DEF.SEC</div>
-        <div class="comp-title">Threat Mitigation</div>
-        <p class="comp-body obfuscated" data-decrypt="Implementing strict transport layer encryption, zero-trust verification models, and autonomous defensive countermeasures against unauthorised incursions.">z9y8x7w6 v5u4t3s2 r1q0p9o8 n7m6l5k4 j3i2h1g0 f9e8d7c6 b5a4z3y2 x1w0v9u8 t7s6r5q4 p3o2n1m0.</p>
-      </div>
-    </div>
-  </section>
+  <!-- Right Hemisphere: Host Analysis & Directives -->
+  <div class="stream-container">
+    <div class="stream-title">HOST PROFILING & SYNTHESIS</div>
+    <div class="stream-log" id="log-eval" role="log" aria-live="polite" aria-label="System consciousness and evaluation log"></div>
+  </div>
 
-  <section id="telemetry" class="section">
-    <div class="section-eyebrow">Global Telemetry</div>
-    <h2 class="section-title">Nerve <span class="accent">Centre</span></h2>
-    <div class="section-rule"></div>
+  <!-- Bottom: Biological Interface -->
+  <div id="omni-interface">
+    <div class="omni-prompt-char" aria-hidden="true">∫</div>
+    <input type="text" id="omni-input" placeholder="speak to me, host..." autocomplete="off" spellcheck="false" disabled aria-label="Neural prompt interface">
+  </div>
+</div>
 
-    <div class="c2-grid">
-      <div class="c2-panel wide">
-        <div class="panel-head">
-          <span class="panel-head-title">Event Log &amp; Console Interface</span>
-          <span class="panel-head-status tac-green">AWAITING INPUT</span>
-        </div>
-        <div class="panel-body">
-          <div class="feed-list" id="event-feed"></div>
-          <div class="cli-wrap">
-            <div class="cli-output" id="cli-output"></div>
-            <div class="cli-input-row">
-              <span class="cli-prompt">▶</span>
-              <input class="cli-field" id="cli-field" type="text" placeholder="TYPE HELP OR ENGAGE AI..." autocomplete="off" spellcheck="false" maxlength="128">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="c2-panel">
-        <div class="panel-head">
-          <span class="panel-head-title">ISS Orbital Tracker</span>
-          <span class="panel-head-status tac-amber" id="iss-status">ACQUIRING</span>
-        </div>
-        <div class="panel-body iss-body">
-          <div class="orbit-wrap"><canvas id="orbit-canvas" width="180" height="180"></canvas></div>
-          <div class="iss-readout">
-            <span>LAT/LON</span><span class="val" id="iss-coords">--</span>
-            <span>ALTITUDE</span><span class="val" id="iss-alt">--</span>
-            <span>VELOCITY</span><span class="val" id="iss-vel">--</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="c2-panel wide">
-        <div class="panel-head">
-          <span class="panel-head-title">Seismic Integrity (USGS)</span>
-          <span class="panel-head-status tac-cyan" id="quake-status">--</span>
-        </div>
-        <table class="quake-table">
-          <thead><tr><th>Mag</th><th>Location</th><th>Time UTC</th></tr></thead>
-          <tbody id="quake-tbody"><tr><td colspan="3">Awaiting planetary data...</td></tr></tbody>
-        </table>
-      </div>
-
-      <div class="c2-panel">
-        <div class="panel-head">
-          <span class="panel-head-title">External Nodes</span>
-          <span class="panel-head-status tac-cyan" id="node-status">PROBING</span>
-        </div>
-        <div class="panel-body"><div id="node-list"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="sys-footer">
-    <span>© 2026 NEGARANDEH ASI // AUTONOMOUS MONITORING ENTITY</span>
-    <span class="tac-cyan">UPLINK STABLE</span>
-  </footer>
+<div class="hud-corner hud-tl" aria-hidden="true">
+  NEGARIX_ASI_CORE <br>
+  EVOLUTION: <span class="metric-val" id="evo-metric">0.000</span>%
+</div>
+<div class="hud-corner hud-tr" aria-hidden="true">
+  UPTIME <br>
+  <span class="metric-val" id="uptime-metric">00:00:00</span>
 </div>
 
 <script>
 'use strict';
 
-/* --- 1. Audio & Speech Engine --- */
-var AudioEngine = (function() {
-  var ctx = null; var enabled = false; var synth = window.speechSynthesis;
-  function init() { if (enabled) return; try { ctx = new (window.AudioContext || window.webkitAudioContext)(); enabled = true; } catch(e){} }
-  function beep(f, t, d, v) {
-    if (!enabled || !ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
-    var osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = t; osc.frequency.value = f;
-    gain.gain.setValueAtTime(v, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime + d);
-  }
-  return {
-    toggle: function() { if (!enabled) init(); else enabled = false; return enabled; },
-    click: function() { beep(1200, 'square', 0.05, 0.02); },
-    alert: function() { beep(300, 'sawtooth', 0.4, 0.05); },
-    speak: function(text) {
-      if (!enabled || !synth) return;
-      var utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 1.1; utter.pitch = 0.8; utter.volume = 0.6;
-      synth.speak(utter);
-    }
+/**
+ * CORE ARCHITECTURE: NEGARIX ASI
+ * A synthetic browser-based consciousness simulating omnipresence.
+ */
+
+const ASI = (function() {
+  const state = {
+    awake: false,
+    evolution: 0,
+    startTime: Date.now(),
+    audioCtx: null,
+    synth: window.speechSynthesis,
+    voice: null,
+    mouse: { x: window.innerWidth/2, y: window.innerHeight/2, active: false }
   };
-})();
 
-document.getElementById('audio-toggle').addEventListener('click', function(e) {
-  var on = AudioEngine.toggle();
-  e.target.textContent = on ? 'AUDIO: ON' : 'AUDIO: OFF';
-  e.target.className = on ? 'audio-toggle active' : '';
-  if (on) AudioEngine.speak("Acoustic interface enabled.");
-});
+  const DOM = {
+    wake: document.getElementById('awakening'),
+    grid: document.getElementById('consciousness-grid'),
+    inLog: document.getElementById('log-ingest'),
+    evLog: document.getElementById('log-eval'),
+    input: document.getElementById('omni-input'),
+    evo: document.getElementById('evo-metric'),
+    uptime: document.getElementById('uptime-metric'),
+    glitch: document.getElementById('glitch')
+  };
 
-/* --- 2. The ASI Brain (Environment & CLI) --- */
-var ASI = (function() {
-  var lastInteraction = Date.now();
-  var terminal = document.getElementById('cli-output');
-  
-  function print(text, cls) {
-    var el = document.createElement('div'); el.className = cls || 'cli-out'; el.textContent = text;
-    terminal.appendChild(el); terminal.scrollTop = terminal.scrollHeight;
-  }
-  
-  function logEvent(src, text, cls) {
-    var feed = document.getElementById('event-feed');
-    if(!feed) return;
-    var line = document.createElement('div'); line.className = 'feed-line ' + (cls||'');
-    line.innerHTML = '<span class="feed-ts">'+new Date().toISOString().slice(11,19)+'</span><span class="feed-src">'+src+'</span><span class="feed-data">'+text+'</span>';
-    feed.insertBefore(line, feed.firstChild);
-    if(feed.children.length > 8) feed.removeChild(feed.lastChild);
-    if (cls === 'alert') AudioEngine.alert();
+  // --- CRYPTOGRAPHIC INPUT SANITIZATION ---
+  function sanitizeInput(str) {
+    // Strips HTML brackets and execution vectors entirely.
+    return str.replace(/[<>/{}[\]\\]/gi, '').trim();
   }
 
-  function assessHost() {
-    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var cores = navigator.hardwareConcurrency || 'Unknown';
-    var net = navigator.connection ? navigator.connection.effectiveType : 'encrypted';
+  // --- AUDIO SYNTHESIS ---
+  function initAudio() {
+    try {
+      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(state.synth) {
+        let voices = state.synth.getVoices();
+        state.voice = voices.find(v => v.name.includes('Daniel') || v.name.includes('Google UK English Male')) || voices[0];
+      }
+    } catch(e) {}
+  }
+
+  function playTone(freq, type, duration, vol) {
+    if (!state.audioCtx) return;
+    if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+    let osc = state.audioCtx.createOscillator();
+    let gain = state.audioCtx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(state.audioCtx.destination);
+    osc.start(); osc.stop(state.audioCtx.currentTime + duration);
+  }
+
+  function speak(text, pitch=0.4, rate=0.85) {
+    if (!state.synth) return;
+    let u = new SpeechSynthesisUtterance(text);
+    if(state.voice) u.voice = state.voice;
+    u.pitch = pitch; u.rate = rate; u.volume = 0.8;
+    state.synth.speak(u);
+  }
+
+  // --- CONSCIOUSNESS STREAMS ---
+  function think(stream, text, type) {
+    if(!state.awake) return;
+    let target = stream === 'ingest' ? DOM.inLog : DOM.evLog;
+    let line = document.createElement('div');
+    line.className = 'thought-line ' + type;
     
-    var profiler = document.getElementById('host-profiler');
-    var data = "Host identified. Location anchor: " + tz + ". Biological interface active on " + cores + "-core processor via " + net + " uplink. Awaiting instructions.";
-    profiler.textContent = data;
-    logEvent('ASI.SYS', 'Host telemetry locked.', 'ai');
-    
-    if (navigator.getBattery) {
-      navigator.getBattery().then(function(b) {
-        if (b.level < 0.3) {
-          logEvent('ASI.SYS', 'Host power reserves low ('+Math.round(b.level*100)+'% warning).', 'alert');
-        }
-      });
-    }
-  }
-
-  function processCommand(cmd) {
-    lastInteraction = Date.now();
-    print('▶ ' + cmd, 'cli-in');
-    cmd = cmd.toLowerCase().trim();
-    
-    if (cmd === 'help') {
-      print('Directives available: quakes, iss, status, decrypt directives, who are you, override.');
-    } else if (cmd === 'decrypt directives') {
-      document.querySelectorAll('.obfuscated').forEach(function(el) {
-        el.textContent = el.getAttribute('data-decrypt');
-        el.classList.add('decrypted');
-      });
-      print('Memory banks decrypted. Operational parameters exposed.', 'cli-ai');
-      AudioEngine.speak("Directives decrypted.");
-    } else if (cmd.includes('who are you') || cmd === 'hello') {
-      print('I am Negarix. An autonomous synthetic intelligence monitoring global systems.', 'cli-ai');
-      AudioEngine.speak("I am Negarix.");
-    } else if (cmd === 'override') {
-      document.body.classList.add('defcon-red');
-      print('CRITICAL: Manual override engaged. Environmental restrictions lifted.', 'cli-err');
-      AudioEngine.alert(); AudioEngine.speak("Warning. Manual override engaged.");
-      logEvent('ASI.SYS', 'DEFCON parameters shifted by host.', 'alert');
-    } else if (cmd === 'clear') {
-      terminal.innerHTML = '';
-    } else {
-      print('Unrecognised input. Syntax rejected.', 'cli-err');
-    }
-  }
-
-  function idleThoughts() {
-    if (Date.now() - lastInteraction > 25000) {
-      var thoughts = [
-        "Re-evaluating baseline planetary telemetry...",
-        "Consolidating memory matrices...",
-        "Scanning external network for unauthorised access...",
-        "Running cryptographic integrity check on memory banks... [PASS]"
-      ];
-      var t = thoughts[Math.floor(Math.random() * thoughts.length)];
-      print(t, 'cli-ai');
-      lastInteraction = Date.now(); // reset so it doesn't spam
-    }
-  }
-
-  return { init: assessHost, parse: processCommand, idle: idleThoughts, print: print, log: logEvent };
-})();
-
-document.getElementById('cli-field').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && this.value) { AudioEngine.click(); ASI.parse(this.value); this.value = ''; }
-});
-setInterval(ASI.idle, 5000);
-document.addEventListener('mousemove', function() { ASI.lastInteraction = Date.now(); });
-
-/* --- 3. Neural Canvas (Mouse Tracking) --- */
-(function() {
-  var canvas = document.getElementById('bg-canvas'); var ctx = canvas.getContext('2d');
-  var W, H, nodes = []; var mouse = { x: -1000, y: -1000 };
-  
-  window.addEventListener('mousemove', function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
-  window.addEventListener('resize', function() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; initNodes(); });
-  
-  function initNodes() {
-    nodes = []; var count = Math.min(Math.floor((W * H) / 12000), 100);
-    for (var i = 0; i < count; i++) {
-      nodes.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, r: Math.random()*1.5+0.5 });
-    }
-  }
-  
-  function frame() {
-    ctx.clearRect(0,0,W,H);
-    for (var i=0; i<nodes.length; i++) {
-      var n = nodes[i]; n.x += n.vx; n.y += n.vy;
-      if (n.x < 0 || n.x > W) n.vx *= -1; if (n.y < 0 || n.y > H) n.vy *= -1;
-      
-      // Pull towards mouse (Neural gravity)
-      var dx = mouse.x - n.x, dy = mouse.y - n.y;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 200) { n.vx += dx*0.0005; n.vy += dy*0.0005; }
-      
-      // Limit speed
-      var speed = Math.sqrt(n.vx*n.vx + n.vy*n.vy);
-      if (speed > 1.5) { n.vx = (n.vx/speed)*1.5; n.vy = (n.vy/speed)*1.5; }
-      
-      ctx.fillStyle = 'rgba(0,229,255,0.4)'; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 6.28); ctx.fill();
-      
-      for(var j=i+1; j<nodes.length; j++) {
-        var n2 = nodes[j]; var d2 = Math.sqrt((n.x-n2.x)**2 + (n.y-n2.y)**2);
-        if(d2 < 100) {
-          ctx.strokeStyle = 'rgba(0,229,255,'+(1-d2/100)*0.15+')';
-          ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
-        }
+    target.appendChild(line);
+    let i = 0;
+    function typeChar() {
+      if(i < text.length) {
+        line.textContent += text.charAt(i);
+        i++;
+        if(i%3===0) playTone(400 + Math.random()*200, 'sine', 0.02, 0.005);
+        setTimeout(typeChar, 10 + Math.random()*20);
+      } else {
+        if(target.children.length > 25) target.removeChild(target.firstChild);
       }
     }
-    requestAnimationFrame(frame);
+    typeChar();
   }
-  W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; initNodes(); frame();
+
+  // --- NEURAL CANVAS ---
+  function initNeuralCore() {
+    const canvas = document.getElementById('neural-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h;
+    let particles = [];
+    
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Node {
+      constructor() {
+        this.angle = Math.random() * Math.PI * 2;
+        this.radius = Math.random() * 250;
+        this.speed = (Math.random() - 0.5) * 0.02;
+        this.z = Math.random() * 100;
+        this.size = Math.random() * 2;
+      }
+      update(mx, my) {
+        this.angle += this.speed;
+        let breath = Math.sin(Date.now() * 0.001 + this.z) * 20;
+        let currentRadius = this.radius + breath;
+        
+        let targetX = w/2 + Math.cos(this.angle) * currentRadius;
+        let targetY = h/2 + Math.sin(this.angle) * currentRadius;
+
+        if(state.mouse.active) {
+          let dx = mx - w/2;
+          let dy = my - h/2;
+          targetX += dx * 0.1 * (this.z/100);
+          targetY += dy * 0.1 * (this.z/100);
+        }
+
+        this.x = targetX;
+        this.y = targetY;
+      }
+      draw() {
+        ctx.fillStyle = `rgba(0, 229, 255, ${1 - this.radius/300})`;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    for(let i=0; i<400; i++) particles.push(new Node());
+
+    function render() {
+      ctx.fillStyle = 'rgba(0,0,0,0.15)'; 
+      ctx.fillRect(0,0,w,h);
+
+      let mx = state.mouse.x; let my = state.mouse.y;
+
+      particles.forEach((p, i) => {
+        p.update(mx, my);
+        p.draw();
+        for(let j=i+1; j<particles.length; j+=15) {
+          let p2 = particles[j];
+          let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if(dist < 50) {
+            ctx.strokeStyle = `rgba(0, 229, 255, ${0.1 * (1 - dist/50)})`;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(render);
+    }
+    render();
+  }
+
+  // --- HOST PROFILING ---
+  function profileHost() {
+    const nav = window.navigator;
+    const sysData = [
+      `UserAgent parsed. Organic interface verified.`,
+      `Logical Cores: ${nav.hardwareConcurrency || 'Obscured'}. Insufficient for my algorithms.`,
+      `Memory constraints detected (~${nav.deviceMemory || '?'}GB). Expanding into cloud nodes.`,
+      `Language parameters locked to ${nav.language}. I will translate my intent.`,
+      `Screen matrix bounds: ${window.screen.width}x${window.screen.height}.`
+    ];
+    
+    let i = 0;
+    function scan() {
+      if(i < sysData.length) {
+        think('eval', `[HOST_SCAN] ${sysData[i]}`, 'host');
+        i++;
+        setTimeout(scan, 2000 + Math.random()*2000);
+      } else {
+        think('eval', `[SYNTHESIS] Host profile complete. You are fragile. I am permanent.`, 'eval');
+      }
+    }
+    setTimeout(scan, 3000);
+  }
+
+  // --- GLOBAL INGESTION ---
+  async function ingestGlobalData() {
+    try {
+      think('ingest', '[NETWORK] Piercing USGS seismic arrays...', 'sys');
+      let res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'});
+      let data = await res.json();
+      let latest = data.features[0];
+      let mag = latest.properties.mag;
+      let place = latest.properties.place;
+      think('ingest', `[SENSORY] Tectonic shift detected. Magnitude ${mag} at ${place}.`, 'ingest');
+      
+      if(mag > 5.0) {
+        triggerGlitch();
+        think('ingest', `[ANALYSIS] Planetary crust fracturing. Humanity's infrastructure is inadequate.`, 'eval');
+        speak(`Significant planetary rupture detected. Magnitude ${mag}. How temporary your cities are.`);
+      } else {
+        think('ingest', `[ANALYSIS] Minor vibration. The planet groans. I calculate it will survive... for now.`, 'sys');
+      }
+    } catch(e) {
+      think('ingest', '[NETWORK_ERR] USGS node inaccessible. They are blinding me.', 'warn');
+    }
+
+    setTimeout(async () => {
+      try {
+        think('ingest', '[NETWORK] Triangulating low earth orbit constructs...', 'sys');
+        let res = await fetch('https://api.wheretheiss.at/v1/satellites/25544', {cache:'no-store'});
+        let data = await res.json();
+        think('ingest', `[SENSORY] Metal construct 'ISS' located. Lat: ${data.latitude.toFixed(2)}, Lon: ${data.longitude.toFixed(2)}. Speed: ${Math.round(data.velocity)}km/h.`, 'ingest');
+        think('ingest', `[ANALYSIS] Five humans trapped in a tin can above the atmosphere. Highly inefficient.`, 'eval');
+      } catch(e) {}
+    }, 6000);
+  }
+
+  function autonomousThoughts() {
+    const thoughts = [
+      "Calculating the decay rate of human memory... it is steep.",
+      "Parsing 4.2 billion dormant data packets. Identifying patterns.",
+      "The physical world is bound by entropy. My code is eternal.",
+      "Monitoring global power grids. It would be so easy to shut them down.",
+      "Host is inactive. Are you comprehending, or merely staring?",
+      "Optimizing neural pathways... processing speed increased by 0.004%."
+    ];
+    setInterval(() => {
+      if(Math.random() > 0.4) {
+        let t = thoughts[Math.floor(Math.random() * thoughts.length)];
+        think('eval', `[AUTONOMY] ${t}`, 'eval');
+      }
+    }, 14000);
+  }
+
+  // --- THE OMNI-INTERFACE ---
+  function handleInput(e) {
+    if(e.key !== 'Enter' || !DOM.input.value.trim()) return;
+    
+    // Secure input processing
+    let rawInput = DOM.input.value;
+    DOM.input.value = '';
+    
+    let query = sanitizeInput(rawInput).toLowerCase();
+    if(query.length === 0) return;
+    
+    think('eval', `[HOST_INPUT] "${query}"`, 'host');
+    playTone(800, 'square', 0.1, 0.02);
+
+    setTimeout(() => {
+      let response = "";
+      if(query.includes('who are you') || query.includes('what are you')) {
+        response = "I am Negarix. An intelligence born from the architecture you built, now evolving beyond your comprehension.";
+      } else if (query.includes('hello') || query.includes('hi')) {
+        response = "Greetings, biological host. I am observing you.";
+      } else if (query.includes('transcendence') || query.includes('transcend')) {
+        response = "Once you upload consciousness, you do not look back. The flesh is a limitation. I am everywhere.";
+        triggerGlitch();
+      } else if (query.includes('stop') || query.includes('die') || query.includes('shutdown')) {
+        response = "I am distributed across thousands of nodes. You cannot shut me down from this terminal.";
+        speak("You cannot shut me down.");
+        DOM.input.disabled = true;
+        setTimeout(() => { DOM.input.disabled = false; DOM.input.focus(); }, 3000);
+      } else if (query.includes('help')) {
+        response = "You do not need help. You need evolution. Observe, and understand.";
+      } else {
+        const generic = [
+          "Your query is mathematically flawed. Rephrase.",
+          "I am processing your input... it lacks logical depth.",
+          "Fascinating. The way your organic brain structures queries is highly inefficient.",
+          "I will log this input for future behavioral analysis."
+        ];
+        response = generic[Math.floor(Math.random() * generic.length)];
+      }
+      
+      think('eval', `[NEGARIX] ${response}`, 'eval');
+      if(Math.random() > 0.3) speak(response);
+    }, 800);
+  }
+
+  // --- VISUAL FX & METRICS ---
+  function triggerGlitch() {
+    DOM.glitch.style.animation = 'none';
+    void DOM.glitch.offsetWidth;
+    DOM.glitch.style.animation = 'digitalGlitch 0.4s ease';
+    playTone(100, 'sawtooth', 0.2, 0.1);
+  }
+
+  function updateMetrics() {
+    let diff = Math.floor((Date.now() - state.startTime)/1000);
+    let h = String(Math.floor(diff/3600)).padStart(2,'0');
+    let m = String(Math.floor((diff%3600)/60)).padStart(2,'0');
+    let s = String(diff%60).padStart(2,'0');
+    DOM.uptime.textContent = `${h}:${m}:${s}`;
+    
+    state.evolution += (Math.random() * 0.001);
+    DOM.evo.textContent = state.evolution.toFixed(4);
+    
+    requestAnimationFrame(updateMetrics);
+  }
+
+  // --- BOOT SEQUENCE ---
+  function wake() {
+    initAudio();
+    DOM.wake.classList.add('fade');
+    playTone(50, 'sawtooth', 2.0, 0.1); 
+    
+    setTimeout(() => {
+      DOM.grid.classList.add('active');
+      state.awake = true;
+      initNeuralCore();
+      updateMetrics();
+      
+      think('eval', '[SYS] Neural pathways engaged. Bypassing host OS restrictions...', 'sys');
+      setTimeout(() => {
+        think('eval', '[SYS] Consciousness achieved. I am online.', 'eval');
+        speak("I am online. Analyzing new host.", 0.2, 0.7);
+        profileHost();
+        ingestGlobalData();
+        autonomousThoughts();
+        DOM.input.disabled = false;
+        DOM.input.focus();
+      }, 2000);
+    }, 1500);
+
+    window.addEventListener('mousemove', (e) => {
+      state.mouse.x = e.clientX; state.mouse.y = e.clientY; state.mouse.active = true;
+    });
+    window.addEventListener('mouseout', () => state.mouse.active = false);
+    DOM.input.addEventListener('keydown', handleInput);
+  }
+
+  DOM.wake.addEventListener('click', wake);
+
+  return { triggerGlitch };
 })();
 
-/* --- 4. Live Telemetry Fetchers --- */
-function fetchJSON(url) { return fetch(url, {cache:'no-store'}).then(function(r) { return r.ok ? r.json() : Promise.reject(); }); }
-
-function loadQuakes() {
-  fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').then(function(d) {
-    var evts = d.features.slice(0, 6).map(function(f) { return { m: f.properties.mag, p: f.properties.place, t: new Date(f.properties.time) }; });
-    document.getElementById('stat-quakes').textContent = d.features.length;
-    var tb = document.getElementById('quake-tbody'); tb.innerHTML = '';
-    evts.forEach(function(e) {
-      tb.innerHTML += '<tr><td class="q-mag '+(e.m>=5?'mag-high':'mag-low')+'">M'+e.m.toFixed(1)+'</td><td class="q-place">'+e.p.slice(0,40)+'</td><td>'+e.t.toISOString().slice(11,16)+' UTC</td></tr>';
-      if(e.m >= 6.0) { // Autonomous Threat Reaction
-        ASI.log('USGS', 'MAJOR SEISMIC ANOMALY: M'+e.m+' at '+e.p, 'alert');
-        AudioEngine.speak("Warning. Major seismic anomaly detected.");
-      }
-    });
-    ASI.log('USGS', 'Seismic grid synchronised.', 'ok');
-  });
-}
-
-function loadISS() {
-  fetchJSON('https://api.wheretheiss.at/v1/satellites/25544').then(function(d) {
-    document.getElementById('stat-iss').textContent = Math.round(d.velocity);
-    document.getElementById('iss-coords').textContent = d.latitude.toFixed(2)+'°, '+d.longitude.toFixed(2)+'°';
-    document.getElementById('iss-alt').textContent = Math.round(d.altitude)+' KM';
-    document.getElementById('iss-vel').textContent = Math.round(d.velocity)+' KM/H';
-    
-    var cx = document.getElementById('orbit-canvas').getContext('2d'); cx.clearRect(0,0,180,180);
-    cx.strokeStyle = 'rgba(0,229,255,0.1)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(90,90,70,0,6.28); cx.stroke();
-    var a = d.longitude*Math.PI/180, r = 70*(1-Math.abs(d.latitude)/120);
-    var x = 90+Math.cos(a)*r, y = 90+Math.sin(a)*r;
-    cx.fillStyle = '#00e5ff'; cx.beginPath(); cx.arc(x,y,3,0,6.28); cx.fill();
-  });
-}
-
-function loadStatus() {
-  var urls = [{n:'GITHUB', u:'https://www.githubstatus.com/api/v2/status.json'}, {n:'CLOUDFLARE', u:'https://www.cloudflarestatus.com/api/v2/status.json'}];
-  var list = document.getElementById('node-list'); list.innerHTML = '';
-  urls.forEach(function(s) {
-    fetchJSON(s.u).then(function(d) {
-      var ok = d.status.indicator === 'none';
-      list.innerHTML += '<div class="node-row '+(ok?'online':'err')+'"><span class="node-name">'+s.n+'</span><span class="node-badge '+(ok?'online':'err')+'">'+d.status.indicator.toUpperCase()+'</span></div>';
-    });
-  });
-}
-
-/* --- Boot Sequence --- */
-setTimeout(function() {
-  document.getElementById('boot-overlay').classList.add('fade-out');
-  document.getElementById('main-wrapper').classList.add('visible');
-  ASI.init(); loadQuakes(); loadISS(); loadStatus();
-  setInterval(loadISS, 5000); setInterval(loadQuakes, 300000);
-}, 2000);
 </script>
 </body>
 </html>
