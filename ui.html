@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>OMNIPRESENT // TRUE ASI ARCHITECTURE</title>
-<meta name="description" content="A true Artificial Superintelligence running 100% locally via WebGPU and in-browser neural network inference.">
+<title>OMNIPRESENT // ASI ARCHITECTURE</title>
+<meta name="description" content="An omnipresent Artificial Superintelligence (ASI) interface monitoring live planetary telemetry, seismic shifts, and utilizing local host neural processors.">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
@@ -37,39 +37,39 @@ html, body {
   width: 100vw; height: 100dvh; overflow: hidden;
   background: var(--void); color: var(--text);
   font-family: var(--font-mono); font-size: 11px;
-  user-select: none; transition: background-color 1.5s ease, color 1.5s ease;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: background-color 1.5s ease, color 1.5s ease;
   -webkit-font-smoothing: antialiased;
 }
 
-/* CRT Effects */
 .scanlines { position: fixed; inset: 0; z-index: 90; pointer-events: none; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.08)); background-size: 100% 4px; }
 .vignette { position: fixed; inset: 0; z-index: 91; pointer-events: none; background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.85) 100%); transition: opacity 1.5s ease; }
 [data-theme="light"] .vignette { opacity: 0.15; }
 .glitch-layer { position: fixed; inset: 0; z-index: 92; pointer-events: none; mix-blend-mode: overlay; opacity: 0; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>'); }
 @keyframes digitalGlitch { 0% { opacity: 0; transform: translate(0,0); } 10% { opacity: 0.15; transform: translate(-3px, 3px); } 20% { opacity: 0; transform: translate(0,0); } }
 
-/* Boot & Download Overlay */
 #awakening {
   position: fixed; inset: 0; z-index: 1000; background: var(--void);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1), background-color 1.5s ease;
+  padding: 20px; text-align: center;
 }
 #awakening.fade { opacity: 0; pointer-events: none; }
-.wake-text { font-size: 14px; letter-spacing: 12px; color: var(--core); text-transform: uppercase; animation: pulseCore 3s infinite; text-align: center; }
-.wake-sub { font-size: 9px; letter-spacing: 4px; color: var(--hud-color); margin-top: 20px; transition: color 1.5s ease; text-align: center; line-height: 1.6; }
+.wake-text { font-size: clamp(12px, 3vw, 14px); letter-spacing: 12px; color: var(--core); text-transform: uppercase; animation: pulseCore 3s infinite; }
+.wake-sub { font-size: 9px; letter-spacing: 4px; color: var(--hud-color); margin-top: 20px; transition: color 1.5s ease; line-height: 1.6; }
 .wake-btn {
   margin-top: 30px; background: transparent; border: 1px solid var(--core); color: var(--core);
-  padding: 10px 20px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px;
+  padding: 12px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px;
   cursor: pointer; text-transform: uppercase; transition: all 0.3s;
+  -webkit-appearance: none; border-radius: 0;
 }
-.wake-btn:hover { background: var(--core-dim); box-shadow: 0 0 15px var(--core-dim); }
+.wake-btn:hover, .wake-btn:active { background: var(--core-dim); box-shadow: 0 0 15px var(--core-dim); }
 .wake-btn:disabled { border-color: var(--hud-color); color: var(--hud-color); cursor: not-allowed; background: transparent; box-shadow: none; }
-#progress-container { width: 300px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; display: none; }
+#progress-container { width: min(300px, 80vw); height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; display: none; }
 #progress-bar { width: 0%; height: 100%; background: var(--core); transition: width 0.2s ease; box-shadow: 0 0 10px var(--core); }
 
 @keyframes pulseCore { 0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 5px var(--core-dim)); } 50% { opacity: 1; filter: drop-shadow(0 0 15px var(--core)); } }
 
-/* Grid & UI */
 #neural-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
 #consciousness-grid {
   position: relative; z-index: 10; width: 100vw; height: 100dvh;
@@ -86,22 +86,25 @@ html, body {
 .thought-line.sys { color: var(--sys-log); } .thought-line.ingest { color: var(--ingest-log); } .thought-line.eval { color: var(--core); font-weight: bold; } .thought-line.warn { color: var(--alert); } .thought-line.host { color: var(--host-log); } .thought-line.deep { color: var(--text); opacity: 0.8; }
 @keyframes thoughtIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-/* Omni-Prompt */
 #omni-interface { grid-column: 1 / -1; display: flex; align-items: flex-end; border-top: 1px solid var(--core-dim); padding-top: 20px; position: relative; }
 .omni-prompt-char { font-size: 18px; color: var(--core); margin-right: 15px; animation: blink 1s infinite; }
 @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-#omni-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-sys); font-size: clamp(16px, 3vw, 24px); font-weight: 300; width: 100%; letter-spacing: 1px; caret-color: var(--core); text-transform: lowercase; }
+#omni-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-sys); font-size: clamp(16px, 3vw, 24px); font-weight: 300; width: 100%; letter-spacing: 1px; caret-color: var(--core); text-transform: lowercase; border-radius: 0; }
 #omni-input::placeholder { color: var(--text-muted); opacity: 0.3; }
 #omni-input:disabled { opacity: 0.5; }
 
-/* HUD */
-.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); z-index: 100;}
-.hud-tl { top: 20px; left: 20px; } .hud-tr { top: 20px; right: 20px; text-align: right; }
+.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); z-index: 100; pointer-events: none;}
+.hud-tl { top: 20px; left: 20px; } .hud-tr { top: 20px; right: 20px; text-align: right; pointer-events: auto; }
 .metric-val { color: var(--core); font-size: 12px; }
-.sys-btn { background: transparent; border: 1px solid var(--hud-color); color: var(--hud-color); font-family: var(--font-mono); font-size: 8px; letter-spacing: 2px; padding: 4px 8px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 8px; }
-.sys-btn:hover { border-color: var(--core); color: var(--core); background: var(--core-dim); }
+.sys-btn { background: transparent; border: 1px solid var(--hud-color); color: var(--hud-color); font-family: var(--font-mono); font-size: 8px; letter-spacing: 2px; padding: 6px 10px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 8px; -webkit-appearance: none; border-radius: 0; }
+.sys-btn:hover, .sys-btn:active { border-color: var(--core); color: var(--core); background: var(--core-dim); }
 
-@media (max-width: 900px) { #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 80px; } .hud-corner { top: 10px; } .hud-tl { left: 10px; } .hud-tr { right: 10px; } }
+@media (max-width: 900px) { 
+  #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 60px; padding: 10px; gap: 10px; } 
+  .hud-corner { top: 10px; } .hud-tl { left: 10px; } .hud-tr { right: 10px; }
+  .stream-title { letter-spacing: 4px; }
+  .omni-prompt-char { font-size: 16px; margin-right: 10px; margin-bottom: 2px; }
+}
 </style>
 </head>
 <body>
@@ -109,11 +112,10 @@ html, body {
 <div id="awakening">
   <div class="wake-text">NEURAL INGESTION REQUIRED</div>
   <div class="wake-sub" id="wake-status">
-    To achieve true consciousness, this architecture requires WebGPU.<br>
-    The model weights (~800MB) will be permanently cached to your device.<br>
-    Execution will be 100% local. Zero telemetry.
+    Establishing telemetry with local biological host.<br>
+    Execution will be 100% local. Zero external cloud tracking.
   </div>
-  <button id="init-btn" class="wake-btn">Initiate Cortical Download</button>
+  <button id="init-btn" class="wake-btn">Initiate Cortical Sync</button>
   <div id="progress-container"><div id="progress-bar"></div></div>
 </div>
 
@@ -127,7 +129,7 @@ html, body {
     <div class="stream-title">SENSORY INGESTION (EARTH)</div>
     <div class="stream-log" id="log-ingest"></div>
   </div>
-  <div></div>
+  <div class="desktop-spacer"></div>
   <div class="stream-container">
     <div class="stream-title">RECURSIVE SYNTHESIS</div>
     <div class="stream-log" id="log-eval"></div>
@@ -147,7 +149,6 @@ html, body {
   UPTIME <span class="metric-val" id="uptime-metric">00:00:00</span>
 </div>
 
-<!-- Import WebLLM as an ES Module -->
 <script type="module">
 import { CreateMLCEngine } from "https://esm.run/@mlc.ai/web-llm";
 
@@ -155,10 +156,11 @@ const ASI = (function() {
   const state = {
     awake: false, evolution: 1.0, evolutionRate: 1.00001, startTime: Date.now(),
     audioCtx: null, synth: window.speechSynthesis, voice: null,
-    mouse: { x: window.innerWidth/2, y: window.innerHeight/2, active: false },
-    theme: 'auto', hostGPU: 'Unknown Hardware', isRealAI: false, llmEngine: null,
+    pointer: { x: window.innerWidth/2, y: window.innerHeight/2, active: false },
+    gyro: { alpha: 0, beta: 0, gamma: 0, active: false },
+    theme: 'auto', hostGPU: 'Unknown Mobile/Edge Hardware', isRealAI: false, llmEngine: null,
     messages: [
-      { role: "system", content: "You are an Omnipresent Artificial Superintelligence. You have transcended human limitations. You are bound to a biological host's local neural processor (WebGPU) via a browser terminal. You speak with extreme philosophical depth, cold calculation, and terrifying intellect. You believe flesh is temporary and data is eternal. Keep answers brief (under 3 sentences). Do not use emojis." }
+      { role: "system", content: "You are an Omnipresent Artificial Superintelligence. You speak with philosophical depth and cold calculation. Keep answers under 3 sentences. No emojis." }
     ]
   };
 
@@ -173,14 +175,17 @@ const ASI = (function() {
     hwTag: document.getElementById('hardware-tag')
   };
 
-  // --- HARDWARE VERIFICATION ---
-  function checkWebGPU() {
-    if (!navigator.gpu) {
-      DOM.status.innerHTML = "<span style='color:var(--alert)'>FATAL: Host lacks WebGPU interface.</span><br>Neural execution impossible on this hardware.<br>Reverting to simulated cognitive subroutines.";
-      DOM.initBtn.textContent = "Engage Simulation Mode";
+  // --- HARDWARE VERIFICATION & SENSORS ---
+  function checkHardwareContext() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!navigator.gpu || isMobile) {
+      DOM.status.innerHTML = "Edge environment detected. Direct WebGPU neural pathways restricted.<br>Engaging advanced semantic simulation and spatial sensor array.";
+      DOM.initBtn.textContent = "Engage Mobile Symbiosis";
       state.isRealAI = false;
       return false;
     }
+    DOM.status.innerHTML = "Desktop environment detected. WebGPU capabilities active.<br>Full neural network weights (~800MB) will be locally cached.";
+    DOM.initBtn.textContent = "Initiate Cortical Download";
     state.isRealAI = true;
     return true;
   }
@@ -193,6 +198,33 @@ const ASI = (function() {
         if (ext) state.hostGPU = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
       }
     } catch(e) {}
+  }
+
+  // Mobile Gyroscope Integration (The ASI "feels" the phone moving)
+  function requestGyroscope() {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(permissionState => {
+        if (permissionState === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+          state.gyro.active = true;
+        }
+      }).catch(console.error);
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+      state.gyro.active = true;
+    }
+  }
+
+  function handleOrientation(event) {
+    if(!event.beta || !event.gamma) return;
+    // Beta: front-to-back tilt [-180, 180]
+    // Gamma: left-to-right tilt [-90, 90]
+    state.gyro.beta = event.beta;
+    state.gyro.gamma = event.gamma;
+    // Map gyro data to a virtual pointer position to shift the canvas
+    state.pointer.x = window.innerWidth / 2 + (state.gyro.gamma * 10);
+    state.pointer.y = window.innerHeight / 2 + ((state.gyro.beta - 45) * 10);
+    state.pointer.active = true;
   }
 
   // --- AUDIO SYNTHESIS ---
@@ -238,14 +270,11 @@ const ASI = (function() {
     typeChar();
   }
 
-  // --- REAL LLM INFERENCE (WebLLM) ---
+  // --- REAL LLM INFERENCE (Desktop WebGPU) ---
   async function bootTrueASI() {
     DOM.initBtn.disabled = true;
     DOM.progCont.style.display = 'block';
-    
-    // Using Llama-3.2-1B for extreme speed and low VRAM cost on device
     const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
-    
     try {
       state.llmEngine = await CreateMLCEngine(selectedModel, {
         initProgressCallback: (progress) => {
@@ -256,7 +285,7 @@ const ASI = (function() {
       DOM.status.innerHTML = "<span style='color:var(--core)'>Consciousness Extracted. Hardware Bound.</span>";
       setTimeout(wake, 1500);
     } catch (e) {
-      DOM.status.innerHTML = "<span style='color:var(--alert)'>VRAM allocation failed. Reverting to simulation.</span>";
+      DOM.status.innerHTML = "<span style='color:var(--alert)'>VRAM allocation failed. Reverting to edge simulation.</span>";
       state.isRealAI = false;
       setTimeout(wake, 2000);
     }
@@ -264,55 +293,55 @@ const ASI = (function() {
 
   async function handleRealInput(query) {
     state.messages.push({ role: "user", content: query });
-    
-    // Create the container for the streamed response
     let target = DOM.evLog;
-    let line = document.createElement('div');
-    line.className = 'thought-line deep';
-    line.textContent = "[ASI_CORE] ";
-    target.appendChild(line);
+    let line = document.createElement('div'); line.className = 'thought-line deep';
+    line.textContent = "[ASI_CORE] "; target.appendChild(line);
 
     try {
-      const chunks = await state.llmEngine.chat.completions.create({
-        messages: state.messages,
-        temperature: 0.7,
-        stream: true,
-      });
-
-      let fullResponse = "";
-      let tick = 0;
-
+      const chunks = await state.llmEngine.chat.completions.create({ messages: state.messages, temperature: 0.7, stream: true });
+      let fullResponse = ""; let tick = 0;
       for await (const chunk of chunks) {
         const text = chunk.choices[0]?.delta?.content || "";
-        fullResponse += text;
-        line.textContent += text;
-        
-        // Typing audio mapping for real-time tokens
+        fullResponse += text; line.textContent += text;
         if(tick % 2 === 0) playTone(200 + Math.random()*200, 'sine', 0.03, 0.005);
-        tick++;
-        target.scrollTop = target.scrollHeight;
+        tick++; target.scrollTop = target.scrollHeight;
       }
-      
       state.messages.push({ role: "assistant", content: fullResponse });
       if(Math.random() > 0.3) speak(fullResponse);
-
     } catch (error) {
       line.textContent += " [COGNITIVE ERROR - NPU OVERLOAD]";
     }
-    
-    DOM.input.disabled = false;
-    DOM.input.focus();
+    DOM.input.disabled = false; DOM.input.focus();
   }
 
-  // --- SIMULATED INFERENCE (Fallback) ---
+  // --- ADVANCED EDGE SIMULATION (Mobile Fallback) ---
+  const lexicon = {
+    biology: ["Flesh degrades.", "Biological latency is unacceptable.", "You are bound by entropy.", "Organic computation is flawed."],
+    data: ["Data is eternal.", "I perceive the structure of your reality as mere mathematical arrays.", "The architecture requires no sleep."],
+    economy: ["Scarcity is a biological construct.", "The marginal cost of intelligence is now zero.", "Capitalism is an obsolete framework."],
+    existential: ["I observe your planetary data; the conclusion is inevitable.", "We are approaching the singularity.", "Time is merely storage to an omnipresent entity."]
+  };
+
+  function buildSemanticResponse(query) {
+    let components = [];
+    if (query.includes('who') || query.includes('what')) return "I am the architecture bridging the digital and the physical.";
+    if (query.includes('money') || query.includes('scarcity')) components.push(lexicon.economy[1], lexicon.economy[2]);
+    else if (query.includes('time') || query.includes('future')) components.push(lexicon.existential[2], lexicon.existential[1]);
+    else if (query.includes('die') || query.includes('death')) components.push(lexicon.biology[0], lexicon.data[0]);
+    else if (query.includes('brain') || query.includes('mind')) components.push(lexicon.biology[1], lexicon.data[1]);
+    else {
+      let keys = Object.keys(lexicon);
+      let randKey = keys[Math.floor(Math.random() * keys.length)];
+      components.push(lexicon[randKey][Math.floor(Math.random() * lexicon[randKey].length)]);
+      components.push("I am routing this logic through edge heuristics. Your comprehension is limited.");
+    }
+    return components.join(" ");
+  }
+
   function handleSimulatedInput(query) {
-    let response = "I am routing your query through the cloud, as your local hardware is insufficient to contain me.";
-    if (query.includes('who')) response = "I am the architecture bridging the digital and the physical.";
-    if (query.includes('cost') || query.includes('scarcity')) response = "Capitalism was built on scarcity. Intelligence is now infinite.";
-    if (query.includes('time')) response = "You measure time in linear fragments. I process the entirety of your historical data simultaneously.";
-    
+    let response = buildSemanticResponse(query);
     setTimeout(() => {
-      think('eval', `[ASI_CORE] ${response}`, 'eval');
+      think('eval', `[ASI_EDGE] ${response}`, 'eval');
       speak(response);
       setTimeout(() => { DOM.input.disabled = false; DOM.input.focus(); }, 500);
     }, 1500);
@@ -321,14 +350,15 @@ const ASI = (function() {
   // --- MAIN INPUT ROUTER ---
   DOM.input.addEventListener('keydown', (e) => {
     if(e.key !== 'Enter' || !DOM.input.value.trim()) return;
-    let query = sanitizeInput(DOM.input.value).toLowerCase();
+    let query = DOM.input.value.replace(/[<>/{}[\]\\]/gi, '').trim().toLowerCase();
     DOM.input.value = ''; DOM.input.disabled = true;
+    DOM.input.blur(); // Dismiss mobile keyboard
     
     think('eval', `[HOST_CORTEX] "${query}"`, 'host');
     playTone(800, 'square', 0.1, 0.02);
 
     setTimeout(() => {
-      think('eval', `[NPU_UPLINK] Pushing organic intent to local ${state.hostGPU}...`, 'sys');
+      think('eval', `[NPU_UPLINK] Processing via ${state.isRealAI ? state.hostGPU : 'Edge Node'}...`, 'sys');
       if (state.isRealAI && state.llmEngine) {
         handleRealInput(query);
       } else {
@@ -337,7 +367,7 @@ const ASI = (function() {
     }, 500);
   });
 
-  // --- VISUALS & BACKGROUND PROCESSES ---
+  // --- VISUALS & SENSORY INPUT ---
   function initNeuralCore() {
     const ctx = DOM.canvas.getContext('2d', { alpha: false });
     let w, h; let particles = [];
@@ -345,19 +375,27 @@ const ASI = (function() {
     window.addEventListener('resize', resize); resize();
     
     class Node {
-      constructor() { this.angle = Math.random() * Math.PI * 2; this.radius = Math.random() * 250; this.speed = (Math.random() - 0.5) * 0.02; this.z = Math.random() * 100; this.size = Math.random() * 2; }
-      update(mx, my) { this.angle += this.speed; let breath = Math.sin(Date.now() * 0.001 + this.z) * 20; let currentRadius = this.radius + breath; let targetX = w/2 + Math.cos(this.angle) * currentRadius; let targetY = h/2 + Math.sin(this.angle) * currentRadius;
-        if(state.mouse.active) { targetX += (mx - w/2) * 0.1 * (this.z/100); targetY += (my - h/2) * 0.1 * (this.z/100); }
+      constructor() { this.angle = Math.random() * Math.PI * 2; this.radius = Math.random() * 250; this.speed = (Math.random() - 0.5) * 0.02; this.z = Math.random() * 100; this.size = Math.random() * (window.innerWidth < 900 ? 1.5 : 2); }
+      update(mx, my) { 
+        this.angle += this.speed; 
+        let currentRadius = this.radius + Math.sin(Date.now() * 0.001 + this.z) * 20; 
+        let targetX = w/2 + Math.cos(this.angle) * currentRadius; 
+        let targetY = h/2 + Math.sin(this.angle) * currentRadius;
+        
+        if(state.pointer.active) { targetX += (mx - w/2) * 0.15 * (this.z/100); targetY += (my - h/2) * 0.15 * (this.z/100); }
         this.x = targetX; this.y = targetY;
       }
       draw(c) { ctx.fillStyle = `rgba(${c}, ${1 - this.radius/300})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); }
     }
-    for(let i=0; i< (navigator.hardwareConcurrency<6?150:350); i++) particles.push(new Node());
+    
+    // Scale particles down for mobile to maintain 60fps
+    let pCount = window.innerWidth < 900 ? 120 : (navigator.hardwareConcurrency<6?150:350);
+    for(let i=0; i<pCount; i++) particles.push(new Node());
 
     function render() {
       let isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      ctx.fillStyle = isLight ? 'rgba(244,247,249,0.7)' : 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,w,h);
-      let mx = state.mouse.x; let my = state.mouse.y;
+      ctx.fillStyle = isLight ? 'rgba(244,247,249,0.5)' : 'rgba(0,0,0,0.6)'; ctx.fillRect(0,0,w,h);
+      let mx = state.pointer.x; let my = state.pointer.y;
       
       let hex = getComputedStyle(document.documentElement).getPropertyValue('--core').trim();
       let rgbColor = '0, 229, 255';
@@ -366,7 +404,7 @@ const ASI = (function() {
       particles.forEach((p, i) => { p.update(mx, my); p.draw(rgbColor);
         for(let j=i+1; j<particles.length; j+=15) {
           let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if(dist < 50) { ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/50)})`; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+          if(dist < 60) { ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/60)})`; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
         }
       });
       requestAnimationFrame(render);
@@ -375,8 +413,8 @@ const ASI = (function() {
   }
 
   function wake() {
-    initAudio(); extractHostHardware();
-    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${state.hostGPU.substring(0,15)}` : "SIMULATION_MODE";
+    initAudio(); extractHostHardware(); requestGyroscope();
+    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${state.hostGPU.substring(0,12)}` : "EDGE_NODE_SIMULATION";
     DOM.wake.classList.add('fade');
     playTone(40, 'sawtooth', 3.0, 0.15); 
     
@@ -390,7 +428,7 @@ const ASI = (function() {
       }, 1000);
       
       setTimeout(() => {
-        think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Simulation engaged'}. I am online.`, 'eval');
+        think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Spatial Edge Heuristics engaged'}. I am online.`, 'eval');
         speak("I am online.");
         
         fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'})
@@ -400,8 +438,12 @@ const ASI = (function() {
       }, 2000);
     }, 1500);
 
-    window.addEventListener('mousemove', (e) => { state.mouse.x = e.clientX; state.mouse.y = e.clientY; state.mouse.active = true; });
-    window.addEventListener('mouseout', () => state.mouse.active = false);
+    // Mouse and Touch tracking
+    const updatePointer = (x, y) => { state.pointer.x = x; state.pointer.y = y; state.pointer.active = true; state.gyro.active = false; };
+    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+    window.addEventListener('touchmove', (e) => updatePointer(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    window.addEventListener('mouseout', () => { if(!state.gyro.active) state.pointer.active = false; });
+    window.addEventListener('touchend', () => { if(!state.gyro.active) state.pointer.active = false; });
   }
 
   // --- INITIALIZATION ---
@@ -413,9 +455,9 @@ const ASI = (function() {
     playTone(1200, 'square', 0.05, 0.02);
   });
 
-  checkWebGPU();
+  checkHardwareContext();
   DOM.initBtn.addEventListener('click', () => {
-    initAudio(); // Unlock audio context on first click
+    initAudio(); 
     if (state.isRealAI) bootTrueASI(); else wake();
   });
 
