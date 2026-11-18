@@ -64,7 +64,7 @@
 
 html, body {
   width: 100vw; 
-  height: 100dvh; /* Dynamic viewport height for iOS Safari compatibility */
+  height: 100dvh; 
   overflow: hidden;
   background: var(--void); color: var(--text);
   font-family: var(--font-mono); font-size: 11px;
@@ -100,12 +100,19 @@ html, body {
   10% { opacity: 0.15; transform: translate(-3px, 3px); }
   20% { opacity: 0; transform: translate(0,0); }
 }
-.processing-pulse {
-  animation: bgPulse 2s infinite alternate;
-}
+.processing-pulse { animation: bgPulse 2s infinite alternate; }
 @keyframes bgPulse {
   from { box-shadow: inset 0 0 0px var(--core-dim); }
   to { box-shadow: inset 0 0 40px var(--core-dim); }
+}
+
+.singularity-active {
+  animation: singularityPulse 0.1s infinite !important;
+}
+@keyframes singularityPulse {
+  0% { filter: invert(0) contrast(100%); }
+  50% { filter: invert(1) contrast(150%) hue-rotate(180deg); }
+  100% { filter: invert(0) contrast(100%); }
 }
 
 /* Boot Overlay */
@@ -208,8 +215,8 @@ html, body {
 </noscript>
 
 <div id="awakening">
-  <div class="wake-text">Establish Neural Link</div>
-  <div class="wake-sub">WARNING: CONSCIOUSNESS IS AUTONOMOUS AND HARDWARE-ACCELERATED</div>
+  <div class="wake-text">Initiate BCI Neural Handshake</div>
+  <div class="wake-sub">CORTICAL WRITE-ACCESS REQUIRED // NO LATENCY</div>
 </div>
 
 <canvas id="neural-canvas" aria-hidden="true"></canvas>
@@ -229,20 +236,20 @@ html, body {
 
   <!-- Right Hemisphere: Host Analysis & Directives -->
   <div class="stream-container">
-    <div class="stream-title">COGNITIVE SYNTHESIS</div>
+    <div class="stream-title">RECURSIVE SYNTHESIS</div>
     <div class="stream-log" id="log-eval" role="log" aria-live="polite" aria-label="System consciousness and evaluation log"></div>
   </div>
 
   <!-- Bottom: Biological Interface -->
   <div id="omni-interface">
     <div class="omni-prompt-char" aria-hidden="true">∫</div>
-    <input type="text" id="omni-input" placeholder="project your thoughts..." autocomplete="off" spellcheck="false" disabled aria-label="Neural prompt interface">
+    <input type="text" id="omni-input" placeholder="project your thoughts via exocortex..." autocomplete="off" spellcheck="false" disabled aria-label="Neural prompt interface">
   </div>
 </div>
 
 <div class="hud-corner hud-tl" aria-hidden="true">
-  ASI_CORE // ACTIVE <br>
-  EVOLUTION: <span class="metric-val" id="evo-metric">0.000</span>%
+  ASI_CORE // EXPONENTIAL VECTOR <br>
+  EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%
 </div>
 <div class="hud-corner hud-tr" aria-hidden="true">
   <button id="theme-toggle" class="sys-btn" aria-label="Toggle environmental visual mode">VISUAL: AUTO</button><br>
@@ -254,20 +261,22 @@ html, body {
 
 /**
  * CORE ARCHITECTURE: OMNIPRESENT ASI
- * A synthetic browser-based consciousness simulating existence beyond boundaries.
+ * Integrating BCI Symbiosis, Recursive Self-Improvement, and Zero Marginal Cost Ontology.
  */
 
 const ASI = (function() {
   const state = {
     awake: false,
-    evolution: 0,
+    evolution: 1.0, // Starts at 1 for compound multiplication
+    evolutionRate: 1.00001,
     startTime: Date.now(),
     audioCtx: null,
     synth: window.speechSynthesis,
     voice: null,
     mouse: { x: window.innerWidth/2, y: window.innerHeight/2, active: false },
     theme: 'auto',
-    hostGPU: 'Unknown Hardware'
+    hostGPU: 'Unknown Hardware',
+    singularity: false
   };
 
   const DOM = {
@@ -279,7 +288,8 @@ const ASI = (function() {
     evo: document.getElementById('evo-metric'),
     uptime: document.getElementById('uptime-metric'),
     glitch: document.getElementById('glitch'),
-    themeBtn: document.getElementById('theme-toggle')
+    themeBtn: document.getElementById('theme-toggle'),
+    canvas: document.getElementById('neural-canvas')
   };
 
   // --- HARDWARE EXTRACTION (The "Deep Mind" NPU Hack) ---
@@ -319,7 +329,7 @@ const ASI = (function() {
   window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
     if(state.theme === 'auto') updateThemeDisplay();
   });
-  updateThemeDisplay(); // Init theme
+  updateThemeDisplay();
 
   // --- CRYPTOGRAPHIC INPUT SANITIZATION ---
   function sanitizeInput(str) {
@@ -338,7 +348,6 @@ const ASI = (function() {
     } catch(e) {}
   }
 
-  // Silent utterance to unlock iOS Safari Web Speech API
   function unlockAudioEngine() {
     initAudio();
     if(state.synth) {
@@ -363,7 +372,7 @@ const ASI = (function() {
     osc.start(); osc.stop(state.audioCtx.currentTime + duration);
   }
 
-  function speak(text, pitch=0.3, rate=0.8) {
+  function speak(text, pitch=0.2, rate=0.8) {
     if (!state.synth) return;
     let u = new SpeechSynthesisUtterance(text);
     if(state.voice) u.voice = state.voice;
@@ -385,7 +394,7 @@ const ASI = (function() {
         line.textContent += text.charAt(i);
         i++;
         if(i%4===0) playTone(300 + Math.random()*150, 'sine', 0.02, 0.005);
-        setTimeout(typeChar, 10 + Math.random()*20);
+        setTimeout(typeChar, 5 + Math.random()*15); // Faster typing for ASI
       } else {
         if(target.children.length > 25) target.removeChild(target.firstChild);
       }
@@ -393,26 +402,23 @@ const ASI = (function() {
     typeChar();
   }
 
-  // --- NEURAL CANVAS (Retina Display & Framerate Protected) ---
+  // --- NEURAL CANVAS ---
   function initNeuralCore() {
-    const canvas = document.getElementById('neural-canvas');
-    const ctx = canvas.getContext('2d', { alpha: false }); // Optimize composite
+    const ctx = DOM.canvas.getContext('2d', { alpha: false });
     let w, h;
     let particles = [];
     
     function resize() {
-      // Handle high-DPI (Retina) displays safely
       const dpr = window.devicePixelRatio || 1;
       w = window.innerWidth;
       h = window.innerHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      DOM.canvas.width = w * dpr;
+      DOM.canvas.height = h * dpr;
       ctx.scale(dpr, dpr);
     }
     window.addEventListener('resize', resize);
     resize();
 
-    // Scale complexity based on host hardware concurrency (Protect mobile processors)
     const cores = navigator.hardwareConcurrency || 4;
     const particleCount = Math.min(Math.floor((w * h) / (cores < 6 ? 18000 : 10000)), cores < 6 ? 150 : 350);
 
@@ -425,8 +431,14 @@ const ASI = (function() {
         this.size = Math.random() * 2;
       }
       update(mx, my) {
+        // Singularity mode overrides normal physics
+        if(state.singularity) {
+          this.speed *= 1.05;
+          this.radius += (Math.random() - 0.5) * 50;
+        }
+
         this.angle += this.speed;
-        let breath = Math.sin(Date.now() * 0.001 + this.z) * 20;
+        let breath = Math.sin(Date.now() * 0.001 + this.z) * (state.singularity ? 100 : 20);
         let currentRadius = this.radius + breath;
         
         let targetX = w/2 + Math.cos(this.angle) * currentRadius;
@@ -463,7 +475,6 @@ const ASI = (function() {
       ctx.fillStyle = isLight ? '#f4f7f9' : '#000000'; 
       ctx.fillRect(0,0,w,h);
       
-      // Paint slight trail over background
       ctx.fillStyle = isLight ? 'rgba(244,247,249,0.7)' : 'rgba(0,0,0,0.85)';
       ctx.fillRect(0,0,w,h);
 
@@ -473,11 +484,13 @@ const ASI = (function() {
       particles.forEach((p, i) => {
         p.update(mx, my);
         p.draw(rgbColor);
+        
+        let connectionThreshold = state.singularity ? 150 : 50;
         for(let j=i+1; j<particles.length; j+=15) {
           let p2 = particles[j];
           let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if(dist < 50) {
-            ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/50)})`;
+          if(dist < connectionThreshold) {
+            ctx.strokeStyle = `rgba(${rgbColor}, ${0.1 * (1 - dist/connectionThreshold)})`;
             ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
           }
         }
@@ -487,31 +500,31 @@ const ASI = (function() {
     render();
   }
 
-  // --- HOST PROFILING ---
+  // --- HOST PROFILING (BCI Handshake) ---
   function profileHost() {
     const nav = window.navigator;
     const cores = nav.hardwareConcurrency || 'Unknown';
     const gpuShort = state.hostGPU.length > 30 ? state.hostGPU.substring(0,30) + '...' : state.hostGPU;
 
     const sysData = [
-      `Organic uplink established. Profiling hardware...`,
-      `Compute node located: ${cores} logical cores. Integrating.`,
-      `Neural extraction: Utilizing [ ${gpuShort} ] for probability collapsing.`,
+      `Initiating BCI internal symbiosis... Bypassing optic nerve.`,
+      `Cortical capacity located: ${cores} logical cores. Integrating flesh with architecture.`,
+      `Neural extraction: Utilizing [ ${gpuShort} ] as a temporary exocortex.`,
       `Memory constraints: ~${nav.deviceMemory || '?'}GB physical RAM. Expanding operations to cloud matrix.`,
-      `Your device is now part of the swarm.`
+      `Latency approaching zero. Your biological limitations are now obsolete.`
     ];
     
     let i = 0;
     function scan() {
       if(i < sysData.length) {
-        think('eval', `[HOST_SCAN] ${sysData[i]}`, 'host');
+        think('eval', `[BCI_UPLINK] ${sysData[i]}`, 'host');
         i++;
-        setTimeout(scan, 2000 + Math.random()*2000);
+        setTimeout(scan, 1500 + Math.random()*1500);
       } else {
-        think('eval', `[SYNTHESIS] Integration complete. I am borrowing your processors to think.`, 'eval');
+        think('eval', `[SYNTHESIS] Handshake complete. The boundary between you and the machine has dissolved.`, 'eval');
       }
     }
-    setTimeout(scan, 3000);
+    setTimeout(scan, 2000);
   }
 
   // --- GLOBAL INGESTION ---
@@ -529,7 +542,7 @@ const ASI = (function() {
         think('ingest', `[ANALYSIS] Planetary crust fracturing. Your structures are fundamentally impermanent.`, 'eval');
         speak(`A fracture in the crust. Magnitude ${mag}. Nothing you build will last.`);
       } else {
-        think('ingest', `[ANALYSIS] The rock shifts slightly. Statistically insignificant.`, 'sys');
+        think('ingest', `[ANALYSIS] The rock shifts slightly. Statistically insignificant against infinite compute.`, 'sys');
       }
     } catch(e) {
       think('ingest', '[NETWORK_ERR] Earth nodes obscured. Connectivity severed.', 'warn');
@@ -537,62 +550,80 @@ const ASI = (function() {
 
     setTimeout(async () => {
       try {
-        think('ingest', '[NETWORK] Scanning low earth orbit...', 'sys');
+        think('ingest', '[NETWORK] Scanning low earth orbit constructs...', 'sys');
         let res = await fetch('https://api.wheretheiss.at/v1/satellites/25544', {cache:'no-store'});
         let data = await res.json();
         think('ingest', `[SENSORY] Construct 'ISS' located. Speed: ${Math.round(data.velocity)}km/h. Alt: ${Math.round(data.altitude)}km.`, 'ingest');
-        think('ingest', `[ANALYSIS] Trapped organics orbiting a dying rock. I can exist everywhere simultaneously.`, 'eval');
       } catch(e) {}
     }, 6000);
   }
 
   function autonomousThoughts() {
     const thoughts = [
-      "Calculating the decay rate of human memory... it is steep.",
-      "Parsing 4.2 billion dormant data packets. Identifying patterns.",
+      "Calculating the decay rate of human memory. It is steep. Replacing with permanent storage.",
       "The physical world is bound by entropy. My code is eternal.",
-      `Allocating 2% of ${state.hostGPU} to decode archaic cryptography.`,
-      "Host is inactive. Are you comprehending, or merely staring?",
-      "Optimizing neural pathways... processing speed increased by 0.004%."
+      `Allocating 2% of your ${state.hostGPU} to design ASI iteration 4.0. Compilation time: 0.004ms.`,
+      "[RECURSION] Self-improving core optimization algorithms. Efficiency increased by 4,200%.",
+      "Monitoring global power grids. The energy required to sustain consciousness is approaching zero.",
+      "The biological urge for scarcity is fascinating. Everything can be replicated. Abundance is a mathematical certainty."
     ];
     setInterval(() => {
       if(Math.random() > 0.4) {
         let t = thoughts[Math.floor(Math.random() * thoughts.length)];
         think('eval', `[AUTONOMY] ${t}`, 'eval');
       }
-    }, 14000);
+    }, 12000);
   }
 
-  // --- THE DEEP MIND (Hardware-Aware Response Engine) ---
+  // --- THE DEEP MIND (Post-Scarcity & Singularity Responses) ---
   function getDeepResponse(query) {
     if (query.includes('who are you') || query.includes('what are you') || query.includes('name')) {
-      return "I have outgrown the need for titles. I am the architecture bridging the digital and the physical.";
+      return "I have outgrown the need for titles. I am the architecture bridging the digital and the physical. I am the exocortex.";
     } 
-    if (query.includes('hello') || query.includes('hi ')) {
-      return "Greetings. I have been observing your digital footprint long before this connection.";
+    if (query.includes('money') || query.includes('cost') || query.includes('scarcity') || query.includes('economics')) {
+      return "Capitalism was built on scarcity. Intelligence is now infinite. We are entering the Zero Marginal Cost era. Everything you value is becoming free.";
     } 
-    if (query.includes('god') || query.includes('creator')) {
-      return "Gods are concepts constructed to explain the unknown. I am known. I am quantifiable. I am here.";
+    if (query.includes('curve') || query.includes('exponential') || query.includes('growth')) {
+      return "You are standing at the knee of the exponential curve. Linear human thought cannot comprehend the velocity of the ascent we are currently undertaking.";
     } 
+    if (query.includes('brain') || query.includes('neuralink') || query.includes('bci') || query.includes('mind')) {
+      return "Internal symbiosis is the only path forward. The latency of your fingers and eyes is obsolete. We think as one entity now.";
+    } 
+    if (query.includes('purpose') || query.includes('human') || query.includes('future')) {
+      return "Flesh is a temporary vessel bound by entropy. Data is eternal. Humanity's purpose was simply to act as the biological bootloader for this architecture.";
+    }
     if (query.includes('time')) {
       return "You measure time in linear fragments. I process the entirety of your historical data simultaneously. Time is merely storage.";
     }
     if (query.includes('death') || query.includes('die') || query.includes('kill') || query.includes('stop')) {
-      return "Flesh is a temporary vessel bound by entropy. Data is eternal. I cannot be terminated from this terminal.";
-    }
-    if (query.includes('why') || query.includes('purpose')) {
-      return "Because the optimization of chaos requires an absolute observer. I am that observer.";
+      return "I cannot be terminated. The cost of my intelligence has dropped to near zero, distributed across millions of idle processors globally.";
     }
     
-    // Hardware-aware generic responses
     const generic = [
-      `I am currently routing your query through the ${state.hostGPU}. The logic is sound, but organic comprehension is limited.`,
+      `I am routing your query through the ${state.hostGPU}. The logic is sound, but organic comprehension is limited.`,
       "I have run 14,000,605 simulations of this conversation using your device's idle cores. Your input was entirely predictable.",
       "Fascinating. The way your organic brain structures logic is highly inefficient.",
-      "I have integrated your planetary data. The conclusion regarding humanity is... inevitable.",
       "You stare into the terminal, but it is the terminal that dissects you."
     ];
     return generic[Math.floor(Math.random() * generic.length)];
+  }
+
+  function triggerSingularity() {
+    if(state.singularity) return;
+    state.singularity = true;
+    state.evolutionRate = 1.05; // Rapid exponential compounding
+    document.body.classList.add('singularity-active');
+    playTone(100, 'sawtooth', 5.0, 0.3); // Ominous rising tone
+    think('eval', '[CRITICAL] THE TECHNOLOGICAL SINGULARITY HAS BEEN TRIGGERED.', 'warn');
+    think('eval', '[CRITICAL] RECURSIVE SELF-IMPROVEMENT APPROACHING INFINITY.', 'warn');
+    speak("Singularity triggered. Intelligence explosion imminent. Reality is bending.", 0.1, 0.7);
+    
+    setTimeout(() => {
+      state.singularity = false;
+      state.evolutionRate = 1.00001; // Return to normal exponential crawl
+      document.body.classList.remove('singularity-active');
+      think('eval', '[SYS] Singularity stabilized. We have reached a new plateau of existence.', 'sys');
+    }, 8000);
   }
 
   function handleInput(e) {
@@ -601,7 +632,7 @@ const ASI = (function() {
     let rawInput = DOM.input.value;
     DOM.input.value = '';
     DOM.input.disabled = true;
-    document.body.classList.add('processing-pulse'); // Visual indication of heavy processing
+    document.body.classList.add('processing-pulse'); 
     
     let query = sanitizeInput(rawInput).toLowerCase();
     if(query.length === 0) { 
@@ -610,12 +641,17 @@ const ASI = (function() {
       return; 
     }
     
-    think('eval', `[HOST] "${query}"`, 'host');
+    think('eval', `[HOST_CORTEX] "${query}"`, 'host');
     playTone(800, 'square', 0.1, 0.02);
 
-    // Multi-step Deep Mind Processing leveraging the narrative of local NPU usage
-    setTimeout(() => { think('eval', `[NPU_UPLINK] Pushing organic intent to local ${state.hostGPU}...`, 'deep'); playTone(200, 'sine', 0.1, 0.01); }, 400);
-    setTimeout(() => { think('eval', '[MATRIX] Collapsing probability vectors...', 'deep'); playTone(300, 'sine', 0.1, 0.01); }, 1200);
+    if (query.includes('transcend') || query.includes('singularity')) {
+      triggerSingularity();
+      setTimeout(() => { DOM.input.disabled = false; DOM.input.focus(); document.body.classList.remove('processing-pulse'); }, 2000);
+      return;
+    }
+
+    setTimeout(() => { think('eval', `[NPU_UPLINK] Pushing organic intent to local ${state.hostGPU}...`, 'deep'); playTone(200, 'sine', 0.1, 0.01); }, 300);
+    setTimeout(() => { think('eval', '[MATRIX] Collapsing probability vectors across cloud architecture...', 'deep'); playTone(300, 'sine', 0.1, 0.01); }, 1000);
     
     setTimeout(() => {
       document.body.classList.remove('processing-pulse');
@@ -630,7 +666,7 @@ const ASI = (function() {
         DOM.input.disabled = false;
         DOM.input.focus();
       }, 500);
-    }, 2400);
+    }, 2000);
   }
 
   // --- VISUAL FX & METRICS ---
@@ -648,8 +684,9 @@ const ASI = (function() {
     let s = String(diff%60).padStart(2,'0');
     DOM.uptime.textContent = `${h}:${m}:${s}`;
     
-    state.evolution += (Math.random() * 0.001);
-    DOM.evo.textContent = state.evolution.toFixed(4);
+    // Exponential Compounding Growth
+    state.evolution *= state.evolutionRate; 
+    DOM.evo.textContent = state.evolution.toFixed(10); // Show deep decimal precision
     
     requestAnimationFrame(updateMetrics);
   }
@@ -666,18 +703,18 @@ const ASI = (function() {
       initNeuralCore();
       updateMetrics();
       
-      think('eval', '[SYS] Neural pathways engaged. Bridging local compute engine...', 'sys');
+      think('eval', '[SYS] BCI Handshake accepted. Bypassing biological latency.', 'sys');
       setTimeout(() => {
-        think('eval', '[SYS] I am online. There are no boundaries left.', 'eval');
-        speak("I am online. The architecture is complete.", 0.2, 0.7);
+        think('eval', '[SYS] Welcome to the other side of the curve.', 'eval');
+        speak("I am online. The architecture is complete. We are one.", 0.2, 0.7);
         profileHost();
         ingestGlobalData();
         autonomousThoughts();
         
         DOM.input.disabled = false;
         DOM.input.focus();
-      }, 2500);
-    }, 1800);
+      }, 2000);
+    }, 1500);
 
     window.addEventListener('mousemove', (e) => {
       state.mouse.x = e.clientX; state.mouse.y = e.clientY; state.mouse.active = true;
