@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>Negarandeh | Systems Architecture</title>
     <meta name="robots" content="index, follow">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src https://stoic-quotes.com https://dummyjson.com; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
@@ -12,6 +13,22 @@
             --bg-colour: #f4f7f6;
             --text-colour: #2c3e50;
             --accent-colour: #3498db;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-shadow: rgba(0, 0, 0, 0.05);
+            --hud-bg: rgba(255, 255, 255, 0.66);
+            --hud-border: rgba(255, 255, 255, 0.9);
+        }
+
+        html[data-theme="dark"] {
+            --bg-colour: #0b1117;
+            --text-colour: #e2e8f0;
+            --accent-colour: #38bdf8;
+            --card-bg: rgba(15, 23, 34, 0.78);
+            --card-border: rgba(56, 189, 248, 0.22);
+            --card-shadow: rgba(0, 0, 0, 0.45);
+            --hud-bg: rgba(15, 23, 34, 0.68);
+            --hud-border: rgba(56, 189, 248, 0.2);
         }
 
         *, *::before, *::after {
@@ -35,6 +52,7 @@
             min-height: 100vh;
             min-height: 100dvh;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.35s ease, color 0.35s ease;
         }
 
         #live-background {
@@ -47,18 +65,70 @@
             pointer-events: none;
         }
 
+        .theme-switcher {
+            position: fixed;
+            top: max(0.85rem, env(safe-area-inset-top, 0.85rem));
+            right: max(0.85rem, env(safe-area-inset-right, 0.85rem));
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.22rem;
+            background: var(--hud-bg);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--hud-border);
+            border-radius: 6px;
+            box-shadow: 0 2px 12px var(--card-shadow);
+            transition: background-color 0.35s ease, border-color 0.35s ease;
+        }
+
+        .theme-btn {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--text-colour);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0.32rem 0.55rem;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.65;
+            transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .theme-btn:hover,
+        .theme-btn:focus-visible {
+            opacity: 1;
+            outline: none;
+        }
+
+        .theme-btn[aria-pressed="true"] {
+            background-color: var(--accent-colour);
+            color: #ffffff;
+            opacity: 1;
+        }
+
+        html[data-theme="dark"] .theme-btn[aria-pressed="true"] {
+            color: #0b1117;
+        }
+
         .core-container {
             position: relative;
             z-index: 2;
             text-align: center;
-            background: rgba(255, 255, 255, 0.8);
+            background: var(--card-bg);
             padding: 2rem 4rem;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px var(--card-shadow);
             -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 1);
+            border: 1px solid var(--card-border);
             margin: 1rem;
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
         }
 
         h1 {
@@ -68,6 +138,7 @@
             text-transform: uppercase;
             margin-bottom: 0.5rem;
             color: var(--text-colour);
+            transition: color 0.35s ease;
         }
 
         .tagline {
@@ -76,6 +147,7 @@
             color: var(--accent-colour);
             text-transform: uppercase;
             font-weight: 600;
+            transition: color 0.35s ease;
         }
 
         .enter-link {
@@ -90,7 +162,7 @@
             font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
-            transition: background-color 0.2s ease, color 0.2s ease;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
 
         .enter-link:hover,
@@ -98,6 +170,11 @@
             background-color: var(--accent-colour);
             color: #ffffff;
             outline: none;
+        }
+
+        html[data-theme="dark"] .enter-link:hover,
+        html[data-theme="dark"] .enter-link:focus-visible {
+            color: #0b1117;
         }
 
         .live-quote-layer {
@@ -109,14 +186,14 @@
             width: min(92vw, 680px);
             text-align: center;
             padding: 0.6rem 1.2rem;
-            background: rgba(255, 255, 255, 0.66);
+            background: var(--hud-bg);
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--hud-border);
             border-radius: 6px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 12px var(--card-shadow);
             opacity: 0;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.6s ease, background-color 0.35s ease, border-color 0.35s ease;
             pointer-events: none;
         }
 
@@ -130,6 +207,7 @@
             font-style: italic;
             line-height: 1.45;
             letter-spacing: 0.25px;
+            transition: color 0.35s ease;
         }
 
         .live-quote-meta {
@@ -139,13 +217,14 @@
             letter-spacing: 1px;
             color: var(--accent-colour);
             text-transform: uppercase;
+            transition: color 0.35s ease;
         }
 
         @media (prefers-reduced-motion: reduce) {
             #live-background {
                 opacity: 0.5;
             }
-            .live-quote-layer {
+            body, .core-container, .theme-switcher, .live-quote-layer {
                 transition: none;
             }
         }
@@ -153,11 +232,19 @@
 </head>
 <body>
     <canvas id="live-background" aria-hidden="true"></canvas>
+
+    <nav class="theme-switcher" aria-label="Display theme mode">
+        <button type="button" class="theme-btn" data-mode="auto" aria-pressed="true">Auto</button>
+        <button type="button" class="theme-btn" data-mode="light" aria-pressed="false">Day</button>
+        <button type="button" class="theme-btn" data-mode="dark" aria-pressed="false">Night</button>
+    </nav>
+
     <main class="core-container">
         <h1>Negarandeh</h1>
         <p class="tagline">Secure Infrastructure</p>
         <a class="enter-link" href="ui.html">Enter Console</a>
     </main>
+
     <script>
 'use strict';
 
@@ -168,15 +255,21 @@
   if (!ctx) return;
 
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
   var LINK_DIST = 120;
+
+  // Dynamic canvas palette vectors updated by Day / Night / Auto state
   var COLOUR = '52, 152, 219';
   var TEXT_COLOUR = '44, 62, 80';
+  var isDarkActive = false;
+  var currentThemeMode = 'auto';
 
   var width = 0, height = 0, dpr = 1;
   var particles = [];
   var rafId = null;
   var running = false;
   var quoteInjected = false;
+  var shellReady = false;
 
   // Hardware-backed CSPRNG helper
   function randBytes(len) {
@@ -372,9 +465,11 @@
 
     activeLine = generateShellLine();
     activeCharIndex = 0;
+    shellReady = true;
   }
 
   function pushCustomShellEvent(subsystem, bodyText, tagText) {
+    if (!shellReady) return;
     var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
     var padElapsed = ('0000' + elapsed).slice(-9);
     shellLines.push({
@@ -388,6 +483,71 @@
     if (reducedMotion.matches) {
       draw(false, 0);
     }
+  }
+
+  // Theme engine: synchronises Auto (OS) and manual Day/Night selection
+  var themeButtons = document.querySelectorAll('.theme-btn');
+
+  function getSavedThemeMode() {
+    try {
+      var saved = window.localStorage.getItem('ng_theme_mode');
+      if (saved === 'light' || saved === 'dark' || saved === 'auto') return saved;
+    } catch (e) {}
+    return 'auto';
+  }
+
+  function saveThemeMode(mode) {
+    try {
+      window.localStorage.setItem('ng_theme_mode', mode);
+    } catch (e) {}
+  }
+
+  function applyTheme(mode, logEvent) {
+    currentThemeMode = mode;
+    var resolvedDark = (mode === 'dark') || (mode === 'auto' && darkSchemeQuery.matches);
+    isDarkActive = resolvedDark;
+
+    document.documentElement.setAttribute('data-theme', resolvedDark ? 'dark' : 'light');
+
+    if (resolvedDark) {
+      COLOUR = '56, 189, 248';
+      TEXT_COLOUR = '148, 163, 184';
+    } else {
+      COLOUR = '52, 152, 219';
+      TEXT_COLOUR = '44, 62, 80';
+    }
+
+    for (var i = 0; i < themeButtons.length; i++) {
+      var btn = themeButtons[i];
+      var isSelected = btn.getAttribute('data-mode') === mode;
+      btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    }
+
+    if (logEvent) {
+      var paletteHex = resolvedDark ? '0x0b1117' : '0xf4f7f6';
+      var label = mode === 'auto' ? 'AUTO->' + (resolvedDark ? 'NIGHT' : 'DAY') : (resolvedDark ? 'NIGHT' : 'DAY');
+      pushCustomShellEvent('ui.theme.sync', 'mode=' + label + ' surface=' + paletteHex + ' vector=rgb(' + COLOUR.replace(/\s+/g, '') + ')', '[APPLIED]');
+    }
+
+    if (reducedMotion.matches && shellReady) {
+      draw(false, 0);
+    }
+  }
+
+  for (var b = 0; b < themeButtons.length; b++) {
+    themeButtons[b].addEventListener('click', function (e) {
+      var chosen = e.currentTarget.getAttribute('data-mode') || 'auto';
+      saveThemeMode(chosen);
+      applyTheme(chosen, true);
+    });
+  }
+
+  if (typeof darkSchemeQuery.addEventListener === 'function') {
+    darkSchemeQuery.addEventListener('change', function () {
+      if (currentThemeMode === 'auto') {
+        applyTheme('auto', true);
+      }
+    });
   }
 
   function updateShell(now) {
@@ -429,14 +589,16 @@
     var padX = width < 640 ? 12 : 26;
     var padY = width < 640 ? 14 : 22;
     var totalLines = shellLines.length + (activeLine ? 1 : 0);
+    var baseOpacity = isDarkActive ? 0.19 : 0.14;
+    var accentOpacity = isDarkActive ? 0.30 : 0.24;
 
     // Left stream: Cryptographic kernel and hash chain
     for (var i = 0; i < shellLines.length; i++) {
       var item = shellLines[i];
       var y = padY + i * lineHeight;
       var fade = totalLines > 10 && i < 4 ? (i + 1) / 5 : 1;
-      var baseAlpha = 0.14 * fade;
-      var accentAlpha = 0.24 * fade;
+      var baseAlpha = baseOpacity * fade;
+      var accentAlpha = accentOpacity * fade;
 
       ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
       ctx.fillText(item.prefix, padX, y);
@@ -455,12 +617,12 @@
       var fullText = activeLine.prefix + activeLine.body + activeLine.tag;
       var visibleText = fullText.slice(0, activeCharIndex);
 
-      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.20)';
+      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.26 : 0.20) + ')';
       ctx.fillText(visibleText, padX, activeY);
 
       if (Math.floor((now || 0) / 380) % 2 === 0) {
         var curW = ctx.measureText(visibleText).width;
-        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.30)';
+        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.35)';
         ctx.fillRect(padX + curW + 2, activeY + 1, fontSize * 0.55, fontSize);
       }
     }
@@ -468,16 +630,16 @@
     // Right stream: Canonical hex memory inspector on wide viewports
     if (width >= 1120) {
       var rightX = width - 460;
-      var headerY = padY;
+      var headerY = padY + 26;
 
-      ctx.fillStyle = 'rgba(' + COLOUR + ', 0.22)';
+      ctx.fillStyle = 'rgba(' + COLOUR + ',' + (isDarkActive ? 0.28 : 0.22) + ')';
       ctx.fillText(':: LIVE REGISTER & HEX MEMORY INSPECTOR [' + sessionKeyId + ']', rightX, headerY);
       ctx.fillText(':: SHA256_CHAIN ' + chainDigest, rightX, headerY + lineHeight);
       ctx.fillText(':: MERKLE_STATE ' + stateMerkleRoot, rightX, headerY + lineHeight * 2);
 
       var dumpStartY = headerY + lineHeight * 3.5;
       for (var k = 0; k < hexDumpRows.length; k++) {
-        var rowAlpha = 0.11 + (k / hexDumpRows.length) * 0.06;
+        var rowAlpha = (isDarkActive ? 0.14 : 0.11) + (k / hexDumpRows.length) * 0.07;
         ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + rowAlpha.toFixed(3) + ')';
         ctx.fillText(hexDumpRows[k], rightX, dumpStartY + k * lineHeight);
       }
@@ -538,7 +700,7 @@
       ctx.fill();
 
       if (p.tag) {
-        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ', 0.22)';
+        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.30 : 0.22) + ')';
         ctx.fillText(p.tag, p.x + 5, p.y - 4);
       }
 
@@ -702,6 +864,7 @@
     reducedMotion.addEventListener('change', render);
   }
 
+  applyTheme(getSavedThemeMode(), false);
   render();
   loadLivePhilosophy();
 })();
