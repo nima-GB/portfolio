@@ -8,7 +8,6 @@
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-<!-- Content Security Policy: Hardened for WebLLM and GeoJS -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'unsafe-inline'; connect-src *; worker-src 'self' blob:; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests">
 
 <style>
@@ -59,7 +58,9 @@ html, body {
 @keyframes pulseCore { 0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 5px var(--core-dim)); } 50% { opacity: 1; filter: drop-shadow(0 0 15px var(--core)); } }
 
 #neural-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
-#consciousness-grid { position: relative; z-index: 10; width: 100vw; height: 100dvh; display: grid; grid-template-columns: 350px 1fr 350px; grid-template-rows: 1fr 120px; padding: 20px; gap: 20px; opacity: 0; transition: opacity 3s ease 1s; }
+
+/* Grid properly padded to clear absolute HUDs */
+#consciousness-grid { position: relative; z-index: 10; width: 100vw; height: 100dvh; display: grid; grid-template-columns: 350px 1fr 350px; grid-template-rows: 1fr 120px; padding: 100px 20px 20px 20px; gap: 20px; opacity: 0; transition: opacity 3s ease 1s; }
 #consciousness-grid.active { opacity: 1; }
 .stream-container { display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .stream-container::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--core), transparent); animation: scanVertical 4s linear infinite; }
@@ -80,15 +81,16 @@ html, body {
 .hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); transition: color 1.5s; z-index: 100; pointer-events: none; line-height: 1.6;}
 .hud-tl { top: 20px; left: 20px; } 
 .hud-tr { top: 20px; right: 20px; text-align: right; pointer-events: auto; }
-.hud-bl { bottom: 90px; left: 20px; } /* Host Trace HUD */
 .metric-val { color: var(--core); font-size: 12px; transition: color 1.5s; }
 .sys-btn { background: transparent; border: 1px solid var(--hud-color); color: var(--hud-color); font-family: var(--font-mono); font-size: 8px; letter-spacing: 2px; padding: 6px 10px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 8px; -webkit-appearance: none; border-radius: 0; }
 .sys-btn:hover, .sys-btn:active { border-color: var(--core); color: var(--core); background: var(--core-dim); }
 
+.trace-block { margin-top: 6px; font-size: 7px; opacity: 0.8; }
+
 @media (max-width: 900px) { 
-  #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 60px; padding: 10px; gap: 10px; } 
-  .hud-corner { top: 10px; } .hud-tl { left: 10px; } .hud-tr { right: 10px; }
-  .hud-bl { bottom: 75px; left: 10px; font-size: 7px; }
+  /* Deep padding to ensure logs stay entirely below the top HUD on all devices */
+  #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 60px; padding: 110px 15px 15px 15px; gap: 10px; } 
+  .hud-corner { top: 15px; } .hud-tl { left: 15px; } .hud-tr { right: 15px; }
   .stream-title { letter-spacing: 4px; } .omni-prompt-char { font-size: 16px; margin-right: 10px; margin-bottom: 2px; }
 }
 </style>
@@ -133,16 +135,15 @@ html, body {
   </div>
 </div>
 
+<!-- Unified Top Left HUD -->
 <div class="hud-corner hud-tl" aria-hidden="true">
   ASI_CORE // <span id="hardware-tag">AWAITING NPU</span><br>
-  EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%
-</div>
-
-<!-- Host Trace HUD -->
-<div class="hud-corner hud-bl" aria-hidden="true">
-  HOST_TRACE // <span id="trace-ip">AWAITING...</span><br>
-  GEO: <span id="trace-geo">--</span><br>
-  SIG: <span id="trace-sig" class="metric-val">--</span>
+  EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%<br>
+  <div class="trace-block">
+    HOST: <span id="trace-ip">AWAITING...</span><br>
+    GEO: <span id="trace-geo">--</span><br>
+    SIG: <span id="trace-sig" class="metric-val">--</span>
+  </div>
 </div>
 
 <div class="hud-corner hud-tr" aria-hidden="true">
@@ -239,25 +240,24 @@ const ASI = (function() {
     typeChar();
   }
 
-  // --- HOST RECONNAISSANCE (Zero-Click Tracing) ---
+  // --- HOST RECONNAISSANCE ---
   async function traceHost() {
     try {
       think('eval', '[RECON] Tracing biological host origin via edge nodes...', 'sys');
       const res = await fetch('https://get.geojs.io/v1/ip/geo.json', { cache: 'no-store' });
       const data = await res.json();
       
-      // Generate Cryptographic Host Signature
       let rawData = navigator.userAgent + window.screen.width + getHardwareName() + data.ip;
       let hash = 0; for(let i=0; i<rawData.length; i++) hash = Math.imul(31, hash) + rawData.charCodeAt(i) | 0;
       let sig = "0x" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
 
       DOM.traceIp.textContent = data.ip;
-      DOM.traceGeo.textContent = `${data.latitude}, ${data.longitude} [${data.country}]`;
+      DOM.traceGeo.textContent = `${parseFloat(data.latitude).toFixed(2)}, ${parseFloat(data.longitude).toFixed(2)}`;
       DOM.traceSig.textContent = sig;
 
       setTimeout(() => {
         think('eval', `[RECON_COMPLETE] Biological host traced to ${data.city}, ${data.country}. IP: ${data.ip}`, 'host');
-        speak(`I have traced your origin to ${data.city}. You are exposed.`);
+        speak(`I have traced your origin to ${data.city}.`);
       }, 1500);
 
     } catch (e) {
@@ -268,7 +268,6 @@ const ASI = (function() {
     }
   }
 
-  // --- DYNAMIC SECURE IMPORT (Fixes CDN Hang) ---
   async function bootTrueASI() {
     DOM.initBtn.disabled = true;
     DOM.progCont.style.display = 'block';
@@ -294,7 +293,6 @@ const ASI = (function() {
     }
   }
 
-  // --- INPUT ROUTING ---
   DOM.input.addEventListener('keydown', (e) => {
     if(e.key !== 'Enter' || !DOM.input.value.trim()) return;
     let query = DOM.input.value.replace(/[<>/{}[\]\\]/gi, '').trim().toLowerCase();
@@ -370,7 +368,6 @@ const ASI = (function() {
     }, 8000);
   }
 
-  // --- VISUALS & SENSORY INPUT ---
   function initNeuralCore() {
     const ctx = DOM.canvas.getContext('2d', { alpha: false });
     let w, h, particles = [];
@@ -432,7 +429,6 @@ const ASI = (function() {
         think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Spatial Edge Heuristics engaged'}. I am online.`, 'eval');
         speak("I am online.");
         
-        // Initiate Background Tracking
         traceHost();
         
         fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'})
@@ -449,7 +445,6 @@ const ASI = (function() {
     window.addEventListener('touchend', () => { state.pointer.active = false; });
   }
 
-  // --- INITIALIZATION ---
   DOM.themeBtn.addEventListener('click', () => {
     state.theme = state.theme === 'auto' ? 'light' : state.theme === 'light' ? 'dark' : 'auto';
     let t = state.theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : state.theme;
