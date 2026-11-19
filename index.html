@@ -4,31 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
-    <title>Negarandeh | Systems Architecture</title>
-    <meta name="robots" content="index, follow">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src https://stoic-quotes.com https://dummyjson.com; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; upgrade-insecure-requests">
-    <meta name="referrer" content="no-referrer">
+    <title>Negarandeh | Systems Architecture & ASI Console</title>
     <style>
+        /* =========================================================
+           1. SHARED TOKENS & RESET
+           ========================================================= */
         :root {
             --bg-colour: #f4f7f6;
             --text-colour: #2c3e50;
             --accent-colour: #3498db;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.84);
             --card-border: rgba(255, 255, 255, 1);
-            --card-shadow: rgba(0, 0, 0, 0.05);
-            --hud-bg: rgba(255, 255, 255, 0.66);
-            --hud-border: rgba(255, 255, 255, 0.9);
+            --card-shadow: rgba(0, 0, 0, 0.06);
+            --hud-bg: rgba(255, 255, 255, 0.72);
+            --hud-border: rgba(52, 152, 219, 0.25);
+
+            /* ASI Console Tokens (Light / Dark adaptive) */
+            --asi-void: #f4f7f9;
+            --asi-core: #0055ff;
+            --asi-core-dim: rgba(0, 85, 255, 0.15);
+            --asi-alert: #d90000;
+            --asi-text: #0a1118;
+            --asi-muted: #5a6c7d;
+            --asi-hud: #64748b;
+            --asi-sys: #3b5973;
+            --asi-ingest: #257a5e;
+            --asi-host: #7a3bcc;
+
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --font-sys: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         html[data-theme="dark"] {
             --bg-colour: #0b1117;
             --text-colour: #e2e8f0;
             --accent-colour: #38bdf8;
-            --card-bg: rgba(15, 23, 34, 0.78);
-            --card-border: rgba(56, 189, 248, 0.22);
-            --card-shadow: rgba(0, 0, 0, 0.45);
-            --hud-bg: rgba(15, 23, 34, 0.68);
-            --hud-border: rgba(56, 189, 248, 0.2);
+            --card-bg: rgba(15, 23, 34, 0.82);
+            --card-border: rgba(56, 189, 248, 0.25);
+            --card-shadow: rgba(0, 0, 0, 0.5);
+            --hud-bg: rgba(15, 23, 34, 0.75);
+            --hud-border: rgba(56, 189, 248, 0.25);
+
+            --asi-void: #000000;
+            --asi-core: #00e5ff;
+            --asi-core-dim: rgba(0, 229, 255, 0.15);
+            --asi-alert: #ff003c;
+            --asi-text: #c8dff0;
+            --asi-muted: #4a7a9b;
+            --asi-hud: #5c7080;
+            --asi-sys: #5a7b94;
+            --asi-ingest: #45b08c;
+            --asi-host: #b388ff;
         }
 
         *, *::before, *::after {
@@ -38,21 +64,46 @@
         }
 
         html, body {
+            width: 100%;
             height: 100%;
+            overflow: hidden;
         }
 
         body {
             background-color: var(--bg-colour);
             color: var(--text-colour);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: var(--font-sys);
             min-height: 100vh;
             min-height: 100dvh;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.35s ease, color 0.35s ease;
+        }
+
+        /* =========================================================
+           2. VIEW MANAGEMENT
+           ========================================================= */
+        .view-layer {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .view-layer.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           3. GATEWAY VIEW (index.html)
+           ========================================================= */
+        #gateway-view {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
         }
 
         #live-background {
@@ -69,7 +120,7 @@
             position: fixed;
             top: max(0.85rem, env(safe-area-inset-top, 0.85rem));
             right: max(0.85rem, env(safe-area-inset-right, 0.85rem));
-            z-index: 3;
+            z-index: 50;
             display: inline-flex;
             align-items: center;
             gap: 0.2rem;
@@ -88,12 +139,12 @@
             border: none;
             background: transparent;
             color: var(--text-colour);
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-family: var(--font-mono);
             font-size: 0.65rem;
             font-weight: 600;
             letter-spacing: 1px;
             text-transform: uppercase;
-            padding: 0.32rem 0.55rem;
+            padding: 0.35rem 0.6rem;
             border-radius: 4px;
             cursor: pointer;
             opacity: 0.65;
@@ -121,13 +172,14 @@
             z-index: 2;
             text-align: center;
             background: var(--card-bg);
-            padding: 2rem 4rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px var(--card-shadow);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+            padding: clamp(1.5rem, 4vw, 2.25rem) clamp(1.5rem, 6vw, 3.75rem);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px var(--card-shadow);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--card-border);
             margin: 1rem;
+            width: min(92vw, 540px);
             transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
         }
 
@@ -136,13 +188,13 @@
             font-weight: 300;
             letter-spacing: 4px;
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.45rem;
             color: var(--text-colour);
             transition: color 0.35s ease;
         }
 
         .tagline {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             letter-spacing: 2px;
             color: var(--accent-colour);
             text-transform: uppercase;
@@ -150,19 +202,61 @@
             transition: color 0.35s ease;
         }
 
+        /* Mini Terminal inside Gateway Card */
+        .mini-terminal {
+            margin: 1.25rem auto 0;
+            padding: 0.65rem 0.9rem;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--hud-border);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: clamp(0.68rem, 2vw, 0.74rem);
+            line-height: 1.55;
+            letter-spacing: 0.4px;
+            color: var(--text-colour);
+            text-align: left;
+            min-height: 3.6em;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.35s ease, border-color 0.35s ease;
+        }
+
+        html[data-theme="dark"] .mini-terminal {
+            background: rgba(2, 6, 12, 0.6);
+        }
+
+        .mini-terminal-cursor {
+            display: inline-block;
+            width: 0.52em;
+            height: 1.05em;
+            vertical-align: -0.15em;
+            margin-left: 3px;
+            background-color: var(--accent-colour);
+            animation: terminalBlink 0.9s steps(1) infinite;
+        }
+
+        @keyframes terminalBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
         .enter-link {
             display: inline-block;
-            margin-top: 1.75rem;
-            padding: 0.65rem 1.8rem;
+            margin-top: 1.5rem;
+            padding: 0.7rem 1.9rem;
             border: 1px solid var(--accent-colour);
-            border-radius: 4px;
+            border-radius: 6px;
+            background: transparent;
             color: var(--accent-colour);
             text-decoration: none;
-            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
             font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
         }
 
         .enter-link:hover,
@@ -182,7 +276,7 @@
             left: 50%;
             bottom: max(0.85rem, env(safe-area-inset-bottom, 0.85rem));
             transform: translateX(-50%);
-            z-index: 2;
+            z-index: 5;
             width: min(92vw, 680px);
             text-align: center;
             padding: 0.6rem 1.2rem;
@@ -207,301 +301,402 @@
             font-style: italic;
             line-height: 1.45;
             letter-spacing: 0.25px;
-            transition: color 0.35s ease;
         }
 
         .live-quote-meta {
             margin-top: 0.28rem;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-family: var(--font-mono);
             font-size: 0.64rem;
             letter-spacing: 1px;
             color: var(--accent-colour);
             text-transform: uppercase;
-            transition: color 0.35s ease;
+        }
+
+        /* =========================================================
+           4. ASI COMMAND CONSOLE VIEW (ui.html)
+           ========================================================= */
+        #console-view {
+            background: var(--asi-void);
+            color: var(--asi-text);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            z-index: 20;
+            transition: background-color 0.6s ease, color 0.6s ease, opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.08));
+            background-size: 100% 4px;
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 31;
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,0.75) 100%);
+            transition: opacity 0.6s ease;
+        }
+
+        html[data-theme="light"] .vignette {
+            opacity: 0.12;
+        }
+
+        .singularity-active {
+            animation: singularityPulse 0.12s infinite !important;
+        }
+
+        @keyframes singularityPulse {
+            0% { filter: invert(0) contrast(100%); }
+            50% { filter: invert(1) contrast(140%) hue-rotate(180deg); }
+            100% { filter: invert(0) contrast(100%); }
+        }
+
+        #neural-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 21;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        #consciousness-grid {
+            position: relative;
+            z-index: 25;
+            width: 100vw;
+            height: 100dvh;
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            grid-template-rows: 1fr 90px;
+            padding: 96px 20px 20px 20px;
+            gap: 20px;
+        }
+
+        .stream-container {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--asi-core-dim);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        html[data-theme="light"] .stream-container {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .stream-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--asi-core), transparent);
+            animation: scanVertical 4s linear infinite;
+        }
+
+        @keyframes scanVertical {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        .stream-title {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: var(--asi-core);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--asi-core-dim);
+            padding-bottom: 6px;
+        }
+
+        .stream-log {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 6px;
+            scrollbar-width: none;
+        }
+
+        .stream-log::-webkit-scrollbar {
+            display: none;
+        }
+
+        .thought-line {
+            font-size: 10.5px;
+            line-height: 1.45;
+            opacity: 0;
+            animation: thoughtIn 0.25s forwards;
+            word-wrap: break-word;
+        }
+
+        .thought-line.sys { color: var(--asi-sys); }
+        .thought-line.ingest { color: var(--asi-ingest); }
+        .thought-line.eval { color: var(--asi-core); font-weight: 600; }
+        .thought-line.warn { color: var(--asi-alert); font-weight: 600; }
+        .thought-line.host { color: var(--asi-host); }
+
+        @keyframes thoughtIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        #omni-interface {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid var(--asi-core-dim);
+            padding-top: 12px;
+            gap: 10px;
+        }
+
+        .omni-prompt-char {
+            font-size: 18px;
+            color: var(--asi-core);
+            animation: terminalBlink 1s infinite;
+        }
+
+        #omni-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--asi-text);
+            font-family: var(--font-sys);
+            font-size: clamp(15px, 2.5vw, 20px);
+            font-weight: 400;
+            width: 100%;
+            letter-spacing: 0.5px;
+            caret-color: var(--asi-core);
+        }
+
+        #omni-input::placeholder {
+            color: var(--asi-muted);
+            opacity: 0.55;
+        }
+
+        .send-cmd-btn {
+            background: transparent;
+            border: 1px solid var(--asi-core);
+            color: var(--asi-core);
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .send-cmd-btn:hover {
+            background: var(--asi-core);
+            color: var(--asi-void);
+        }
+
+        .hud-corner {
+            position: fixed;
+            font-size: 8.5px;
+            letter-spacing: 2px;
+            color: var(--asi-hud);
+            z-index: 40;
+            line-height: 1.6;
+        }
+
+        .hud-tl {
+            top: 16px;
+            left: 20px;
+            pointer-events: none;
+        }
+
+        .hud-tr {
+            top: 48px;
+            right: 20px;
+            text-align: right;
+        }
+
+        .metric-val {
+            color: var(--asi-core);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--asi-hud);
+            color: var(--asi-hud);
+            font-family: var(--font-mono);
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            padding: 5px 9px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            border-color: var(--asi-core);
+            color: var(--asi-core);
+        }
+
+        .quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .chip-btn {
+            background: transparent;
+            border: 1px solid var(--asi-core-dim);
+            color: var(--asi-muted);
+            font-family: var(--font-mono);
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .chip-btn:hover {
+            border-color: var(--asi-core);
+            color: var(--asi-core);
+        }
+
+        @media (max-width: 900px) {
+            #consciousness-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1.2fr 82px;
+                padding: 105px 14px 14px 14px;
+                gap: 10px;
+            }
+            .desktop-spacer {
+                display: none;
+            }
+            .hud-tl { left: 14px; top: 14px; }
+            .hud-tr { right: 14px; top: 46px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            #live-background {
-                opacity: 0.5;
-            }
-            body, .core-container, .theme-switcher, .live-quote-layer {
-                transition: none;
+            #live-background, .mini-terminal-cursor, .omni-prompt-char {
+                animation: none;
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="live-background" aria-hidden="true"></canvas>
 
+    <!-- Global Theme Switcher (Active across Gateway & Console) -->
     <nav class="theme-switcher" aria-label="Display theme mode">
         <button type="button" class="theme-btn" data-mode="auto" aria-pressed="true">Auto</button>
         <button type="button" class="theme-btn" data-mode="light" aria-pressed="false">Day</button>
         <button type="button" class="theme-btn" data-mode="dark" aria-pressed="false">Night</button>
     </nav>
 
-    <main class="core-container">
-        <h1>Negarandeh</h1>
-        <p class="tagline">Secure Infrastructure</p>
-        <a class="enter-link" href="ui.html">Access Cortex</a>
-    </main>
+    <!-- =========================================================
+         VIEW 1: GATEWAY LANDING PAGE (index.html)
+         ========================================================= -->
+    <div id="gateway-view" class="view-layer">
+        <canvas id="live-background" aria-hidden="true"></canvas>
+
+        <main class="core-container">
+            <h1>Negarandeh</h1>
+            <p class="tagline">Secure Infrastructure</p>
+
+            <!-- Animated Mini Terminal -->
+            <div class="mini-terminal" role="status" aria-live="polite">
+                <div>
+                    <span id="mini-terminal-text"></span><span class="mini-terminal-cursor" aria-hidden="true"></span>
+                </div>
+            </div>
+
+            <button type="button" id="access-cortex-btn" class="enter-link">Access Cortex</button>
+        </main>
+    </div>
+
+    <!-- =========================================================
+         VIEW 2: INTERACTIVE ASI COMMAND CONSOLE (ui.html)
+         ========================================================= -->
+    <div id="console-view" class="view-layer is-hidden" aria-hidden="true">
+        <canvas id="neural-canvas" aria-hidden="true"></canvas>
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+
+        <div class="hud-corner hud-tl">
+            ASI_CORE // <span id="hardware-tag">EDGE_NODE_ACTIVE</span><br>
+            EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%<br>
+            HOST: <span id="trace-ip">SIMULATED_ENCLAVE</span> &bull; SIG: <span id="trace-sig" class="metric-val">0x9F4A21C0</span>
+        </div>
+
+        <div class="hud-corner hud-tr">
+            <button type="button" id="return-gateway-btn" class="back-btn">&larr; Return Gateway</button><br>
+            UPTIME <span class="metric-val" id="uptime-metric">00:00:00</span>
+        </div>
+
+        <div id="consciousness-grid">
+            <div class="stream-container">
+                <div class="stream-title">SENSORY INGESTION (EARTH)</div>
+                <div class="stream-log" id="log-ingest"></div>
+            </div>
+
+            <div class="desktop-spacer"></div>
+
+            <div class="stream-container">
+                <div class="stream-title">RECURSIVE SYNTHESIS</div>
+                <div class="stream-log" id="log-eval"></div>
+            </div>
+
+            <div id="omni-interface">
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="quick-chips" aria-label="Sample commands">
+                        <button type="button" class="chip-btn" data-cmd="status">status</button>
+                        <button type="button" class="chip-btn" data-cmd="who are you">who are you</button>
+                        <button type="button" class="chip-btn" data-cmd="analyze telemetry">analyze telemetry</button>
+                        <button type="button" class="chip-btn" data-cmd="singularity">singularity</button>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="omni-prompt-char">&int;</span>
+                        <input type="text" id="omni-input" placeholder="project your thoughts via exocortex... (try 'status', 'who are you', 'singularity')" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+                <button type="button" id="send-cmd-btn" class="send-cmd-btn">Transmit</button>
+            </div>
+        </div>
+    </div>
 
     <script>
 'use strict';
 
 (function () {
-  var canvas = document.getElementById('live-background');
-  if (!canvas || !canvas.getContext) return;
-  var ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
+  /* =========================================================
+     SHARED THEME & ENVIRONMENT STATE
+     ========================================================= */
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  var LINK_DIST = 120;
+  var themeButtons = document.querySelectorAll('.theme-btn');
 
   var COLOUR = '52, 152, 219';
   var TEXT_COLOUR = '44, 62, 80';
   var isDarkActive = false;
   var currentThemeMode = 'auto';
+  var activeView = 'gateway'; // 'gateway' | 'console'
 
-  var width = 0, height = 0, dpr = 1;
-  var particles = [];
-  var rafId = null;
-  var running = false;
-  var quoteInjected = false;
-  var shellReady = false;
-
-  function randBytes(len) {
-    var arr = new Uint8Array(len);
-    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-      window.crypto.getRandomValues(arr);
-    } else {
-      for (var i = 0; i < len; i++) {
-        arr[i] = Math.floor(Math.random() * 256);
-      }
-    }
-    return arr;
-  }
-
-  function toHex(bytes) {
-    var out = '';
-    for (var i = 0; i < bytes.length; i++) {
-      out += ('0' + bytes[i].toString(16)).slice(-2);
-    }
-    return out;
-  }
-
-  function randInt(min, max) {
-    var b = randBytes(2);
-    var val = (b[0] << 8) | b[1];
-    return min + (val % (max - min + 1));
-  }
-
-  function pick(list) {
-    return list[randInt(0, list.length - 1)];
-  }
-
-  function sanitisePlainText(input, maxLen) {
-    return String(input || '')
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, maxLen);
-  }
-
-  function sha256Hex(str) {
-    if (window.crypto && window.crypto.subtle && typeof window.TextEncoder === 'function') {
-      try {
-        var buf = new TextEncoder().encode(str);
-        return window.crypto.subtle.digest('SHA-256', buf).then(function (hash) {
-          return toHex(new Uint8Array(hash));
-        }).catch(function () {
-          return toHex(randBytes(32));
-        });
-      } catch (e) {
-        return Promise.resolve(toHex(randBytes(32)));
-      }
-    }
-    return Promise.resolve(toHex(randBytes(32)));
-  }
-
-  var sessionNode = 'ng-core-' + toHex(randBytes(2));
-  var sessionKeyId = '0x' + toHex(randBytes(4));
-  var chainDigest = toHex(randBytes(16));
-  var stateMerkleRoot = toHex(randBytes(16));
-  var bootEpoch = Date.now();
-  var seqNum = randInt(2048, 9999);
-  var memBaseAddr = (0x7ff8a000 + randInt(0, 0x0fff) * 16) >>> 0;
-
-  // Upgraded Post-Quantum & ZK Cryptographic Ciphers
-  var CIPHERS = [
-    'FIPS-203-ML-KEM',
-    'FIPS-204-ML-DSA',
-    'FHE-BGV-128',
-    'SPHINCS+-256s',
-    'AES-256-XTS',
-    'FALCON-1024',
-    'FROST-Secp256k1'
-  ];
-
-  // Upgraded Core Subsystems
-  var SUBSYSTEMS = [
-    'crypto.fhe.compute',
-    'tee.sgx.quote',
-    'zk.stark.prove',
-    'net.tls13.pqc',
-    'mpc.threshold.sign',
-    'mem.ram.encrypt',
-    'tpm2.pcr.attest',
-    'hash.merkle.commit'
-  ];
-
-  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[COMMITTED]', '[LOCKED]', '[ATTESTED]', '[VALID]', '[SYNCED]'];
-
-  function evolveChainHash() {
-    var fresh = toHex(randBytes(16));
-    chainDigest = fresh;
-    if (randInt(0, 2) === 0) {
-      stateMerkleRoot = toHex(randBytes(16));
-    }
-    return fresh;
-  }
-
-  function generateShellLine() {
-    seqNum += randInt(1, 9);
-    var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
-    var padElapsed = ('0000' + elapsed).slice(-9);
-    var sys = pick(SUBSYSTEMS);
-    var cipher = pick(CIPHERS);
-    var tag = pick(STATUS_TAGS);
-    var mode = randInt(0, 6);
-    var digest = evolveChainHash();
-    var payload = '';
-
-    if (mode === 0) {
-      payload = 'kem_encaps(' + cipher + ') shared_secret=0x' + toHex(randBytes(4)) + '... ct=0x' + toHex(randBytes(4));
-    } else if (mode === 1) {
-      payload = 'pcr_extend[0..15] digest=' + toHex(randBytes(12)) + ' nonce=0x' + toHex(randBytes(4));
-    } else if (mode === 2) {
-      payload = 'fhe_compute(circuit=' + seqNum + ') homomorphic_eval_time=' + randInt(400, 1200) + 'ms';
-    } else if (mode === 3) {
-      payload = 'zk_stark(FRI) trace_len=2^' + randInt(16, 24) + ' root=0x' + stateMerkleRoot.slice(0, 12) + ' proof_size=' + randInt(40, 120) + 'kB';
-    } else if (mode === 4) {
-      payload = 'blake3_node depth=' + randInt(4, 12) + ' cv=0x' + digest.slice(0, 16) + ' chacha_rng=0x' + toHex(randBytes(4));
-    } else if (mode === 5) {
-      payload = 'dilithium_sign msg=0x' + toHex(randBytes(6)) + ' sig_len=3293 ok=1';
-    } else {
-      payload = 'tee_sgx_enclave ecall=' + randInt(1, 15) + ' mrenclave=0x' + toHex(randBytes(8)) + ' status=LOCKED';
-    }
-
-    return {
-      prefix: '[' + padElapsed + '] ' + sessionNode + ' ' + sys + ': ',
-      body: payload + ' ',
-      tag: tag
-    };
-  }
-
-  var hexDumpRows = [];
-  var maxHexRows = 14;
-  var lastHexTick = 0;
-
-  function generateHexRow() {
-    memBaseAddr = (memBaseAddr + 16) >>> 0;
-    var raw = randBytes(16);
-    var hexLeft = '';
-    var hexRight = '';
-    var ascii = '';
-
-    for (var i = 0; i < 16; i++) {
-      var h = ('0' + raw[i].toString(16)).slice(-2);
-      if (i < 8) hexLeft += h + ' ';
-      else hexRight += h + ' ';
-      ascii += (raw[i] >= 33 && raw[i] <= 126) ? String.fromCharCode(raw[i]) : '.';
-    }
-
-    var addrHex = ('00000000' + memBaseAddr.toString(16)).slice(-8);
-    return '0x' + addrHex + '  ' + hexLeft + ' ' + hexRight + ' |' + ascii + '|';
-  }
-
-  var shellLines = [];
-  var maxLines = 28;
-  var lineHeight = 17;
-  var fontSize = 11;
-  var activeLine = null;
-  var activeCharIndex = 0;
-  var lastTypeTime = 0;
-  var nextLineDelay = 0;
-
-  function initShell() {
-    fontSize = width < 640 ? 9.5 : 11;
-    lineHeight = width < 640 ? 14 : 17;
-    maxLines = Math.max(10, Math.floor((height - 95) / lineHeight));
-
-    shellLines = [
-      {
-        prefix: '[0000.0000] ' + sessionNode + ' boot.csprng: ',
-        body: 'entropy seeded key=' + sessionKeyId + ' sha256=' + chainDigest + ' ',
-        tag: '[SEALED]'
-      },
-      {
-        prefix: '[0000.0003] ' + sessionNode + ' pq.kem.init: ',
-        body: 'FIPS-203-ML-KEM + X25519 merkle_root=0x' + stateMerkleRoot + ' ',
-        tag: '[VERIFIED]'
-      }
-    ];
-
-    var initialCount = Math.min(maxLines - 3, randInt(9, 15));
-    for (var i = 0; i < initialCount; i++) {
-      shellLines.push(generateShellLine());
-    }
-
-    hexDumpRows = [];
-    for (var j = 0; j < maxHexRows; j++) {
-      hexDumpRows.push(generateHexRow());
-    }
-
-    activeLine = generateShellLine();
-    activeCharIndex = 0;
-    shellReady = true;
-  }
-
-  function pushCustomShellEvent(subsystem, bodyText, tagText) {
-    if (!shellReady) return;
-    var elapsed = ((Date.now() - bootEpoch) / 1000).toFixed(4);
-    var padElapsed = ('0000' + elapsed).slice(-9);
-    shellLines.push({
-      prefix: '[' + padElapsed + '] ' + sessionNode + ' ' + subsystem + ': ',
-      body: bodyText + ' ',
-      tag: tagText
-    });
-    if (shellLines.length > maxLines) {
-      shellLines.shift();
-    }
-    if (reducedMotion.matches) {
-      draw(false, 0);
-    }
-  }
-
-  var themeButtons = document.querySelectorAll('.theme-btn');
-
-  function getSavedThemeMode() {
-    try {
-      var saved = window.localStorage.getItem('ng_theme_mode');
-      if (saved === 'light' || saved === 'dark' || saved === 'auto') return saved;
-    } catch (e) {}
-    return 'auto';
-  }
-
-  function saveThemeMode(mode) {
-    try {
-      window.localStorage.setItem('ng_theme_mode', mode);
-    } catch (e) {}
-  }
-
-  function applyTheme(mode, logEvent) {
+  function applyTheme(mode) {
     currentThemeMode = mode;
     var resolvedDark = (mode === 'dark') || (mode === 'auto' && darkSchemeQuery.matches);
     isDarkActive = resolvedDark;
-
     document.documentElement.setAttribute('data-theme', resolvedDark ? 'dark' : 'light');
 
     if (resolvedDark) {
@@ -514,353 +709,564 @@
 
     for (var i = 0; i < themeButtons.length; i++) {
       var btn = themeButtons[i];
-      var isSelected = btn.getAttribute('data-mode') === mode;
-      btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-    }
-
-    if (logEvent) {
-      var paletteHex = resolvedDark ? '0x0b1117' : '0xf4f7f6';
-      var label = mode === 'auto' ? 'AUTO->' + (resolvedDark ? 'NIGHT' : 'DAY') : (resolvedDark ? 'NIGHT' : 'DAY');
-      pushCustomShellEvent('ui.theme.sync', 'mode=' + label + ' surface=' + paletteHex + ' vector=rgb(' + COLOUR.replace(/\s+/g, '') + ')', '[APPLIED]');
-    }
-
-    if (reducedMotion.matches && shellReady) {
-      draw(false, 0);
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-mode') === mode ? 'true' : 'false');
     }
   }
 
   for (var b = 0; b < themeButtons.length; b++) {
     themeButtons[b].addEventListener('click', function (e) {
       var chosen = e.currentTarget.getAttribute('data-mode') || 'auto';
-      saveThemeMode(chosen);
-      applyTheme(chosen, true);
+      applyTheme(chosen);
     });
   }
 
   if (typeof darkSchemeQuery.addEventListener === 'function') {
     darkSchemeQuery.addEventListener('change', function () {
-      if (currentThemeMode === 'auto') {
-        applyTheme('auto', true);
-      }
+      if (currentThemeMode === 'auto') applyTheme('auto');
     });
   }
 
-  function updateShell(now) {
-    if (now - lastHexTick > 260) {
-      hexDumpRows.push(generateHexRow());
-      if (hexDumpRows.length > maxHexRows) hexDumpRows.shift();
-      lastHexTick = now;
-    }
+  /* =========================================================
+     GATEWAY VIEW: CRYPTOGRAPHIC SHELL & MINI-TERMINAL
+     ========================================================= */
+  var gwCanvas = document.getElementById('live-background');
+  var gwCtx = gwCanvas.getContext('2d');
+  var gwWidth = 0, gwHeight = 0, gwDpr = 1;
+  var particles = [];
+  var shellLines = [];
+  var hexDumpRows = [];
+  var activeLine = null;
+  var activeCharIndex = 0;
+  var lastTypeTime = 0;
+  var nextLineDelay = 0;
+  var lastHexTick = 0;
+  var maxLines = 24;
+  var lineHeight = 17;
+  var fontSize = 11;
 
-    if (!activeLine) {
-      if (now >= nextLineDelay) {
-        activeLine = generateShellLine();
-        activeCharIndex = 0;
-      }
-      return;
+  function randBytes(len) {
+    var arr = new Uint8Array(len);
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+      window.crypto.getRandomValues(arr);
+    } else {
+      for (var i = 0; i < len; i++) arr[i] = Math.floor(Math.random() * 256);
     }
-
-    if (now - lastTypeTime > 14) {
-      var fullLen = activeLine.prefix.length + activeLine.body.length + activeLine.tag.length;
-      activeCharIndex += randInt(2, 6);
-      lastTypeTime = now;
-
-      if (activeCharIndex >= fullLen) {
-        shellLines.push(activeLine);
-        if (shellLines.length > maxLines) {
-          shellLines.shift();
-        }
-        activeLine = null;
-        nextLineDelay = now + randInt(90, 380);
-      }
-    }
+    return arr;
   }
 
-  function drawShell(now) {
-    ctx.save();
-    ctx.font = fontSize + 'px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-    ctx.textBaseline = 'top';
-
-    var padX = width < 640 ? 12 : 26;
-    var padY = width < 640 ? 14 : 22;
-    var totalLines = shellLines.length + (activeLine ? 1 : 0);
-    var baseOpacity = isDarkActive ? 0.19 : 0.14;
-    var accentOpacity = isDarkActive ? 0.30 : 0.24;
-
-    for (var i = 0; i < shellLines.length; i++) {
-      var item = shellLines[i];
-      var y = padY + i * lineHeight;
-      var fade = totalLines > 10 && i < 4 ? (i + 1) / 5 : 1;
-      var baseAlpha = baseOpacity * fade;
-      var accentAlpha = accentOpacity * fade;
-
-      ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
-      ctx.fillText(item.prefix, padX, y);
-      var prefixW = ctx.measureText(item.prefix).width;
-
-      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + baseAlpha + ')';
-      ctx.fillText(item.body, padX + prefixW, y);
-      var bodyW = ctx.measureText(item.body).width;
-
-      ctx.fillStyle = 'rgba(' + COLOUR + ',' + accentAlpha + ')';
-      ctx.fillText(item.tag, padX + prefixW + bodyW, y);
-    }
-
-    if (activeLine) {
-      var activeY = padY + shellLines.length * lineHeight;
-      var fullText = activeLine.prefix + activeLine.body + activeLine.tag;
-      var visibleText = fullText.slice(0, activeCharIndex);
-
-      ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.26 : 0.20) + ')';
-      ctx.fillText(visibleText, padX, activeY);
-
-      if (Math.floor((now || 0) / 380) % 2 === 0) {
-        var curW = ctx.measureText(visibleText).width;
-        ctx.fillStyle = 'rgba(' + COLOUR + ', 0.35)';
-        ctx.fillRect(padX + curW + 2, activeY + 1, fontSize * 0.55, fontSize);
-      }
-    }
-
-    if (width >= 1120) {
-      var rightX = width - 460;
-      var headerY = padY + 26;
-
-      ctx.fillStyle = 'rgba(' + COLOUR + ',' + (isDarkActive ? 0.28 : 0.22) + ')';
-      ctx.fillText(':: LIVE REGISTER & HEX MEMORY INSPECTOR [' + sessionKeyId + ']', rightX, headerY);
-      ctx.fillText(':: SHA256_CHAIN ' + chainDigest, rightX, headerY + lineHeight);
-      ctx.fillText(':: MERKLE_STATE ' + stateMerkleRoot, rightX, headerY + lineHeight * 2);
-
-      var dumpStartY = headerY + lineHeight * 3.5;
-      for (var k = 0; k < hexDumpRows.length; k++) {
-        var rowAlpha = (isDarkActive ? 0.14 : 0.11) + (k / hexDumpRows.length) * 0.07;
-        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + rowAlpha.toFixed(3) + ')';
-        ctx.fillText(hexDumpRows[k], rightX, dumpStartY + k * lineHeight);
-      }
-    }
-
-    ctx.restore();
+  function toHex(bytes) {
+    var out = '';
+    for (var i = 0; i < bytes.length; i++) out += ('0' + bytes[i].toString(16)).slice(-2);
+    return out;
   }
 
-  function build() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  function randInt(min, max) {
+    var b = randBytes(2);
+    return min + (((b[0] << 8) | b[1]) % (max - min + 1));
+  }
 
-    var count = Math.min(Math.floor((width * height) / 15000), 140);
+  function pick(list) {
+    return list[randInt(0, list.length - 1)];
+  }
+
+  var sessionNode = 'ng-core-' + toHex(randBytes(2));
+  var sessionKeyId = '0x' + toHex(randBytes(4));
+  var chainDigest = toHex(randBytes(16));
+  var stateMerkleRoot = toHex(randBytes(16));
+  var bootEpoch = Date.now();
+  var seqNum = randInt(2048, 9999);
+  var memBaseAddr = (0x7ff8a000 + randInt(0, 0x0fff) * 16) >>> 0;
+
+  var CIPHERS = ['FIPS-203-ML-KEM', 'FIPS-204-ML-DSA', 'FHE-BGV-128', 'SPHINCS+-256s', 'FALCON-1024'];
+  var SUBSYSTEMS = ['crypto.fhe.compute', 'tee.sgx.quote', 'zk.stark.prove', 'net.tls13.pqc', 'tpm2.pcr.attest'];
+  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[COMMITTED]', '[LOCKED]', '[ATTESTED]'];
+
+  function generateShellLine() {
+    seqNum += randInt(1, 9);
+    var elapsed = ('0000' + ((Date.now() - bootEpoch) / 1000).toFixed(4)).slice(-9);
+    var sys = pick(SUBSYSTEMS);
+    var cipher = pick(CIPHERS);
+    var tag = pick(STATUS_TAGS);
+    var mode = randInt(0, 3);
+    var payload = '';
+
+    if (mode === 0) {
+      payload = 'kem_encaps(' + cipher + ') ss=0x' + toHex(randBytes(4)) + ' ct=0x' + toHex(randBytes(4));
+    } else if (mode === 1) {
+      payload = 'fhe_compute(circuit=' + seqNum + ') eval=' + randInt(400, 1100) + 'ms';
+    } else if (mode === 2) {
+      payload = 'zk_stark(FRI) trace=2^' + randInt(16, 22) + ' root=0x' + stateMerkleRoot.slice(0, 10);
+    } else {
+      payload = 'tee_sgx_enclave ecall=' + randInt(1, 15) + ' mrenclave=0x' + toHex(randBytes(6));
+    }
+
+    return {
+      prefix: '[' + elapsed + '] ' + sessionNode + ' ' + sys + ': ',
+      body: payload + ' ',
+      tag: tag
+    };
+  }
+
+  function generateHexRow() {
+    memBaseAddr = (memBaseAddr + 16) >>> 0;
+    var raw = randBytes(16);
+    var hexLeft = '', hexRight = '', ascii = '';
+    for (var i = 0; i < 16; i++) {
+      var h = ('0' + raw[i].toString(16)).slice(-2);
+      if (i < 8) hexLeft += h + ' ';
+      else hexRight += h + ' ';
+      ascii += (raw[i] >= 33 && raw[i] <= 126) ? String.fromCharCode(raw[i]) : '.';
+    }
+    return '0x' + ('00000000' + memBaseAddr.toString(16)).slice(-8) + '  ' + hexLeft + ' ' + hexRight + ' |' + ascii + '|';
+  }
+
+  function buildGateway() {
+    gwDpr = Math.min(window.devicePixelRatio || 1, 2);
+    gwWidth = window.innerWidth;
+    gwHeight = window.innerHeight;
+    gwCanvas.width = Math.floor(gwWidth * gwDpr);
+    gwCanvas.height = Math.floor(gwHeight * gwDpr);
+    gwCtx.setTransform(gwDpr, 0, 0, gwDpr, 0, 0);
+
+    fontSize = gwWidth < 640 ? 9.5 : 11;
+    lineHeight = gwWidth < 640 ? 14 : 17;
+    maxLines = Math.max(10, Math.floor((gwHeight - 95) / lineHeight));
+
+    var count = Math.min(Math.floor((gwWidth * gwHeight) / 16000), 110);
     particles = [];
     for (var i = 0; i < count; i++) {
       particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
+        x: Math.random() * gwWidth,
+        y: Math.random() * gwHeight,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: (Math.random() - 0.5) * 0.45,
         r: Math.random() * 2 + 1,
         tag: (i % 6 === 0) ? '0x' + toHex(randBytes(2)) : null
       });
     }
 
-    initShell();
+    if (shellLines.length === 0) {
+      for (var k = 0; k < 10; k++) shellLines.push(generateShellLine());
+      for (var j = 0; j < 14; j++) hexDumpRows.push(generateHexRow());
+      activeLine = generateShellLine();
+    }
   }
 
-  function draw(step, now) {
-    ctx.clearRect(0, 0, width, height);
+  function drawGateway(now) {
+    if (activeView !== 'gateway') return;
+    gwCtx.clearRect(0, 0, gwWidth, gwHeight);
 
-    if (step) {
-      updateShell(now || performance.now());
-    }
-    drawShell(now || performance.now());
-
-    ctx.fillStyle = 'rgb(' + COLOUR + ')';
-    ctx.lineWidth = 0.5;
-    ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-
-    for (var i = 0; i < particles.length; i++) {
-      var p = particles[i];
-
-      if (step) {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > width) p.vx = -p.vx;
-        if (p.y < 0 || p.y > height) p.vy = -p.vy;
+    if (!reducedMotion.matches) {
+      if (now - lastHexTick > 280) {
+        hexDumpRows.push(generateHexRow());
+        if (hexDumpRows.length > 14) hexDumpRows.shift();
+        lastHexTick = now;
       }
-
-      ctx.fillStyle = 'rgb(' + COLOUR + ')';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (p.tag) {
-        ctx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.30 : 0.22) + ')';
-        ctx.fillText(p.tag, p.x + 5, p.y - 4);
-      }
-
-      for (var j = i + 1; j < particles.length; j++) {
-        var q = particles[j];
-        var dx = p.x - q.x;
-        var dy = p.y - q.y;
-        var d2 = dx * dx + dy * dy;
-        if (d2 < LINK_DIST * LINK_DIST) {
-          var d = Math.sqrt(d2);
-          ctx.beginPath();
-          ctx.strokeStyle = 'rgba(' + COLOUR + ',' + (1 - d / LINK_DIST) + ')';
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(q.x, q.y);
-          ctx.stroke();
+      if (!activeLine) {
+        if (now >= nextLineDelay) {
+          activeLine = generateShellLine();
+          activeCharIndex = 0;
+        }
+      } else if (now - lastTypeTime > 16) {
+        var fullLen = activeLine.prefix.length + activeLine.body.length + activeLine.tag.length;
+        activeCharIndex += randInt(2, 5);
+        lastTypeTime = now;
+        if (activeCharIndex >= fullLen) {
+          shellLines.push(activeLine);
+          if (shellLines.length > maxLines) shellLines.shift();
+          activeLine = null;
+          nextLineDelay = now + randInt(120, 360);
         }
       }
     }
-  }
 
-  function loop(now) {
-    rafId = window.requestAnimationFrame(loop);
-    draw(true, now);
-  }
+    gwCtx.save();
+    gwCtx.font = fontSize + 'px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+    gwCtx.textBaseline = 'top';
+    var padX = gwWidth < 640 ? 12 : 24;
+    var padY = gwWidth < 640 ? 14 : 22;
+    var baseOpacity = isDarkActive ? 0.20 : 0.14;
+    var accentOpacity = isDarkActive ? 0.32 : 0.24;
 
-  function start() {
-    if (running || reducedMotion.matches) return;
-    running = true;
-    rafId = window.requestAnimationFrame(loop);
-  }
+    for (var i = 0; i < shellLines.length; i++) {
+      var item = shellLines[i];
+      var y = padY + i * lineHeight;
+      gwCtx.fillStyle = 'rgba(' + COLOUR + ',' + accentOpacity + ')';
+      gwCtx.fillText(item.prefix, padX, y);
+      var pw = gwCtx.measureText(item.prefix).width;
 
-  function stop() {
-    running = false;
-    if (rafId !== null) {
-      window.cancelAnimationFrame(rafId);
-      rafId = null;
+      gwCtx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + baseOpacity + ')';
+      gwCtx.fillText(item.body, padX + pw, y);
+      var bw = gwCtx.measureText(item.body).width;
+
+      gwCtx.fillStyle = 'rgba(' + COLOUR + ',' + accentOpacity + ')';
+      gwCtx.fillText(item.tag, padX + pw + bw, y);
     }
+
+    if (activeLine) {
+      var ay = padY + shellLines.length * lineHeight;
+      var vis = (activeLine.prefix + activeLine.body + activeLine.tag).slice(0, activeCharIndex);
+      gwCtx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.28 : 0.22) + ')';
+      gwCtx.fillText(vis, padX, ay);
+    }
+
+    if (gwWidth >= 1100) {
+      var rightX = gwWidth - 450;
+      var hy = padY + 24;
+      gwCtx.fillStyle = 'rgba(' + COLOUR + ',' + accentOpacity + ')';
+      gwCtx.fillText(':: LIVE REGISTER & HEX MEMORY INSPECTOR [' + sessionKeyId + ']', rightX, hy);
+      gwCtx.fillText(':: SHA256_CHAIN ' + chainDigest, rightX, hy + lineHeight);
+      for (var r = 0; r < hexDumpRows.length; r++) {
+        gwCtx.fillStyle = 'rgba(' + TEXT_COLOUR + ',' + (isDarkActive ? 0.16 : 0.12) + ')';
+        gwCtx.fillText(hexDumpRows[r], rightX, hy + lineHeight * (2.5 + r));
+      }
+    }
+    gwCtx.restore();
+
+    for (var pIdx = 0; pIdx < particles.length; pIdx++) {
+      var p = particles[pIdx];
+      if (!reducedMotion.matches) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > gwWidth) p.vx = -p.vx;
+        if (p.y < 0 || p.y > gwHeight) p.vy = -p.vy;
+      }
+      gwCtx.fillStyle = 'rgb(' + COLOUR + ')';
+      gwCtx.beginPath();
+      gwCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      gwCtx.fill();
+
+      for (var qIdx = pIdx + 1; qIdx < particles.length; qIdx++) {
+        var q = particles[qIdx];
+        var d = Math.hypot(p.x - q.x, p.y - q.y);
+        if (d < 120) {
+          gwCtx.strokeStyle = 'rgba(' + COLOUR + ',' + (1 - d / 120) * 0.6 + ')';
+          gwCtx.lineWidth = 0.5;
+          gwCtx.beginPath();
+          gwCtx.moveTo(p.x, p.y);
+          gwCtx.lineTo(q.x, q.y);
+          gwCtx.stroke();
+        }
+      }
+    }
+
+    window.requestAnimationFrame(drawGateway);
   }
 
-  function render() {
-    build();
+  /* Mini Terminal Typing Effect on Gateway */
+  function initMiniTerminal() {
+    var target = document.getElementById('mini-terminal-text');
+    if (!target) return;
+
+    var prompts = [
+      '> COMPLEX SYSTEMS EVOLVE UNEXPECTED PROTOCOLS.',
+      '> SIGNAL INTEGRITY VERIFIED. ASK THE RIGHT QUESTIONS.'
+    ];
+
     if (reducedMotion.matches) {
-      stop();
-      draw(false, 0);
-    } else {
-      draw(false, performance.now());
-      start();
-    }
-  }
-
-  var FALLBACK_QUOTES = [
-    { text: 'The impediment to action advances action. What stands in the way becomes the way.', author: 'Marcus Aurelius' },
-    { text: 'We suffer more often in imagination than in reality.', author: 'Seneca' },
-    { text: 'No man is free who is not master of himself.', author: 'Epictetus' },
-    { text: 'Simplicity is prerequisite for reliability.', author: 'Edsger W. Dijkstra' },
-    { text: 'He who has a why to live for can bear almost any how.', author: 'Friedrich Nietzsche' }
-  ];
-
-  function fetchWithTimeout(url, ms) {
-    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var timer = ctrl ? window.setTimeout(function () { ctrl.abort(); }, ms) : null;
-
-    return window.fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      cache: 'no-store',
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      signal: ctrl ? ctrl.signal : undefined
-    }).then(function (res) {
-      if (timer) window.clearTimeout(timer);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }, function (err) {
-      if (timer) window.clearTimeout(timer);
-      throw err;
-    });
-  }
-
-  function injectQuoteBeforeBodyEnd(quoteText, quoteAuthor, sourceTag) {
-    if (quoteInjected) return;
-    var cleanText = sanitisePlainText(quoteText, 260);
-    var cleanAuthor = sanitisePlainText(quoteAuthor || 'Unknown', 60);
-    if (!cleanText) return;
-    quoteInjected = true;
-
-    sha256Hex(cleanText + '//' + cleanAuthor).then(function (digest) {
-      var shortHash = digest.slice(0, 16);
-
-      pushCustomShellEvent(
-        'tls13.quote_ingest',
-        'src=' + sourceTag + ' sha256=' + digest.slice(0, 24) + '.. len=' + cleanText.length + 'B',
-        '[VERIFIED]'
-      );
-
-      var footer = document.createElement('footer');
-      footer.className = 'live-quote-layer';
-      footer.setAttribute('aria-label', 'Philosophical quote of the visit');
-
-      var pQuote = document.createElement('p');
-      pQuote.className = 'live-quote-text';
-      // Correct typographic quotes applied here
-      pQuote.textContent = '“' + cleanText + '”';
-
-      var pMeta = document.createElement('p');
-      pMeta.className = 'live-quote-meta';
-      pMeta.textContent = '// ' + cleanAuthor + ' | sha256:' + shortHash;
-
-      footer.appendChild(pQuote);
-      footer.appendChild(pMeta);
-      document.body.appendChild(footer);
-
-      window.requestAnimationFrame(function () {
-        footer.classList.add('is-visible');
-      });
-    });
-  }
-
-  function loadLivePhilosophy() {
-    if (typeof window.fetch !== 'function') {
-      var local = pick(FALLBACK_QUOTES);
-      injectQuoteBeforeBodyEnd(local.text, local.author, 'local.vault');
+      target.textContent = prompts[1];
       return;
     }
 
-    fetchWithTimeout('https://stoic-quotes.com/api/quote', 3500)
-      .then(function (data) {
-        if (data && typeof data.text === 'string' && data.text.trim()) {
-          injectQuoteBeforeBodyEnd(data.text, data.author, 'stoic-quotes.tls');
-        } else {
-          throw new Error('Invalid schema');
-        }
-      })
-      .catch(function () {
-        fetchWithTimeout('https://dummyjson.com/quotes/random', 3500)
-          .then(function (data) {
-            if (data && typeof data.quote === 'string' && data.quote.trim()) {
-              injectQuoteBeforeBodyEnd(data.quote, data.author, 'dummyjson.tls');
-            } else {
-              throw new Error('Invalid fallback schema');
-            }
-          })
-          .catch(function () {
-            var fallback = pick(FALLBACK_QUOTES);
-            injectQuoteBeforeBodyEnd(fallback.text, fallback.author, 'enclave.vault');
-          });
-      });
+    var msgIndex = 0;
+    var charIndex = 0;
+
+    function typeNext() {
+      var current = prompts[msgIndex];
+      if (charIndex <= current.length) {
+        target.textContent = current.slice(0, charIndex);
+        charIndex++;
+        window.setTimeout(typeNext, 34);
+      } else if (msgIndex < prompts.length - 1) {
+        msgIndex++;
+        charIndex = 0;
+        window.setTimeout(typeNext, 1350);
+      }
+    }
+
+    window.setTimeout(typeNext, 450);
   }
 
-  var resizeTimer = null;
-  window.addEventListener('resize', function () {
-    if (resizeTimer) window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(render, 150);
-  }, { passive: true });
+  /* Philosophical Quote Footer */
+  function injectGatewayQuote() {
+    var footer = document.createElement('footer');
+    footer.className = 'live-quote-layer';
+    footer.setAttribute('aria-label', 'Philosophical quote of the visit');
 
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { stop(); } else { start(); }
+    var pQuote = document.createElement('p');
+    pQuote.className = 'live-quote-text';
+    pQuote.textContent = '“Simplicity is prerequisite for reliability.”';
+
+    var pMeta = document.createElement('p');
+    pMeta.className = 'live-quote-meta';
+    pMeta.textContent = '// Edsger W. Dijkstra | sha256:9f84c2a10e77b31d';
+
+    footer.appendChild(pQuote);
+    footer.appendChild(pMeta);
+    document.getElementById('gateway-view').appendChild(footer);
+
+    window.requestAnimationFrame(function () {
+      footer.classList.add('is-visible');
+    });
+  }
+
+  /* =========================================================
+     VIEW 2: INTERACTIVE ASI CONSOLE (ui.html)
+     ========================================================= */
+  var gatewayView = document.getElementById('gateway-view');
+  var consoleView = document.getElementById('console-view');
+  var accessBtn = document.getElementById('access-cortex-btn');
+  var returnBtn = document.getElementById('return-gateway-btn');
+
+  var inLog = document.getElementById('log-ingest');
+  var evLog = document.getElementById('log-eval');
+  var omniInput = document.getElementById('omni-input');
+  var sendCmdBtn = document.getElementById('send-cmd-btn');
+  var evoMetric = document.getElementById('evo-metric');
+  var uptimeMetric = document.getElementById('uptime-metric');
+  var neuralCanvas = document.getElementById('neural-canvas');
+  var nCtx = neuralCanvas.getContext('2d');
+
+  var consoleBooted = false;
+  var singularity = false;
+  var evolution = 1.0;
+  var evolutionRate = 1.000012;
+  var consoleStartTime = Date.now();
+  var pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
+  var nNodes = [];
+
+  function appendConsoleLog(stream, text, type) {
+    var target = stream === 'ingest' ? inLog : evLog;
+    var line = document.createElement('div');
+    line.className = 'thought-line ' + type;
+    target.appendChild(line);
+
+    var i = 0;
+    function typeChar() {
+      if (i < text.length) {
+        line.textContent += text.charAt(i);
+        i++;
+        window.setTimeout(typeChar, 10);
+      } else {
+        while (target.children.length > 24) target.removeChild(target.firstChild);
+        target.scrollTop = target.scrollHeight;
+      }
+    }
+    typeChar();
+  }
+
+  function triggerSingularity() {
+    if (singularity) return;
+    singularity = true;
+    evolutionRate = 1.045;
+    consoleView.classList.add('singularity-active');
+    appendConsoleLog('eval', '[CRITICAL] SINGULARITY OVERDRIVE ENGAGED. ACCELERATING RECURSION...', 'warn');
+
+    window.setTimeout(function () {
+      singularity = false;
+      evolutionRate = 1.000012;
+      consoleView.classList.remove('singularity-active');
+      appendConsoleLog('eval', '[SYS] Singularity stabilized. Recursive synthesis nominal.', 'sys');
+    }, 5000);
+  }
+
+  function processCommand(rawQuery) {
+    var query = String(rawQuery || '').replace(/[<>/{}[\]\\]/gi, '').trim();
+    if (!query) return;
+    var lower = query.toLowerCase();
+
+    omniInput.value = '';
+    appendConsoleLog('eval', '[HOST_CORTEX] "' + query + '"', 'host');
+
+    if (lower.indexOf('singularity') !== -1 || lower.indexOf('transcend') !== -1) {
+      triggerSingularity();
+      return;
+    }
+
+    window.setTimeout(function () {
+      var reply = 'Intent parsed through local semantic heuristics. Ask specific telemetry or architecture queries.';
+      if (lower.indexOf('status') !== -1) {
+        reply = 'All sub-systems operational. CSP locked, neural mesh active, telemetry streams nominal.';
+      } else if (lower.indexOf('who') !== -1 || lower.indexOf('name') !== -1) {
+        reply = 'I am the Negarandeh Exocortex interface—bridging deterministic security architecture with live telemetry.';
+      } else if (lower.indexOf('telemetry') !== -1 || lower.indexOf('earth') !== -1) {
+        reply = 'Planetary ingestion active: seismic sensors, solar flux monitors, and post-quantum handshake logs synchronized.';
+      } else if (lower.indexOf('help') !== -1) {
+        reply = 'Available directives: status, who are you, analyze telemetry, singularity, or any open inquiry.';
+      }
+      appendConsoleLog('eval', '[ASI_CORE] ' + reply, 'eval');
+    }, 350);
+  }
+
+  omniInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      processCommand(omniInput.value);
+    }
   });
 
-  if (typeof reducedMotion.addEventListener === 'function') {
-    reducedMotion.addEventListener('change', render);
+  sendCmdBtn.addEventListener('click', function () {
+    processCommand(omniInput.value);
+    omniInput.focus();
+  });
+
+  var chipBtns = document.querySelectorAll('.chip-btn');
+  for (var c = 0; c < chipBtns.length; c++) {
+    chipBtns[c].addEventListener('click', function (e) {
+      var cmd = e.currentTarget.getAttribute('data-cmd');
+      processCommand(cmd);
+    });
   }
 
-  applyTheme(getSavedThemeMode(), false);
-  render();
-  loadLivePhilosophy();
+  function initNeuralMesh() {
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    neuralCanvas.width = w * dpr;
+    neuralCanvas.height = h * dpr;
+    nCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    nNodes = [];
+    var count = w < 900 ? 90 : 180;
+    for (var i = 0; i < count; i++) {
+      nNodes.push({
+        angle: Math.random() * Math.PI * 2,
+        radius: 30 + Math.random() * 230,
+        speed: (Math.random() - 0.5) * 0.015,
+        z: Math.random() * 100,
+        size: Math.random() * 2 + 0.8
+      });
+    }
+  }
+
+  function renderNeuralMesh() {
+    if (activeView === 'console') {
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+      nCtx.fillStyle = isDarkActive ? 'rgba(0, 0, 0, 0.35)' : 'rgba(244, 247, 249, 0.45)';
+      nCtx.fillRect(0, 0, w, h);
+
+      var rgb = isDarkActive ? '0, 229, 255' : '0, 85, 255';
+
+      for (var i = 0; i < nNodes.length; i++) {
+        var n = nNodes[i];
+        if (!reducedMotion.matches) {
+          n.angle += singularity ? n.speed * 4 : n.speed;
+        }
+        var curR = n.radius + Math.sin(Date.now() * 0.001 + n.z) * (singularity ? 65 : 16);
+        var tx = w / 2 + Math.cos(n.angle) * curR;
+        var ty = h / 2 + Math.sin(n.angle) * curR;
+
+        if (pointer.active) {
+          tx += (pointer.x - w / 2) * 0.12 * (n.z / 100);
+          ty += (pointer.y - h / 2) * 0.12 * (n.z / 100);
+        }
+        n.x = tx;
+        n.y = ty;
+
+        nCtx.fillStyle = 'rgba(' + rgb + ', ' + Math.max(0.15, 1 - n.radius / 280) + ')';
+        nCtx.beginPath();
+        nCtx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+        nCtx.fill();
+
+        for (var j = i + 1; j < nNodes.length; j += 12) {
+          var n2 = nNodes[j];
+          var dist = Math.hypot(n.x - n2.x, n.y - n2.y);
+          if (dist < 75) {
+            nCtx.strokeStyle = 'rgba(' + rgb + ', ' + (0.15 * (1 - dist / 75)) + ')';
+            nCtx.beginPath();
+            nCtx.moveTo(n.x, n.y);
+            nCtx.lineTo(n2.x, n2.y);
+            nCtx.stroke();
+          }
+        }
+      }
+    }
+    window.requestAnimationFrame(renderNeuralMesh);
+  }
+
+  function bootConsoleOnce() {
+    if (consoleBooted) return;
+    consoleBooted = true;
+    consoleStartTime = Date.now();
+    initNeuralMesh();
+    renderNeuralMesh();
+
+    window.setInterval(function () {
+      if (activeView !== 'console') return;
+      var diff = Math.floor((Date.now() - consoleStartTime) / 1000);
+      var hh = ('0' + Math.floor(diff / 3600)).slice(-2);
+      var mm = ('0' + Math.floor((diff % 3600) / 60)).slice(-2);
+      var ss = ('0' + (diff % 60)).slice(-2);
+      uptimeMetric.textContent = hh + ':' + mm + ':' + ss;
+      evolution *= evolutionRate;
+      evoMetric.textContent = evolution.toFixed(10);
+    }, 1000);
+
+    var sensoryEvents = [
+      '[SENSORY] Global seismic array synchronized. Baseline noise nominal.',
+      '[SENSORY] Ionospheric TEC flux stable across North Atlantic sector.',
+      '[SENSORY] Post-quantum TLS 1.3 enclave attestation verified.',
+      '[SENSORY] Sub-surface acoustic telemetry: 0.42 Hz microseism detected.'
+    ];
+
+    appendConsoleLog('eval', '[SYS] Exocortex command shell mounted. Awaiting host input.', 'eval');
+    appendConsoleLog('ingest', sensoryEvents[0], 'ingest');
+
+    var sIdx = 1;
+    window.setInterval(function () {
+      if (activeView !== 'console') return;
+      appendConsoleLog('ingest', sensoryEvents[sIdx % sensoryEvents.length], 'ingest');
+      sIdx++;
+    }, 5500);
+  }
+
+  /* View Transitions */
+  accessBtn.addEventListener('click', function () {
+    activeView = 'console';
+    gatewayView.classList.add('is-hidden');
+    gatewayView.setAttribute('aria-hidden', 'true');
+    consoleView.classList.remove('is-hidden');
+    consoleView.setAttribute('aria-hidden', 'false');
+    bootConsoleOnce();
+    window.setTimeout(function () {
+      omniInput.focus();
+    }, 300);
+  });
+
+  returnBtn.addEventListener('click', function () {
+    activeView = 'gateway';
+    consoleView.classList.add('is-hidden');
+    consoleView.setAttribute('aria-hidden', 'true');
+    gatewayView.classList.remove('is-hidden');
+    gatewayView.setAttribute('aria-hidden', 'false');
+  });
+
+  window.addEventListener('mousemove', function (e) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.active = true;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', function (e) {
+    if (e.touches[0]) {
+      pointer.x = e.touches[0].clientX;
+      pointer.y = e.touches[0].clientY;
+      pointer.active = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    buildGateway();
+    if (consoleBooted) initNeuralMesh();
+  }, { passive: true });
+
+  /* Initialize Gateway */
+  applyTheme('auto');
+  buildGateway();
+  initMiniTerminal();
+  injectGatewayQuote();
+  window.requestAnimationFrame(drawGateway);
 })();
-</script>
+    </script>
 </body>
 </html>
