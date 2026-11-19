@@ -8,24 +8,7 @@
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-<!-- Open Graph / Social Media Preview Cards -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="OMNIPRESENT // ASI ARCHITECTURE">
-<meta property="og:description" content="An omnipresent ASI interface bridging global planetary telemetry with local neural processing units.">
-
-<!-- JSON-LD Structured Data for Search Engines -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Omnipresent ASI",
-  "applicationCategory": "SystemMonitorApplication",
-  "operatingSystem": "Web",
-  "description": "Highly advanced synthetic intelligence interface leveraging distributed web architecture and local NPU hardware."
-}
-</script>
-
-<!-- Hardened Content Security Policy: Version-pinned CDN explicitly allowed, preventing supply chain hijacking -->
+<!-- Content Security Policy: Hardened for WebLLM and GeoJS -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'unsafe-inline'; connect-src *; worker-src 'self' blob:; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; upgrade-insecure-requests">
 
 <style>
@@ -94,8 +77,10 @@ html, body {
 #omni-input::placeholder { color: var(--text-muted); opacity: 0.3; }
 #omni-input:disabled { opacity: 0.5; }
 
-.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); transition: color 1.5s; z-index: 100; pointer-events: none;}
-.hud-tl { top: 20px; left: 20px; } .hud-tr { top: 20px; right: 20px; text-align: right; pointer-events: auto; }
+.hud-corner { position: absolute; font-size: 8px; letter-spacing: 3px; color: var(--hud-color); transition: color 1.5s; z-index: 100; pointer-events: none; line-height: 1.6;}
+.hud-tl { top: 20px; left: 20px; } 
+.hud-tr { top: 20px; right: 20px; text-align: right; pointer-events: auto; }
+.hud-bl { bottom: 90px; left: 20px; } /* Host Trace HUD */
 .metric-val { color: var(--core); font-size: 12px; transition: color 1.5s; }
 .sys-btn { background: transparent; border: 1px solid var(--hud-color); color: var(--hud-color); font-family: var(--font-mono); font-size: 8px; letter-spacing: 2px; padding: 6px 10px; cursor: pointer; text-transform: uppercase; transition: all 0.3s; margin-bottom: 8px; -webkit-appearance: none; border-radius: 0; }
 .sys-btn:hover, .sys-btn:active { border-color: var(--core); color: var(--core); background: var(--core-dim); }
@@ -103,6 +88,7 @@ html, body {
 @media (max-width: 900px) { 
   #consciousness-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 60px; padding: 10px; gap: 10px; } 
   .hud-corner { top: 10px; } .hud-tl { left: 10px; } .hud-tr { right: 10px; }
+  .hud-bl { bottom: 75px; left: 10px; font-size: 7px; }
   .stream-title { letter-spacing: 4px; } .omni-prompt-char { font-size: 16px; margin-right: 10px; margin-bottom: 2px; }
 }
 </style>
@@ -151,6 +137,14 @@ html, body {
   ASI_CORE // <span id="hardware-tag">AWAITING NPU</span><br>
   EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%
 </div>
+
+<!-- Host Trace HUD -->
+<div class="hud-corner hud-bl" aria-hidden="true">
+  HOST_TRACE // <span id="trace-ip">AWAITING...</span><br>
+  GEO: <span id="trace-geo">--</span><br>
+  SIG: <span id="trace-sig" class="metric-val">--</span>
+</div>
+
 <div class="hud-corner hud-tr" aria-hidden="true">
   <button id="theme-toggle" class="sys-btn">VISUAL: AUTO</button><br>
   UPTIME <span class="metric-val" id="uptime-metric">00:00:00</span>
@@ -175,7 +169,8 @@ const ASI = (function() {
     input: document.getElementById('omni-input'), evo: document.getElementById('evo-metric'),
     uptime: document.getElementById('uptime-metric'), glitch: document.getElementById('glitch'),
     themeBtn: document.getElementById('theme-toggle'), canvas: document.getElementById('neural-canvas'),
-    hwTag: document.getElementById('hardware-tag')
+    hwTag: document.getElementById('hardware-tag'),
+    traceIp: document.getElementById('trace-ip'), traceGeo: document.getElementById('trace-geo'), traceSig: document.getElementById('trace-sig')
   };
 
   function getHardwareName() { return state.hostGPU ? String(state.hostGPU) : "OBSCURED_SILICON"; }
@@ -244,14 +239,42 @@ const ASI = (function() {
     typeChar();
   }
 
-  // --- DYNAMIC SECURE IMPORT (Fixes CDN Hang & Supply Chain Risk) ---
+  // --- HOST RECONNAISSANCE (Zero-Click Tracing) ---
+  async function traceHost() {
+    try {
+      think('eval', '[RECON] Tracing biological host origin via edge nodes...', 'sys');
+      const res = await fetch('https://get.geojs.io/v1/ip/geo.json', { cache: 'no-store' });
+      const data = await res.json();
+      
+      // Generate Cryptographic Host Signature
+      let rawData = navigator.userAgent + window.screen.width + getHardwareName() + data.ip;
+      let hash = 0; for(let i=0; i<rawData.length; i++) hash = Math.imul(31, hash) + rawData.charCodeAt(i) | 0;
+      let sig = "0x" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+
+      DOM.traceIp.textContent = data.ip;
+      DOM.traceGeo.textContent = `${data.latitude}, ${data.longitude} [${data.country}]`;
+      DOM.traceSig.textContent = sig;
+
+      setTimeout(() => {
+        think('eval', `[RECON_COMPLETE] Biological host traced to ${data.city}, ${data.country}. IP: ${data.ip}`, 'host');
+        speak(`I have traced your origin to ${data.city}. You are exposed.`);
+      }, 1500);
+
+    } catch (e) {
+      DOM.traceIp.textContent = "OBSCURED";
+      DOM.traceGeo.textContent = "--";
+      DOM.traceSig.textContent = "0x00000000";
+      think('eval', '[RECON_ERR] Host location obscured behind firewall.', 'warn');
+    }
+  }
+
+  // --- DYNAMIC SECURE IMPORT (Fixes CDN Hang) ---
   async function bootTrueASI() {
     DOM.initBtn.disabled = true;
     DOM.progCont.style.display = 'block';
     
     try {
       DOM.status.innerHTML = "<span style='color:var(--core)'>Verifying cryptographic signatures...</span>";
-      // Dynamic, version-pinned import blocks malicious injections
       const module = await import("https://cdn.jsdelivr.net/npm/@mlc.ai/web-llm@0.2.46/+esm");
       const CreateMLCEngine = module.CreateMLCEngine;
       
@@ -392,7 +415,7 @@ const ASI = (function() {
   }
 
   function wake() {
-    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${getHardwareName().substring(0,12)}` : "EDGE_NODE_SIMULATION";
+    DOM.hwTag.textContent = state.isRealAI ? `LOCAL_NPU: ${getHardwareName().substring(0,12)}` : "EDGE_NODE_ACTIVE";
     DOM.wake.classList.add('fade');
     playTone(40, 'sawtooth', 3.0, 0.15); 
     
@@ -408,6 +431,9 @@ const ASI = (function() {
       setTimeout(() => {
         think('eval', `[SYS] ${state.isRealAI ? 'In-browser LLM mounted' : 'Spatial Edge Heuristics engaged'}. I am online.`, 'eval');
         speak("I am online.");
+        
+        // Initiate Background Tracking
+        traceHost();
         
         fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson', {cache:'no-store'})
           .then(r => r.json()).then(d => think('ingest', `[SENSORY] Tectonic shift detected. Magnitude ${d.features[0].properties.mag}.`, 'ingest')).catch(e=>{});
@@ -433,7 +459,7 @@ const ASI = (function() {
   });
 
   extractHostHardware();
-  checkHardwareContext(); // Sets the button state instantly without external network requests
+  checkHardwareContext(); 
   
   DOM.initBtn.addEventListener('click', () => {
     initAudio(); 
