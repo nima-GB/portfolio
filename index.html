@@ -242,7 +242,7 @@
     <main class="core-container">
         <h1>Negarandeh</h1>
         <p class="tagline">Secure Infrastructure</p>
-        <a class="enter-link" href="ui.html">Enter Console</a>
+        <a class="enter-link" href="ui.html">Access Cortex</a>
     </main>
 
     <script>
@@ -258,7 +258,6 @@
   var darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
   var LINK_DIST = 120;
 
-  // Dynamic canvas palette vectors updated by Day / Night / Auto state
   var COLOUR = '52, 152, 219';
   var TEXT_COLOUR = '44, 62, 80';
   var isDarkActive = false;
@@ -271,7 +270,6 @@
   var quoteInjected = false;
   var shellReady = false;
 
-  // Hardware-backed CSPRNG helper
   function randBytes(len) {
     var arr = new Uint8Array(len);
     if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
@@ -310,7 +308,6 @@
       .slice(0, maxLen);
   }
 
-  // Hardware Web Crypto SHA-256 digest
   function sha256Hex(str) {
     if (window.crypto && window.crypto.subtle && typeof window.TextEncoder === 'function') {
       try {
@@ -327,7 +324,6 @@
     return Promise.resolve(toHex(randBytes(32)));
   }
 
-  // Per-visit ephemeral cryptographic state
   var sessionNode = 'ng-core-' + toHex(randBytes(2));
   var sessionKeyId = '0x' + toHex(randBytes(4));
   var chainDigest = toHex(randBytes(16));
@@ -336,28 +332,30 @@
   var seqNum = randInt(2048, 9999);
   var memBaseAddr = (0x7ff8a000 + randInt(0, 0x0fff) * 16) >>> 0;
 
+  // Upgraded Post-Quantum & ZK Cryptographic Ciphers
   var CIPHERS = [
-    'ML-KEM-1024+X25519',
-    'ChaCha20-Poly1305-AEAD',
-    'Ed25519-SHA512',
-    'AES-256-GCM-SIV',
-    'SLH-DSA-SHAKE-256f',
-    'BLAKE3-256-KDF',
-    'HMAC-SHA3-512'
+    'FIPS-203-ML-KEM',
+    'FIPS-204-ML-DSA',
+    'FHE-BGV-128',
+    'SPHINCS+-256s',
+    'AES-256-XTS',
+    'FALCON-1024',
+    'FROST-Secp256k1'
   ];
 
+  // Upgraded Core Subsystems
   var SUBSYSTEMS = [
-    'crypto.kem.pq',
+    'crypto.fhe.compute',
+    'tee.sgx.quote',
+    'zk.stark.prove',
+    'net.tls13.pqc',
+    'mpc.threshold.sign',
+    'mem.ram.encrypt',
     'tpm2.pcr.attest',
-    'zk.groth16.verify',
-    'wg.noise_ik.session',
-    'hsm.enclave.seal',
-    'net.ebpf.xdp_filter',
-    'mm.mlock.guard',
     'hash.merkle.commit'
   ];
 
-  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[COMMITTED]', '[LOCKED]', '[ATTESTED]', '[VALID]'];
+  var STATUS_TAGS = ['[VERIFIED]', '[SEALED]', '[COMMITTED]', '[LOCKED]', '[ATTESTED]', '[VALID]', '[SYNCED]'];
 
   function evolveChainHash() {
     var fresh = toHex(randBytes(16));
@@ -380,19 +378,19 @@
     var payload = '';
 
     if (mode === 0) {
-      payload = 'kem(' + cipher + ') ct=0x' + toHex(randBytes(6)) + '..' + toHex(randBytes(2)) + ' sha256=' + digest.slice(0, 20);
+      payload = 'kem_encaps(' + cipher + ') shared_secret=0x' + toHex(randBytes(4)) + '... ct=0x' + toHex(randBytes(4));
     } else if (mode === 1) {
-      payload = 'pcr_extend[0..7] sha384=' + toHex(randBytes(12)) + ' nonce=0x' + toHex(randBytes(4));
+      payload = 'pcr_extend[0..15] digest=' + toHex(randBytes(12)) + ' nonce=0x' + toHex(randBytes(4));
     } else if (mode === 2) {
-      payload = 'aead_seal seq=' + seqNum + ' aad=' + sessionKeyId + ' tag=0x' + toHex(randBytes(8)) + ' H=7.9999b/B';
+      payload = 'fhe_compute(circuit=' + seqNum + ') homomorphic_eval_time=' + randInt(400, 1200) + 'ms';
     } else if (mode === 3) {
-      payload = 'zk_proof(BLS12-381) witness=0x' + toHex(randBytes(6)) + ' root=0x' + stateMerkleRoot.slice(0, 12) + ' t=' + randInt(140, 820) + 'us';
+      payload = 'zk_stark(FRI) trace_len=2^' + randInt(16, 24) + ' root=0x' + stateMerkleRoot.slice(0, 12) + ' proof_size=' + randInt(40, 120) + 'kB';
     } else if (mode === 4) {
-      payload = 'blake3_tree depth=' + randInt(4, 12) + ' leaf=0x' + toHex(randBytes(6)) + ' -> digest=' + digest.slice(0, 24);
+      payload = 'blake3_node depth=' + randInt(4, 12) + ' cv=0x' + digest.slice(0, 16) + ' chacha_rng=0x' + toHex(randBytes(4));
     } else if (mode === 5) {
-      payload = 'argon2id(m=65536,t=4) salt=0x' + toHex(randBytes(6)) + ' dk_sha256=' + toHex(randBytes(10));
+      payload = 'dilithium_sign msg=0x' + toHex(randBytes(6)) + ' sig_len=3293 ok=1';
     } else {
-      payload = 'raw_frame 0x' + toHex(randBytes(4)) + ': ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' ' + toHex(randBytes(2)) + ' crc32=0x' + toHex(randBytes(4));
+      payload = 'tee_sgx_enclave ecall=' + randInt(1, 15) + ' mrenclave=0x' + toHex(randBytes(8)) + ' status=LOCKED';
     }
 
     return {
@@ -402,7 +400,6 @@
     };
   }
 
-  // Canonical hex + ASCII memory inspector rows
   var hexDumpRows = [];
   var maxHexRows = 14;
   var lastHexTick = 0;
@@ -425,7 +422,6 @@
     return '0x' + addrHex + '  ' + hexLeft + ' ' + hexRight + ' |' + ascii + '|';
   }
 
-  // Background shell stream state
   var shellLines = [];
   var maxLines = 28;
   var lineHeight = 17;
@@ -448,7 +444,7 @@
       },
       {
         prefix: '[0000.0003] ' + sessionNode + ' pq.kem.init: ',
-        body: 'ML-KEM-1024 + X25519 merkle_root=0x' + stateMerkleRoot + ' ',
+        body: 'FIPS-203-ML-KEM + X25519 merkle_root=0x' + stateMerkleRoot + ' ',
         tag: '[VERIFIED]'
       }
     ];
@@ -485,7 +481,6 @@
     }
   }
 
-  // Theme engine: synchronises Auto (OS) and manual Day/Night selection
   var themeButtons = document.querySelectorAll('.theme-btn');
 
   function getSavedThemeMode() {
@@ -592,7 +587,6 @@
     var baseOpacity = isDarkActive ? 0.19 : 0.14;
     var accentOpacity = isDarkActive ? 0.30 : 0.24;
 
-    // Left stream: Cryptographic kernel and hash chain
     for (var i = 0; i < shellLines.length; i++) {
       var item = shellLines[i];
       var y = padY + i * lineHeight;
@@ -627,7 +621,6 @@
       }
     }
 
-    // Right stream: Canonical hex memory inspector on wide viewports
     if (width >= 1120) {
       var rightX = width - 460;
       var headerY = padY + 26;
@@ -751,7 +744,6 @@
     }
   }
 
-  // Offline enclave quote vault if visitor has no connectivity
   var FALLBACK_QUOTES = [
     { text: 'The impediment to action advances action. What stands in the way becomes the way.', author: 'Marcus Aurelius' },
     { text: 'We suffer more often in imagination than in reality.', author: 'Seneca' },
@@ -803,7 +795,8 @@
 
       var pQuote = document.createElement('p');
       pQuote.className = 'live-quote-text';
-      pQuote.textContent = '"' + cleanText + '"';
+      // Correct typographic quotes applied here
+      pQuote.textContent = '“' + cleanText + '”';
 
       var pMeta = document.createElement('p');
       pMeta.className = 'live-quote-meta';
