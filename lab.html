@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Negarandeh // MATLAB-Style Scientific Workbench (lab.html)</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self'; img-src 'self' data:;">
+
+    <!-- KaTeX Typesetting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* =========================================================
+           1. ADAPTIVE THEME TOKENS & RESET
+           ========================================================= */
+        :root {
+            --bg-app: #eef2f6;
+            --bg-panel: #ffffff;
+            --bg-pane-alt: #f8fafc;
+            --bg-canvas: #f1f5f9;
+            --border-line: #cbd5e1;
+            --border-focus: #0284c7;
+
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+
+            --accent-primary: #0284c7;
+            --accent-primary-soft: rgba(2, 132, 199, 0.12);
+            --accent-secondary: #0d9488;
+            --accent-amber: #d97706;
+            --accent-crimson: #dc2626;
+            --accent-violet: #7c3aed;
+
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+        }
+
+        html[data-theme="dark"] {
+            --bg-app: #070b12;
+            --bg-panel: #0d131f;
+            --bg-pane-alt: #111927;
+            --bg-canvas: #090e17;
+            --border-line: #1e293b;
+            --border-focus: #38bdf8;
+
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --accent-primary: #38bdf8;
+            --accent-primary-soft: rgba(56, 189, 248, 0.14);
+            --accent-secondary: #2dd4bf;
+            --accent-amber: #fbbf24;
+            --accent-crimson: #fb7185;
+            --accent-violet: #a78bfa;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            background-color: var(--bg-app);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* =========================================================
+           2. TOP MATLAB-STYLE TOOLBAR & RESPONSIVE NAV
+           ========================================================= */
+        .workbench-app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .top-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.65rem 1rem;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-line);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.75rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-line);
+            background: var(--bg-pane-alt);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 600;
+            transition: border-color 0.18s ease, color 0.18s ease;
+        }
+
+        .back-link:hover,
+        .back-link:focus-visible {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            outline: none;
+        }
+
+        .brand-title {
+            font-family: var(--font-mono);
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: var(--text-primary);
+        }
+
+        .brand-title span {
+            color: var(--accent-primary);
+        }
+
+        .solver-tag {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            padding: 0.22rem 0.55rem;
+            border-radius: 4px;
+            background: var(--accent-primary-soft);
+            color: var(--accent-primary);
+            border: 1px solid var(--border-line);
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .theme-group {
+            display: inline-flex;
+            background: var(--bg-pane-alt);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .theme-btn {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.32rem 0.62rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .theme-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .theme-btn[aria-pressed="true"] {
+            background: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        html[data-theme="dark"] .theme-btn[aria-pressed="true"] {
+            color: #070b12;
+        }
+
+        /* Mobile / Tablet Pane Switcher (hidden on wide desktop) */
+        .mobile-pane-bar {
+            display: none;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-line);
+            padding: 0.45rem 0.75rem;
+            gap: 0.4rem;
+        }
+
+        .mobile-pane-btn {
+            flex: 1;
+            appearance: none;
+            border: 1px solid var(--border-line);
+            background: var(--bg-pane-alt);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 0.48rem 0.5rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+
+        .mobile-pane-btn[aria-pressed="true"] {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        html[data-theme="dark"] .mobile-pane-btn[aria-pressed="true"] {
+            color: #070b12;
+        }
+
+        /* =========================================================
+           3. MULTI-PANE WORKBENCH GRID (LEFT | CENTRE | RIGHT)
+           ========================================================= */
+        .workbench-main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 270px minmax(0, 1.45fr) 360px;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem 1rem;
+            max-width: 1800px;
+            width: 100%;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        .workbench-main.tree-collapsed {
+            grid-template-columns: 52px minmax(0, 1.55fr) 360px;
+        }
+
+        .pane {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .pane-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.65rem 0.85rem;
+            background: var(--bg-pane-alt);
+            border-bottom: 1px solid var(--border-line);
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .pane-header-title {
+            color: var(--accent-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .collapse-btn {
+            appearance: none;
+            border: 1px solid var(--border-line);
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.22rem 0.48rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .collapse-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        /* =========================================================
+           4. LEFT PANE: DISCIPLINE & MODEL TREE
+           ========================================================= */
+        .tree-filter-wrap {
+            padding: 0.6rem 0.7rem;
+            border-bottom: 1px solid var(--border-line);
+        }
+
+        .tree-filter-input {
+            width: 100%;
+            padding: 0.45rem 0.65rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-line);
+            background: var(--bg-pane-alt);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            outline: none;
+        }
+
+        .tree-filter-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .tree-body {
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            max-height: calc(100dvh - 145px);
+            overflow-y: auto;
+        }
+
+        .workbench-main.tree-collapsed .tree-filter-wrap,
+        .workbench-main.tree-collapsed .tree-body,
+        .workbench-main.tree-collapsed .pane-header-title {
+            display: none;
+        }
+
+        .workbench-main.tree-collapsed .pane-header {
+            justify-content: center;
+            padding: 0.65rem 0.25rem;
+        }
+
+        .domain-group {
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-sm);
+            background: var(--bg-pane-alt);
+            overflow: hidden;
+        }
+
+        .domain-toggle {
+            width: 100%;
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.52rem 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .domain-toggle:hover {
+            background: var(--accent-primary-soft);
+        }
+
+        .domain-models {
+            display: flex;
+            flex-direction: column;
+            border-top: 1px solid var(--border-line);
+            padding: 0.25rem;
+            gap: 0.2rem;
+        }
+
+        .domain-models.is-closed {
+            display: none;
+        }
+
+        .model-item-btn {
+            appearance: none;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-align: left;
+            padding: 0.45rem 0.55rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .model-item-btn:hover {
+            background: var(--accent-primary-soft);
+            color: var(--text-primary);
+        }
+
+        .model-item-btn[aria-current="true"] {
+            background: var(--accent-primary-soft);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .model-sub-tag {
+            font-size: 0.63rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* =========================================================
+           5. CENTRE PANE: PLOT VIEWPORT, TRANSPORT & PARAMETERS
+           ========================================================= */
+        .centre-pane {
+            gap: 0.85rem;
+            padding: 0.85rem;
+        }
+
+        .model-banner {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-line);
+        }
+
+        .model-banner h2 {
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .model-banner p {
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+            max-width: 72ch;
+        }
+
+        .transport-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            background: var(--bg-pane-alt);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-md);
+            padding: 0.55rem 0.75rem;
+        }
+
+        .transport-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .ctrl-btn {
+            appearance: none;
+            border: 1px solid var(--border-line);
+            background: var(--bg-panel);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.44rem 0.75rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .ctrl-btn.is-primary {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        html[data-theme="dark"] .ctrl-btn.is-primary {
+            color: #070b12;
+        }
+
+        .cursor-readout {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: var(--bg-panel);
+            border: 1px solid var(--border-line);
+            padding: 0.36rem 0.65rem;
+            border-radius: var(--radius-sm);
+            min-width: 195px;
+            text-align: right;
+        }
+
+        .plot-frame {
+            position: relative;
+            width: 100%;
+            height: 410px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        #scientific-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .plot-legend-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.1rem;
+        }
+
+        .legend-swatch {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .swatch-line {
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        /* Parameter Sliders Grid */
+        .params-box {
+            background: var(--bg-pane-alt);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-md);
+            padding: 0.8rem;
+        }
+
+        .params-heading {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            margin-bottom: 0.65rem;
+        }
+
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.85rem;
+        }
+
+        .slider-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-sm);
+            padding: 0.6rem 0.7rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .slider-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+        }
+
+        .slider-name {
+            color: var(--text-secondary);
+        }
+
+        .slider-readout {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+            height: 6px;
+        }
+
+        /* =========================================================
+           6. RIGHT PANE: KATEX EQUATIONS & LIVE WORKSPACE INSPECTOR
+           ========================================================= */
+        .right-pane {
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .sub-card {
+            background: var(--bg-pane-alt);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .sub-card-title {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            border-bottom: 1px solid var(--border-line);
+            padding-bottom: 0.4rem;
+        }
+
+        .katex-formula-well {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            overflow-x: auto;
+            font-size: 1.02rem;
+        }
+
+        .var-legend-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .var-legend-list li strong {
+            color: var(--text-primary);
+        }
+
+        .workspace-table-wrap {
+            overflow-x: auto;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-line);
+            border-radius: var(--radius-sm);
+        }
+
+        .workspace-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+        }
+
+        .workspace-table th,
+        .workspace-table td {
+            padding: 0.42rem 0.55rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-line);
+        }
+
+        .workspace-table th {
+            color: var(--text-muted);
+            font-weight: 700;
+            background: var(--bg-pane-alt);
+        }
+
+        .workspace-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ws-name {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .ws-val {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* =========================================================
+           7. RESPONSIVE BREAKPOINTS (TABLET & MOBILE)
+           ========================================================= */
+        @media (max-width: 1120px) {
+            .workbench-main,
+            .workbench-main.tree-collapsed {
+                grid-template-columns: 230px minmax(0, 1fr) 310px;
+                gap: 0.6rem;
+                padding: 0.6rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .mobile-pane-bar {
+                display: flex;
+            }
+
+            .workbench-main,
+            .workbench-main.tree-collapsed {
+                grid-template-columns: 1fr;
+                padding: 0.6rem;
+            }
+
+            .pane {
+                display: none;
+            }
+
+            .pane.is-mobile-active {
+                display: flex;
+            }
+
+            .tree-body {
+                max-height: none;
+            }
+
+            .plot-frame {
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="workbench-app">
+
+        <!-- Top Toolbar -->
+        <header class="top-toolbar">
+            <div class="toolbar-left">
+                <a href="index.html" class="back-link">&larr; Gateway</a>
+                <div class="brand-title">Negarandeh <span>// Scientific Workbench</span></div>
+                <span class="solver-tag" id="active-solver-badge">SOLVER: RK4 / VERLET / PID</span>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="theme-group" role="group" aria-label="Display theme mode">
+                    <button type="button" class="theme-btn" data-mode="auto" aria-pressed="true">Auto</button>
+                    <button type="button" class="theme-btn" data-mode="light" aria-pressed="false">Day</button>
+                    <button type="button" class="theme-btn" data-mode="dark" aria-pressed="false">Night</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile / Tablet Pane Switcher -->
+        <nav class="mobile-pane-bar" aria-label="Switch workbench pane">
+            <button type="button" class="mobile-pane-btn" data-pane="tree" aria-pressed="false">1. Model Tree</button>
+            <button type="button" class="mobile-pane-btn" data-pane="centre" aria-pressed="true">2. Plot &amp; Controls</button>
+            <button type="button" class="mobile-pane-btn" data-pane="right" aria-pressed="false">3. Equations &amp; Workspace</button>
+        </nav>
+
+        <!-- Three-Pane MATLAB-Style Grid -->
+        <main class="workbench-main" id="workbench-main">
+
+            <!-- LEFT PANE: Collapsible Discipline & Model Tree -->
+            <aside class="pane" id="pane-tree" aria-label="Discipline and Model Explorer">
+                <div class="pane-header">
+                    <span class="pane-header-title">Model Explorer</span>
+                    <button type="button" class="collapse-btn" id="toggle-tree-btn" title="Collapse or expand model tree" aria-expanded="true">&laquo;</button>
+                </div>
+
+                <div class="tree-filter-wrap">
+                    <input type="search" id="tree-filter-input" class="tree-filter-input" placeholder="Filter models (e.g. PID, FFT, RK4, Lorenz)..." autocomplete="off" spellcheck="false" aria-label="Filter simulation models">
+                </div>
+
+                <div class="tree-body" id="model-tree-body"></div>
+            </aside>
+
+            <!-- CENTRE PANE: Plot Viewport, Transport Controls & Parameter Sliders -->
+            <section class="pane centre-pane is-mobile-active" id="pane-centre" aria-label="Scientific Plot Viewport and Parameters">
+                <div class="model-banner">
+                    <div>
+                        <h2 id="model-heading">Discrete-Time PID Step Response (Second-Order Plant)</h2>
+                        <p id="model-summary">Simulates closed-loop proportional-integral-derivative control on a second-order physical plant, tracking setpoint step response, plant output, and tracking error.</p>
+                    </div>
+                </div>
+
+                <!-- Transport & Crosshair Readout Bar -->
+                <div class="transport-bar">
+                    <div class="transport-buttons">
+                        <button type="button" class="ctrl-btn is-primary" id="btn-play-pause">Pause</button>
+                        <button type="button" class="ctrl-btn" id="btn-step">Step (&Delta;t)</button>
+                        <button type="button" class="ctrl-btn" id="btn-reset">Reset</button>
+                    </div>
+                    <div class="cursor-readout" id="cursor-readout">CURSOR: hover plot</div>
+                </div>
+
+                <!-- High-DPI Plot Canvas -->
+                <div class="plot-frame" id="plot-frame">
+                    <canvas id="scientific-canvas" aria-label="Scientific numerical simulation plot"></canvas>
+                </div>
+
+                <!-- Trace Legend -->
+                <div class="plot-legend-strip" id="plot-legend"></div>
+
+                <!-- Parameter Sliders -->
+                <div class="params-box">
+                    <div class="params-heading">Model Parameters &amp; Initial Conditions</div>
+                    <div class="sliders-grid" id="sliders-grid"></div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANE: KaTeX Governing Equations & Live Workspace Inspector -->
+            <aside class="pane right-pane" id="pane-right" aria-label="Equations and Live Workspace Variables">
+                <div class="sub-card">
+                    <div class="sub-card-title">Governing Equations (KaTeX)</div>
+                    <div class="katex-formula-well" id="equation-latex-box"></div>
+                    <ul class="var-legend-list" id="equation-vars-list"></ul>
+                </div>
+
+                <div class="sub-card">
+                    <div class="sub-card-title">Live Workspace Variables</div>
+                    <div class="workspace-table-wrap">
+                        <table class="workspace-table" aria-label="Live simulation workspace variables">
+                            <thead>
+                                <tr>
+                                    <th>Variable</th>
+                                    <th>Role</th>
+                                    <th style="text-align:right;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workspace-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+
+    <script>
+'use strict';
+
+(function () {
+    /* =========================================================
+       1. MODEL CATALOGUE (6 REQUIRED DOMAINS, 7 ACCURATE SOLVERS)
+       ========================================================= */
+    var MODELS = [
+        {
+            id: 'pid-control',
+            domain: '01_Control_Systems',
+            domainLabel: 'Control Systems',
+            name: 'PID Step Response (2nd-Order Plant)',
+            tag: 'Discrete PID + Plant',
+            solverBadge: 'SOLVER: DISCRETE PID (dt = 0.02s)',
+            summary: 'Discrete-time PID controller driving a damped second-order plant G(s) = \u03c9_n\u00b2 / (s\u00b2 + 2\u03b6\u03c9_n s + \u03c9_n\u00b2) across a unit step change, plotting setpoint r(t), output y(t), and error e(t).',
+            latex: 'u[k] = K_p e[k] + K_i T_s \\sum_{j=0}^{k} e[j] + K_d \\frac{e[k] - e[k-1]}{T_s}, \\quad \\ddot{y} + 2\\zeta\\omega_n\\dot{y} + \\omega_n^2 y = \\omega_n^2 u',
+            vars: [
+                ['r(t), y(t), e(t)', 'Setpoint, plant output, and tracking error r(t) \u2212 y(t)'],
+                ['K_p, K_i, K_d', 'Proportional, integral, and derivative controller gains'],
+                ['\u03c9_n, \u03b6', 'Plant natural frequency (rad/s) and damping ratio']
+            ],
+            legend: [
+                { label: 'Setpoint r(t)', colour: '#38bdf8' },
+                { label: 'Plant Output y(t)', colour: '#2dd4bf' },
+                { label: 'Error e(t)', colour: '#fb7185' }
+            ],
+            sliders: [
+                { key: 'kp', label: 'Proportional Gain (K_p)', min: 0.2, max: 5.0, step: 0.1, val: 1.8, unit: '' },
+                { key: 'ki', label: 'Integral Gain (K_i)', min: 0.0, max: 4.0, step: 0.1, val: 0.9, unit: ' /s' },
+                { key: 'kd', label: 'Derivative Gain (K_d)', min: 0.0, max: 2.5, step: 0.05, val: 0.35, unit: ' s' },
+                { key: 'setpoint', label: 'Step Setpoint (r)', min: 0.2, max: 2.0, step: 0.1, val: 1.0, unit: '' }
+            ]
+        },
+        {
+            id: 'dsp-fourier',
+            domain: '02_DSP_&_Signals',
+            domainLabel: 'Digital Signal Processing',
+            name: 'Fourier Synthesis & FFT Spectrum',
+            tag: 'Harmonic Series + DFT Bins',
+            solverBadge: 'SOLVER: HARMONIC SYNTHESIS + MAGNITUDE DFT',
+            summary: 'Synthesises a square/sawtooth-blended periodic waveform from N harmonics in the upper viewport and displays its discrete frequency-domain magnitude spectrum |X[k]| below.',
+            latex: 'x(t) = \\frac{4A}{\\pi} \\sum_{m=0}^{N-1} \\frac{\\sin\\big((2m+1)\\omega_0 t\\big)}{2m+1}, \\quad |X[k]| = \\left| \\sum_{n=0}^{M-1} x[n] e^{-j 2\\pi k n / M} \\right|',
+            vars: [
+                ['N', 'Number of retained Fourier harmonics (1 to 25)'],
+                ['f_0', 'Fundamental frequency (Hz) of the periodic signal'],
+                ['|X[k]|', 'Discrete Fourier transform magnitude across harmonic bins']
+            ],
+            legend: [
+                { label: 'Synthesised Wave x(t)', colour: '#38bdf8' },
+                { label: 'Harmonic Bins |X[k]|', colour: '#2dd4bf' }
+            ],
+            sliders: [
+                { key: 'harmonics', label: 'Harmonic Count (N)', min: 1, max: 25, step: 1, val: 7, unit: '' },
+                { key: 'f0', label: 'Fundamental Freq (f_0)', min: 1.0, max: 6.0, step: 0.5, val: 2.0, unit: ' Hz' },
+                { key: 'amp', label: 'Waveform Amplitude (A)', min: 0.2, max: 1.5, step: 0.1, val: 1.0, unit: ' V' }
+            ]
+        },
+        {
+            id: 'physics-rk4-oscillator',
+            domain: '03_Physics',
+            domainLabel: 'Physics',
+            name: 'RK4 Damped Harmonic Oscillator',
+            tag: '4th-Order Runge-Kutta',
+            solverBadge: 'SOLVER: RK4 (dt = 0.02s)',
+            summary: 'Integrates a driven, damped harmonic oscillator using fourth-order Runge-Kutta (RK4), plotting displacement x(t) and velocity v(t) with high phase accuracy.',
+            latex: 'm\\ddot{x} + c\\dot{x} + kx = F_d\\cos(\\Omega t), \\quad \\mathbf{y}_{n+1} = \\mathbf{y}_n + \\frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)',
+            vars: [
+                ['x(t), v(t)', 'Displacement (m) and velocity (m/s) state vector'],
+                ['c', 'Viscous damping coefficient (N\u00b7s/m)'],
+                ['k, F_d', 'Spring stiffness (N/m) and drive amplitude (N)']
+            ],
+            legend: [
+                { label: 'Displacement x(t)', colour: '#38bdf8' },
+                { label: 'Velocity v(t)', colour: '#fbbf24' }
+            ],
+            sliders: [
+                { key: 'damping', label: 'Damping Coeff (c)', min: 0.0, max: 2.5, step: 0.05, val: 0.25, unit: ' Ns/m' },
+                { key: 'stiffness', label: 'Spring Stiffness (k)', min: 1.0, max: 12.0, step: 0.5, val: 4.0, unit: ' N/m' },
+                { key: 'driveForce', label: 'Drive Amplitude (F_d)', min: 0.0, max: 4.0, step: 0.2, val: 1.2, unit: ' N' }
+            ]
+        },
+        {
+            id: 'physics-verlet-orbit',
+            domain: '03_Physics',
+            domainLabel: 'Physics',
+            name: 'Velocity Verlet Orbital Mechanics',
+            tag: 'Symplectic Integrator',
+            solverBadge: 'SOLVER: VELOCITY VERLET (SYMPLECTIC)',
+            summary: 'Simulates a two-body central inverse-square orbit using Velocity Verlet integration, preserving orbital energy and angular momentum over long trajectories.',
+            latex: '\\mathbf{r}_{n+1} = \\mathbf{r}_n + \\mathbf{v}_n\\Delta t + \\tfrac{1}{2}\\mathbf{a}_n\\Delta t^2, \\quad \\mathbf{v}_{n+1} = \\mathbf{v}_n + \\tfrac{1}{2}(\\mathbf{a}_n + \\mathbf{a}_{n+1})\\Delta t',
+            vars: [
+                ['(x, y), (v_x, v_y)', 'Orbital position and velocity components in plane'],
+                ['\u03bc = GM', 'Gravitational parameter governing central attraction'],
+                ['E_spec', 'Specific orbital energy \u00bdv\u00b2 \u2212 \u03bc/r']
+            ],
+            legend: [
+                { label: 'Orbital Trajectory', colour: '#38bdf8' },
+                { label: 'Central Mass', colour: '#fbbf24' },
+                { label: 'Velocity Vector', colour: '#2dd4bf' }
+            ],
+            sliders: [
+                { key: 'mu', label: 'Gravitational Param (\u03bc)', min: 200, max: 1200, step: 50, val: 650, unit: '' },
+                { key: 'v0x', label: 'Initial Tangential v_x', min: 8, max: 28, step: 1, val: 18, unit: '' },
+                { key: 'r0y', label: 'Initial Radius r_0', min: 45, max: 120, step: 5, val: 85, unit: '' }
+            ]
+        },
+        {
+            id: 'math-lorenz',
+            domain: '04_Mathematics',
+            domainLabel: 'Mathematics',
+            name: 'RK4 Lorenz Attractor & Divergence',
+            tag: 'Chaos + \u0394x\u2080 = 10\u207b\u2075',
+            solverBadge: 'SOLVER: DUAL-TRAJECTORY RK4',
+            summary: 'Integrates two Lorenz trajectories separated initially by \u0394x\u2080 = 10\u207b\u2075 via RK4, showing phase-space projection (x vs. z) alongside exponential trajectory divergence.',
+            latex: '\\frac{dx}{dt} = \\sigma(y - x), \\quad \\frac{dy}{dt} = x(\\rho - z) - y, \\quad \\frac{dz}{dt} = xy - \\beta z',
+            vars: [
+                ['\u03c3, \u03c1, \u03b2', 'Prandtl number (\u03c3), Rayleigh ratio (\u03c1), and geometric factor (\u03b2)'],
+                ['\u03b4(t)', 'Euclidean separation ||X_b(t) \u2212 X_a(t)|| between twin trajectories']
+            ],
+            legend: [
+                { label: 'Trajectory A (x, z)', colour: '#38bdf8' },
+                { label: 'Perturbed Twin B (\u0394x\u2080=10\u207b\u2075)', colour: '#fb7185' }
+            ],
+            sliders: [
+                { key: 'rho', label: 'Rayleigh Parameter (\u03c1)', min: 10, max: 45, step: 0.5, val: 28.0, unit: '' },
+                { key: 'sigma', label: 'Prandtl Number (\u03c3)', min: 4, max: 20, step: 0.5, val: 10.0, unit: '' },
+                { key: 'betaNum', label: 'Beta Ratio (8/3 \u00d7 factor)', min: 0.5, max: 1.5, step: 0.05, val: 1.0, unit: '\u00d7' }
+            ]
+        },
+        {
+            id: 'cs-shannon',
+            domain: '05_Computer_Science',
+            domainLabel: 'Computer Science & Info',
+            name: 'Shannon Entropy & Channel Capacity',
+            tag: 'H(X) & Hartley Capacity',
+            solverBadge: 'SOLVER: EXACT INFORMATION METRICS',
+            summary: 'Evaluates binary Shannon entropy H(p) across probability p \u2208 (0, 1) and Shannon\u2013Hartley channel capacity C = B\u00b7log\u2082(1 + SNR) in megabits per second.',
+            latex: 'H(p) = -p\\log_2 p - (1-p)\\log_2(1-p), \\quad C = B\\log_2\\!\\left(1 + \\text{SNR}\\right)',
+            vars: [
+                ['H(p)', 'Information entropy per symbol in bits (maximum 1.0 bit at p = 0.5)'],
+                ['C', 'Upper bound on error-free channel bit rate (Mbit/s)'],
+                ['B, SNR', 'Channel bandwidth (MHz) and linear signal-to-noise ratio']
+            ],
+            legend: [
+                { label: 'Entropy Curve H(p)', colour: '#38bdf8' },
+                { label: 'Active Operating Point', colour: '#2dd4bf' }
+            ],
+            sliders: [
+                { key: 'prob', label: 'Symbol Probability (p)', min: 0.01, max: 0.99, step: 0.01, val: 0.50, unit: '' },
+                { key: 'bw', label: 'Bandwidth (B)', min: 5, max: 100, step: 5, val: 25, unit: ' MHz' },
+                { key: 'snr', label: 'Linear SNR', min: 1, max: 64, step: 1, val: 15, unit: '' }
+            ]
+        },
+        {
+            id: 'ir-2026-nn',
+            domain: '06_Informational_Relativity',
+            domainLabel: 'Informational Relativity (IR-2026-NN)',
+            name: 'Signal Propagation & Geodesic Shortening',
+            tag: 'Negarandeh Thesis Model',
+            solverBadge: 'SOLVER: IR-2026-NN MANIFOLD METRIC',
+            summary: 'Models linear classical propagation delay against density-curved effective geodesic shortening as informational density (\u03c1_info) increases, alongside I = m_i c_i\u00b2.',
+            latex: 'I = m_i c_i^2, \\quad G_{\\mu\\nu} = \\kappa_i T_{\\mu\\nu}^{(\\text{info})}(\\rho_{\\text{info}}), \\quad d_{\\text{eff}} = \\frac{d_0}{1 + \\alpha \\rho_{\\text{info}}}',
+            vars: [
+                ['\u03c1_info', 'Local informational density parameter across the manifold'],
+                ['d_eff / d_0', 'Effective geodesic path contraction ratio under density curvature'],
+                ['I = m_i c_i\u00b2', 'Informational energy metric from inertia m_i and limit c_i']
+            ],
+            legend: [
+                { label: 'Linear Baseline Delay', colour: '#94a3b8' },
+                { label: 'Curved Geodesic Path', colour: '#38bdf8' },
+                { label: 'Density Well Core', colour: '#fb7185' }
+            ],
+            sliders: [
+                { key: 'rhoInfo', label: 'Info Density (\u03c1_info)', min: 0.0, max: 5.0, step: 0.1, val: 2.2, unit: '' },
+                { key: 'alphaCurv', label: 'Curvature Coupling (\u03b1)', min: 0.1, max: 2.0, step: 0.05, val: 0.65, unit: '' },
+                { key: 'mi', label: 'Info Inertia (m_i)', min: 0.5, max: 10.0, step: 0.5, val: 3.5, unit: '' }
+            ]
+        }
+    ];
+
+    /* =========================================================
+       2. APPLICATION STATE & THEME MANAGEMENT
+       ========================================================= */
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    var state = {
+        themeMode: 'auto',
+        isDark: true,
+        activeModelId: 'pid-control',
+        running: true,
+        treeCollapsed: false,
+        mobilePane: 'centre',
+        treeFilter: '',
+        cursor: { active: false, x: 0, y: 0, plotX: 0, plotY: 0 },
+        params: {
+            // PID
+            kp: 1.8, ki: 0.9, kd: 0.35, setpoint: 1.0,
+            // DSP
+            harmonics: 7, f0: 2.0, amp: 1.0,
+            // RK4 Oscillator
+            damping: 0.25, stiffness: 4.0, driveForce: 1.2,
+            // Verlet Orbit
+            mu: 650, v0x: 18, r0y: 85,
+            // Lorenz
+            rho: 28.0, sigma: 10.0, betaNum: 1.0,
+            // Shannon
+            prob: 0.50, bw: 25, snr: 15,
+            // IR-2026-NN
+            rhoInfo: 2.2, alphaCurv: 0.65, mi: 3.5
+        },
+        sim: {
+            t: 0,
+            // PID state
+            pidY: 0, pidV: 0, pidInt: 0, pidPrevE: 0,
+            pidHistory: [],
+            // Oscillator RK4 state
+            oscX: 1.0, oscV: 0.0,
+            oscHistory: [],
+            // Verlet orbit state
+            orbX: 0, orbY: -85, orbVx: 18, orbVy: 0,
+            orbTrail: [],
+            // Lorenz dual trajectory state
+            lorA: { x: 0.1, y: 0.0, z: 0.0 },
+            lorB: { x: 0.10001, y: 0.0, z: 0.0 },
+            lorTrailA: [],
+            lorTrailB: []
+        }
+    };
+
+    var themeButtons = document.querySelectorAll('.theme-btn');
+
+    function applyTheme(mode) {
+        state.themeMode = mode;
+        var dark = (mode === 'dark') || (mode === 'auto' && darkSchemeQuery.matches);
+        state.isDark = dark;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+
+        for (var i = 0; i < themeButtons.length; i++) {
+            var b = themeButtons[i];
+            b.setAttribute('aria-pressed', b.getAttribute('data-mode') === mode ? 'true' : 'false');
+        }
+        renderPlot();
+    }
+
+    for (var i = 0; i < themeButtons.length; i++) {
+        themeButtons[i].addEventListener('click', function (e) {
+            applyTheme(e.currentTarget.getAttribute('data-mode') || 'auto');
+        });
+    }
+
+    if (typeof darkSchemeQuery.addEventListener === 'function') {
+        darkSchemeQuery.addEventListener('change', function () {
+            if (state.themeMode === 'auto') applyTheme('auto');
+        });
+    }
+
+    /* =========================================================
+       3. NUMERICAL SOLVERS (RK4, VERLET, PID, DFT, METRICS)
+       ========================================================= */
+    function getActiveModel() {
+        for (var i = 0; i < MODELS.length; i++) {
+            if (MODELS[i].id === state.activeModelId) return MODELS[i];
+        }
+        return MODELS[0];
+    }
+
+    function resetSimulationState() {
+        var s = state.sim;
+        var p = state.params;
+        s.t = 0;
+
+        s.pidY = 0;
+        s.pidV = 0;
+        s.pidInt = 0;
+        s.pidPrevE = p.setpoint;
+        s.pidHistory = [{ t: 0, r: p.setpoint, y: 0, e: p.setpoint }];
+
+        s.oscX = 1.0;
+        s.oscV = 0.0;
+        s.oscHistory = [{ t: 0, x: 1.0, v: 0.0 }];
+
+        s.orbX = 0;
+        s.orbY = -p.r0y;
+        s.orbVx = p.v0x;
+        s.orbVy = 0;
+        s.orbTrail = [{ x: s.orbX, y: s.orbY }];
+
+        s.lorA = { x: 0.1, y: 0.0, z: 0.0 };
+        s.lorB = { x: 0.1 + 1e-5, y: 0.0, z: 0.0 };
+        s.lorTrailA = [{ x: s.lorA.x, z: s.lorA.z }];
+        s.lorTrailB = [{ x: s.lorB.x, z: s.lorB.z }];
+    }
+
+    function stepPidDiscrete(dt) {
+        var s = state.sim;
+        var p = state.params;
+        var wn = 2.6;
+        var zeta = 0.55;
+
+        // Step change after t = 1.0s so transient response is clearly visible
+        var r = s.t >= 1.0 ? p.setpoint : 0.0;
+        var e = r - s.pidY;
+        s.pidInt += e * dt;
+        // Anti-windup clamp
+        s.pidInt = Math.max(-10, Math.min(10, s.pidInt));
+        var de = (e - s.pidPrevE) / dt;
+        s.pidPrevE = e;
+
+        var u = p.kp * e + p.ki * s.pidInt + p.kd * de;
+        u = Math.max(-8, Math.min(8, u));
+
+        // Sub-step 2nd-order plant with Euler-Cromer / semi-implicit refinement
+        var subSteps = 4;
+        var h = dt / subSteps;
+        for (var k = 0; k < subSteps; k++) {
+            var acc = wn * wn * (u - s.pidY) - 2 * zeta * wn * s.pidV;
+            s.pidV += acc * h;
+            s.pidY += s.pidV * h;
+        }
+
+        s.t = Number((s.t + dt).toFixed(4));
+        s.pidHistory.push({ t: s.t, r: r, y: s.pidY, e: e });
+        if (s.pidHistory.length > 350) s.pidHistory.shift();
+    }
+
+    function oscAccel(x, v, t) {
+        var p = state.params;
+        var omegaDrive = Math.sqrt(p.stiffness);
+        return (-p.damping * v - p.stiffness * x + p.driveForce * Math.cos(omegaDrive * t));
+    }
+
+    function stepOscillatorRK4(dt) {
+        var s = state.sim;
+        var t = s.t;
+        var x = s.oscX;
+        var v = s.oscV;
+
+        var k1x = v;
+        var k1v = oscAccel(x, v, t);
+
+        var k2x = v + 0.5 * dt * k1v;
+        var k2v = oscAccel(x + 0.5 * dt * k1x, v + 0.5 * dt * k1v, t + 0.5 * dt);
+
+        var k3x = v + 0.5 * dt * k2v;
+        var k3v = oscAccel(x + 0.5 * dt * k2x, v + 0.5 * dt * k2v, t + 0.5 * dt);
+
+        var k4x = v + dt * k3v;
+        var k4v = oscAccel(x + dt * k3x, v + dt * k3v, t + dt);
+
+        s.oscX = x + (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);
+        s.oscV = v + (dt / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
+        s.t = Number((t + dt).toFixed(4));
+
+        s.oscHistory.push({ t: s.t, x: s.oscX, v: s.oscV });
+        if (s.oscHistory.length > 350) s.oscHistory.shift();
+    }
+
+    function orbitAccel(x, y, mu) {
+        var r2 = x * x + y * y;
+        var r = Math.max(12, Math.sqrt(r2));
+        var invR3 = -mu / (r * r * r);
+        return { ax: invR3 * x, ay: invR3 * y };
+    }
+
+    function stepOrbitVerlet(dt) {
+        var s = state.sim;
+        var mu = state.params.mu;
+        var h = dt * 1.4;
+
+        var a0 = orbitAccel(s.orbX, s.orbY, mu);
+        var nx = s.orbX + s.orbVx * h + 0.5 * a0.ax * h * h;
+        var ny = s.orbY + s.orbVy * h + 0.5 * a0.ay * h * h;
+        var a1 = orbitAccel(nx, ny, mu);
+
+        s.orbVx += 0.5 * (a0.ax + a1.ax) * h;
+        s.orbVy += 0.5 * (a0.ay + a1.ay) * h;
+        s.orbX = nx;
+        s.orbY = ny;
+        s.t = Number((s.t + dt).toFixed(4));
+
+        s.orbTrail.push({ x: s.orbX, y: s.orbY });
+        if (s.orbTrail.length > 420) s.orbTrail.shift();
+    }
+
+    function lorenzDeriv(st, sigma, rho, beta) {
+        return {
+            dx: sigma * (st.y - st.x),
+            dy: st.x * (rho - st.z) - st.y,
+            dz: st.x * st.y - beta * st.z
+        };
+    }
+
+    function stepSingleLorenzRK4(st, dt, sigma, rho, beta) {
+        var k1 = lorenzDeriv(st, sigma, rho, beta);
+        var s2 = { x: st.x + 0.5 * dt * k1.dx, y: st.y + 0.5 * dt * k1.dy, z: st.z + 0.5 * dt * k1.dz };
+        var k2 = lorenzDeriv(s2, sigma, rho, beta);
+        var s3 = { x: st.x + 0.5 * dt * k2.dx, y: st.y + 0.5 * dt * k2.dy, z: st.z + 0.5 * dt * k2.dz };
+        var k3 = lorenzDeriv(s3, sigma, rho, beta);
+        var s4 = { x: st.x + dt * k3.dx, y: st.y + dt * k3.dy, z: st.z + dt * k3.dz };
+        var k4 = lorenzDeriv(s4, sigma, rho, beta);
+
+        return {
+            x: st.x + (dt / 6) * (k1.dx + 2 * k2.dx + 2 * k3.dx + k4.dx),
+            y: st.y + (dt / 6) * (k1.dy + 2 * k2.dy + 2 * k3.dy + k4.dy),
+            z: st.z + (dt / 6) * (k1.dz + 2 * k2.dz + 2 * k3.dz + k4.dz)
+        };
+    }
+
+    function stepLorenzRK4(dt) {
+        var s = state.sim;
+        var p = state.params;
+        var beta = (8 / 3) * p.betaNum;
+        var h = dt * 0.45;
+
+        s.lorA = stepSingleLorenzRK4(s.lorA, h, p.sigma, p.rho, beta);
+        s.lorB = stepSingleLorenzRK4(s.lorB, h, p.sigma, p.rho, beta);
+        s.t = Number((s.t + dt).toFixed(4));
+
+        s.lorTrailA.push({ x: s.lorA.x, z: s.lorA.z });
+        s.lorTrailB.push({ x: s.lorB.x, z: s.lorB.z });
+        if (s.lorTrailA.length > 450) s.lorTrailA.shift();
+        if (s.lorTrailB.length > 450) s.lorTrailB.shift();
+    }
+
+    function advanceSimulationStep() {
+        var id = state.activeModelId;
+        var dt = 0.02;
+
+        if (id === 'pid-control') {
+            stepPidDiscrete(dt);
+        } else if (id === 'physics-rk4-oscillator') {
+            stepOscillatorRK4(dt);
+        } else if (id === 'physics-verlet-orbit') {
+            stepOrbitVerlet(dt);
+        } else if (id === 'math-lorenz') {
+            stepLorenzRK4(dt);
+        } else {
+            state.sim.t = Number((state.sim.t + dt).toFixed(4));
+        }
+        updateWorkspaceTable();
+    }
+
+    /* =========================================================
+       4. LEFT TREE, CENTRE CONTROLS & RIGHT INSPECTOR RENDERERS
+       ========================================================= */
+    var treeBody = document.getElementById('model-tree-body');
+    var treeFilterInput = document.getElementById('tree-filter-input');
+    var mainGrid = document.getElementById('workbench-main');
+    var toggleTreeBtn = document.getElementById('toggle-tree-btn');
+
+    function buildModelTree() {
+        while (treeBody.firstChild) treeBody.removeChild(treeBody.firstChild);
+
+        var filter = state.treeFilter.toLowerCase().trim();
+        var grouped = {};
+        var order = [];
+
+        for (var i = 0; i < MODELS.length; i++) {
+            var m = MODELS[i];
+            var match = !filter || (
+                m.name.toLowerCase().indexOf(filter) !== -1 ||
+                m.domainLabel.toLowerCase().indexOf(filter) !== -1 ||
+                m.tag.toLowerCase().indexOf(filter) !== -1
+            );
+            if (!match) continue;
+
+            if (!grouped[m.domain]) {
+                grouped[m.domain] = { label: m.domainLabel, items: [] };
+                order.push(m.domain);
+            }
+            grouped[m.domain].items.push(m);
+        }
+
+        for (var g = 0; g < order.length; g++) {
+            var domKey = order[g];
+            var grp = grouped[domKey];
+
+            var box = document.createElement('div');
+            box.className = 'domain-group';
+
+            var headBtn = document.createElement('button');
+            headBtn.type = 'button';
+            headBtn.className = 'domain-toggle';
+            headBtn.setAttribute('aria-expanded', 'true');
+
+            var lblSpan = document.createElement('span');
+            lblSpan.textContent = grp.label;
+            var arrSpan = document.createElement('span');
+            arrSpan.textContent = '\u25be';
+
+            headBtn.appendChild(lblSpan);
+            headBtn.appendChild(arrSpan);
+
+            var listDiv = document.createElement('div');
+            listDiv.className = 'domain-models';
+
+            (function (listRef, arrowRef) {
+                headBtn.addEventListener('click', function () {
+                    var closed = listRef.classList.toggle('is-closed');
+                    headBtn.setAttribute('aria-expanded', closed ? 'false' : 'true');
+                    arrowRef.textContent = closed ? '\u25b8' : '\u25be';
+                });
+            })(listDiv, arrSpan);
+
+            for (var k = 0; k < grp.items.length; k++) {
+                var item = grp.items[k];
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'model-item-btn';
+                btn.setAttribute('aria-current', item.id === state.activeModelId ? 'true' : 'false');
+
+                var titleLine = document.createElement('span');
+                titleLine.textContent = item.name;
+                var subLine = document.createElement('span');
+                subLine.className = 'model-sub-tag';
+                subLine.textContent = item.tag;
+
+                btn.appendChild(titleLine);
+                btn.appendChild(subLine);
+
+                (function (modelId) {
+                    btn.addEventListener('click', function () {
+                        selectModel(modelId);
+                        setMobilePane('centre');
+                    });
+                })(item.id);
+
+                listDiv.appendChild(btn);
+            }
+
+            box.appendChild(headBtn);
+            box.appendChild(listDiv);
+            treeBody.appendChild(box);
+        }
+    }
+
+    function renderKaTeX(target) {
+        if (typeof window.renderMathInElement === 'function') {
+            window.renderMathInElement(target, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ],
+                throwOnError: false
+            });
+        }
+    }
+
+    var modelHeadingEl = document.getElementById('model-heading');
+    var modelSummaryEl = document.getElementById('model-summary');
+    var solverBadgeEl = document.getElementById('active-solver-badge');
+    var plotLegendEl = document.getElementById('plot-legend');
+    var slidersGridEl = document.getElementById('sliders-grid');
+    var equationLatexBoxEl = document.getElementById('equation-latex-box');
+    var equationVarsListEl = document.getElementById('equation-vars-list');
+    var workspaceTbodyEl = document.getElementById('workspace-tbody');
+
+    function buildModelInspector() {
+        var m = getActiveModel();
+        modelHeadingEl.textContent = m.name;
+        modelSummaryEl.textContent = m.summary;
+        solverBadgeEl.textContent = m.solverBadge;
+
+        // Legend
+        while (plotLegendEl.firstChild) plotLegendEl.removeChild(plotLegendEl.firstChild);
+        for (var i = 0; i < m.legend.length; i++) {
+            var leg = m.legend[i];
+            var wrap = document.createElement('span');
+            wrap.className = 'legend-swatch';
+            var line = document.createElement('span');
+            line.className = 'swatch-line';
+            line.style.backgroundColor = leg.colour;
+            var txt = document.createTextNode(leg.label);
+            wrap.appendChild(line);
+            wrap.appendChild(txt);
+            plotLegendEl.appendChild(wrap);
+        }
+
+        // Parameter sliders
+        while (slidersGridEl.firstChild) slidersGridEl.removeChild(slidersGridEl.firstChild);
+        for (var s = 0; s < m.sliders.length; s++) {
+            var cfg = m.sliders[s];
+            var card = document.createElement('div');
+            card.className = 'slider-card';
+
+            var top = document.createElement('div');
+            top.className = 'slider-top';
+            var nSpan = document.createElement('span');
+            nSpan.className = 'slider-name';
+            nSpan.textContent = cfg.label;
+            var vSpan = document.createElement('span');
+            vSpan.className = 'slider-readout';
+            vSpan.textContent = state.params[cfg.key] + cfg.unit;
+            top.appendChild(nSpan);
+            top.appendChild(vSpan);
+
+            var inp = document.createElement('input');
+            inp.type = 'range';
+            inp.min = cfg.min;
+            inp.max = cfg.max;
+            inp.step = cfg.step;
+            inp.value = state.params[cfg.key];
+            inp.setAttribute('aria-label', cfg.label);
+
+            (function (pKey, unitStr, valEl, resOnOrbit) {
+                inp.addEventListener('input', function (e) {
+                    state.params[pKey] = parseFloat(e.target.value);
+                    valEl.textContent = state.params[pKey] + unitStr;
+                    if (resOnOrbit) {
+                        resetSimulationState();
+                    }
+                    updateWorkspaceTable();
+                    renderPlot();
+                });
+            })(cfg.key, cfg.unit, vSpan, m.id === 'physics-verlet-orbit');
+
+            card.appendChild(top);
+            card.appendChild(inp);
+            slidersGridEl.appendChild(card);
+        }
+
+        // KaTeX Governing Equations
+        equationLatexBoxEl.textContent = '$$' + m.latex + '$$';
+        renderKaTeX(equationLatexBoxEl);
+
+        while (equationVarsListEl.firstChild) equationVarsListEl.removeChild(equationVarsListEl.firstChild);
+        for (var v = 0; v < m.vars.length; v++) {
+            var li = document.createElement('li');
+            var st = document.createElement('strong');
+            st.textContent = m.vars[v][0] + ': ';
+            li.appendChild(st);
+            li.appendChild(document.createTextNode(m.vars[v][1]));
+            equationVarsListEl.appendChild(li);
+        }
+
+        updateWorkspaceTable();
+    }
+
+    function addWsRow(name, role, val) {
+        var tr = document.createElement('tr');
+        var tdN = document.createElement('td');
+        tdN.className = 'ws-name';
+        tdN.textContent = name;
+        var tdR = document.createElement('td');
+        tdR.textContent = role;
+        var tdV = document.createElement('td');
+        tdV.className = 'ws-val';
+        tdV.textContent = val;
+        tr.appendChild(tdN);
+        tr.appendChild(tdR);
+        tr.appendChild(tdV);
+        workspaceTbodyEl.appendChild(tr);
+    }
+
+    function updateWorkspaceTable() {
+        while (workspaceTbodyEl.firstChild) workspaceTbodyEl.removeChild(workspaceTbodyEl.firstChild);
+        var id = state.activeModelId;
+        var p = state.params;
+        var s = state.sim;
+
+        addWsRow('t', 'Elapsed time', s.t.toFixed(2) + ' s');
+
+        if (id === 'pid-control') {
+            var last = s.pidHistory[s.pidHistory.length - 1] || { r: p.setpoint, y: 0, e: p.setpoint };
+            addWsRow('r_ref', 'Step setpoint', last.r.toFixed(3));
+            addWsRow('y_out', 'Plant output', last.y.toFixed(4));
+            addWsRow('e_trk', 'Tracking error', last.e.toFixed(4));
+            addWsRow('K_p, K_i, K_d', 'PID gains', p.kp.toFixed(1) + ' / ' + p.ki.toFixed(1) + ' / ' + p.kd.toFixed(2));
+        } else if (id === 'dsp-fourier') {
+            var probHalf = 0.5;
+            var hBin1 = (4 * p.amp) / Math.PI;
+            var hBin3 = hBin1 / 3;
+            addWsRow('N_harm', 'Harmonics', String(p.harmonics));
+            addWsRow('f_0', 'Fundamental', p.f0.toFixed(1) + ' Hz');
+            addWsRow('c_1', '1st harmonic', hBin1.toFixed(3) + ' V');
+            addWsRow('c_3', '3rd harmonic', hBin3.toFixed(3) + ' V');
+            addWsRow('f_nyq', 'Nyquist ref', (p.f0 * p.harmonics * 2).toFixed(1) + ' Hz');
+        } else if (id === 'physics-rk4-oscillator') {
+            var w0 = Math.sqrt(p.stiffness);
+            var eMech = 0.5 * p.stiffness * s.oscX * s.oscX + 0.5 * s.oscV * s.oscV;
+            addWsRow('x(t)', 'Position', s.oscX.toFixed(4) + ' m');
+            addWsRow('v(t)', 'Velocity', s.oscV.toFixed(4) + ' m/s');
+            addWsRow('\u03c9_0', 'Natural freq', w0.toFixed(2) + ' rad/s');
+            addWsRow('E_mech', 'Energy proxy', eMech.toFixed(3) + ' J');
+        } else if (id === 'physics-verlet-orbit') {
+            var rMag = Math.hypot(s.orbX, s.orbY);
+            var vMag = Math.hypot(s.orbVx, s.orbVy);
+            var eps = 0.5 * vMag * vMag - p.mu / Math.max(1, rMag);
+            var angMom = s.orbX * s.orbVy - s.orbY * s.orbVx;
+            addWsRow('r_mag', 'Radial dist', rMag.toFixed(1) + ' px');
+            addWsRow('v_mag', 'Orbital speed', vMag.toFixed(1) + ' px/s');
+            addWsRow('\u03b5_spec', 'Specific energy', eps.toFixed(2));
+            addWsRow('L_z', 'Ang. momentum', angMom.toFixed(0));
+        } else if (id === 'math-lorenz') {
+            var dx = s.lorB.x - s.lorA.x;
+            var dy = s.lorB.y - s.lorA.y;
+            var dz = s.lorB.z - s.lorA.z;
+            var sep = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            addWsRow('x_A, z_A', 'State A', s.lorA.x.toFixed(2) + ', ' + s.lorA.z.toFixed(2));
+            addWsRow('\u03c1, \u03c3', 'Parameters', p.rho.toFixed(1) + ', ' + p.sigma.toFixed(1));
+            addWsRow('\u03b4(t)', 'Twin separation', sep.toExponential(2));
+        } else if (id === 'cs-shannon') {
+            var pr = p.prob;
+            var hVal = -(pr * Math.log2(pr) + (1 - pr) * Math.log2(1 - pr));
+            var cap = p.bw * Math.log2(1 + p.snr);
+            addWsRow('p', 'Symbol prob.', pr.toFixed(2));
+            addWsRow('H(p)', 'Entropy', hVal.toFixed(4) + ' bits');
+            addWsRow('C_chan', 'Capacity', cap.toFixed(2) + ' Mbit/s');
+            addWsRow('SNR_dB', 'Decibel SNR', (10 * Math.log10(p.snr)).toFixed(1) + ' dB');
+        } else if (id === 'ir-2026-nn') {
+            var cSq = 9.0;
+            var infoEnergy = p.mi * cSq;
+            var ratio = 1 / (1 + p.alphaCurv * p.rhoInfo);
+            addWsRow('\u03c1_info', 'Info density', p.rhoInfo.toFixed(2));
+            addWsRow('\u03b1', 'Coupling', p.alphaCurv.toFixed(2));
+            addWsRow('I', 'Info energy', infoEnergy.toFixed(2) + ' u');
+            addWsRow('d_eff/d_0', 'Geodesic ratio', ratio.toFixed(3));
+        }
+    }
+
+    function selectModel(modelId) {
+        state.activeModelId = modelId;
+        resetSimulationState();
+        buildModelTree();
+        buildModelInspector();
+        renderPlot();
+    }
+
+    /* =========================================================
+       5. HIGH-DPI SCIENTIFIC CANVAS, AXES, TICKS & CROSSHAIR
+       ========================================================= */
+    var canvas = document.getElementById('scientific-canvas');
+    var ctx = canvas.getContext('2d');
+    var plotFrame = document.getElementById('plot-frame');
+    var cursorReadoutEl = document.getElementById('cursor-readout');
+
+    var plotW = 0, plotH = 0, dpr = 1;
+    var plotBounds = { left: 54, right: 24, top: 22, bottom: 38, xMin: 0, xMax: 10, yMin: -1.5, yMax: 1.5 };
+
+    function resizeCanvas() {
+        var rect = plotFrame.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        plotW = Math.max(240, Math.floor(rect.width));
+        plotH = Math.max(220, Math.floor(rect.height));
+        canvas.width = Math.floor(plotW * dpr);
+        canvas.height = Math.floor(plotH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        renderPlot();
+    }
+
+    function toPxX(val) {
+        var b = plotBounds;
+        var span = Math.max(1e-9, b.xMax - b.xMin);
+        return b.left + ((val - b.xMin) / span) * (plotW - b.left - b.right);
+    }
+
+    function toPxY(val) {
+        var b = plotBounds;
+        var span = Math.max(1e-9, b.yMax - b.yMin);
+        return b.top + (1 - (val - b.yMin) / span) * (plotH - b.top - b.bottom);
+    }
+
+    function fromPxY(pxY) {
+        var b = plotBounds;
+        var frac = 1 - (pxY - b.top) / Math.max(1, plotH - b.top - b.bottom);
+        return b.yMin + frac * (b.yMax - b.yMin);
+    }
+
+    function fromPxX(pxX) {
+        var b = plotBounds;
+        var frac = (pxX - b.left) / Math.max(1, plotW - b.left - b.right);
+        return b.xMin + frac * (b.xMax - b.xMin);
+    }
+
+    function drawAxesAndGrid(xLabel, yLabel) {
+        var b = plotBounds;
+        var gridCol = state.isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.09)';
+        var axisCol = state.isDark ? 'rgba(226, 232, 240, 0.45)' : 'rgba(15, 23, 42, 0.45)';
+        var tickCol = state.isDark ? '#94a3b8' : '#475569';
+
+        ctx.save();
+        ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+        ctx.lineWidth = 1;
+
+        var xTicks = 6;
+        var yTicks = 6;
+
+        for (var i = 0; i <= xTicks; i++) {
+            var fracX = i / xTicks;
+            var px = b.left + fracX * (plotW - b.left - b.right);
+            var valX = b.xMin + fracX * (b.xMax - b.xMin);
+
+            ctx.strokeStyle = gridCol;
+            ctx.beginPath();
+            ctx.moveTo(px, b.top);
+            ctx.lineTo(px, plotH - b.bottom);
+            ctx.stroke();
+
+            ctx.fillStyle = tickCol;
+            ctx.textAlign = 'center';
+            ctx.fillText(valX.toFixed(1), px, plotH - b.bottom + 14);
+        }
+
+        for (var j = 0; j <= yTicks; j++) {
+            var fracY = j / yTicks;
+            var py = b.top + fracY * (plotH - b.top - b.bottom);
+            var valY = b.yMax - fracY * (b.yMax - b.yMin);
+
+            ctx.strokeStyle = gridCol;
+            ctx.beginPath();
+            ctx.moveTo(b.left, py);
+            ctx.lineTo(plotW - b.right, py);
+            ctx.stroke();
+
+            ctx.fillStyle = tickCol;
+            ctx.textAlign = 'right';
+            ctx.fillText(valY.toFixed(1), b.left - 7, py + 4);
+        }
+
+        // Main Axes
+        ctx.strokeStyle = axisCol;
+        ctx.beginPath();
+        ctx.moveTo(b.left, b.top);
+        ctx.lineTo(b.left, plotH - b.bottom);
+        ctx.lineTo(plotW - b.right, plotH - b.bottom);
+        ctx.stroke();
+
+        // Axis Titles
+        ctx.fillStyle = tickCol;
+        ctx.textAlign = 'right';
+        ctx.fillText(xLabel, plotW - b.right, plotH - 4);
+
+        ctx.save();
+        ctx.translate(14, b.top);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'right';
+        ctx.fillText(yLabel, 0, 0);
+        ctx.restore();
+
+        ctx.restore();
+    }
+
+    function drawSeries(points, getX, getY, colour, lineWidth) {
+        if (!points || points.length < 2) return;
+        ctx.save();
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = lineWidth || 2;
+        ctx.beginPath();
+        for (var i = 0; i < points.length; i++) {
+            var px = toPxX(getX(points[i], i));
+            var py = toPxY(getY(points[i], i));
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function renderPlot() {
+        if (!plotW || !plotH) return;
+        ctx.clearRect(0, 0, plotW, plotH);
+
+        var id = state.activeModelId;
+        var p = state.params;
+        var s = state.sim;
+        var cCyan = state.isDark ? '#38bdf8' : '#0284c7';
+        var cTeal = state.isDark ? '#2dd4bf' : '#0d9488';
+        var cAmber = state.isDark ? '#fbbf24' : '#d97706';
+        var cCrimson = state.isDark ? '#fb7185' : '#dc2626';
+        var cMuted = state.isDark ? '#94a3b8' : '#64748b';
+
+        if (id === 'pid-control') {
+            var hist = s.pidHistory;
+            var tEnd = Math.max(6.0, s.t);
+            var tStart = Math.max(0, tEnd - 6.0);
+            plotBounds.xMin = tStart;
+            plotBounds.xMax = tEnd;
+            plotBounds.yMin = -0.6;
+            plotBounds.yMax = Math.max(1.6, p.setpoint * 1.45);
+
+            drawAxesAndGrid('Time t (s)', 'Amplitude');
+
+            var visible = hist.filter(function (pt) { return pt.t >= tStart; });
+            drawSeries(visible, function (pt) { return pt.t; }, function (pt) { return pt.r; }, cCyan, 1.6);
+            drawSeries(visible, function (pt) { return pt.t; }, function (pt) { return pt.y; }, cTeal, 2.3);
+            drawSeries(visible, function (pt) { return pt.t; }, function (pt) { return pt.e; }, cCrimson, 1.5);
+        } else if (id === 'dsp-fourier') {
+            // Top half: time-domain Fourier synthesis; Bottom half: frequency spectrum bars
+            var midSplit = plotH * 0.56;
+            var b = plotBounds;
+            b.xMin = 0;
+            b.xMax = 1.0;
+            b.yMin = -1.6;
+            b.yMax = 1.6;
+
+            // Draw top time-domain grid manually
+            ctx.save();
+            ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+            var gridCol = state.isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.09)';
+            ctx.strokeStyle = gridCol;
+            for (var g = 0; g <= 4; g++) {
+                var gy = b.top + (g / 4) * (midSplit - b.top - 16);
+                ctx.beginPath();
+                ctx.moveTo(b.left, gy);
+                ctx.lineTo(plotW - b.right, gy);
+                ctx.stroke();
+            }
+            ctx.strokeStyle = state.isDark ? 'rgba(226, 232, 240, 0.35)' : 'rgba(15, 23, 42, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(b.left, b.top);
+            ctx.lineTo(b.left, midSplit - 16);
+            ctx.lineTo(plotW - b.right, midSplit - 16);
+            ctx.stroke();
+
+            // Synthesised waveform across [0, 1] s
+            var samples = 240;
+            var twoPiF = 2 * Math.PI * p.f0;
+            var scaleCoeff = (4 * p.amp) / Math.PI;
+            ctx.strokeStyle = cCyan;
+            ctx.lineWidth = 2.1;
+            ctx.beginPath();
+            for (var i = 0; i <= samples; i++) {
+                var tSec = i / samples;
+                var sum = 0;
+                for (var m = 0; m < p.harmonics; m++) {
+                    var odd = 2 * m + 1;
+                    sum += Math.sin(odd * twoPiF * tSec - s.t * 2.5) / odd;
+                }
+                var yVal = scaleCoeff * sum;
+                var yNorm = 1 - ((yVal - (-1.6)) / 3.2);
+                var py = b.top + yNorm * (midSplit - b.top - 16);
+                var px = b.left + (i / samples) * (plotW - b.left - b.right);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Bottom half: Harmonic magnitude bars (odd harmonics 1..25)
+            var specTop = midSplit + 8;
+            var specBot = plotH - 24;
+            var specH = Math.max(40, specBot - specTop);
+            ctx.fillStyle = state.isDark ? '#94a3b8' : '#475569';
+            ctx.fillText('Frequency Spectrum |X_k| (Odd Harmonics)', b.left + 6, specTop + 10);
+
+            ctx.strokeStyle = state.isDark ? 'rgba(226, 232, 240, 0.35)' : 'rgba(15, 23, 42, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(b.left, specTop);
+            ctx.lineTo(b.left, specBot);
+            ctx.lineTo(plotW - b.right, specBot);
+            ctx.stroke();
+
+            var maxHarm = 25;
+            var binSpan = (plotW - b.left - b.right) / maxHarm;
+            for (var hIdx = 0; hIdx < maxHarm; hIdx++) {
+                var harmNum = hIdx + 1;
+                var isOdd = (harmNum % 2 === 1);
+                var active = isOdd && (harmNum <= p.harmonics * 2 - 1);
+                var mag = isOdd ? (scaleCoeff / harmNum) : 0;
+                var barH = Math.min(specH - 16, (mag / 1.4) * (specH - 18));
+                var bx = b.left + hIdx * binSpan + 2;
+                var by = specBot - barH;
+
+                ctx.fillStyle = active ? cTeal : (state.isDark ? 'rgba(148,163,184,0.16)' : 'rgba(100,116,139,0.18)');
+                ctx.fillRect(bx, by, Math.max(3, binSpan - 4), barH);
+            }
+            ctx.restore();
+        } else if (id === 'physics-rk4-oscillator') {
+            var oscHist = s.oscHistory;
+            var endT = Math.max(8.0, s.t);
+            var startT = Math.max(0, endT - 8.0);
+            plotBounds.xMin = startT;
+            plotBounds.xMax = endT;
+            plotBounds.yMin = -3.0;
+            plotBounds.yMax = 3.0;
+
+            drawAxesAndGrid('Time t (s)', 'x (m) / v (m/s)');
+            var visOsc = oscHist.filter(function (pt) { return pt.t >= startT; });
+            drawSeries(visOsc, function (pt) { return pt.t; }, function (pt) { return pt.x; }, cCyan, 2.2);
+            drawSeries(visOsc, function (pt) { return pt.t; }, function (pt) { return pt.v; }, cAmber, 1.6);
+        } else if (id === 'physics-verlet-orbit') {
+            plotBounds.xMin = -150;
+            plotBounds.xMax = 150;
+            plotBounds.yMin = -150;
+            plotBounds.yMax = 150;
+
+            drawAxesAndGrid('x (px)', 'y (px)');
+
+            // Central attractor body at (0, 0)
+            var cx = toPxX(0);
+            var cy = toPxY(0);
+            ctx.save();
+            ctx.fillStyle = cAmber;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Orbital trail
+            drawSeries(s.orbTrail, function (pt) { return pt.x; }, function (pt) { return pt.y; }, cCyan, 2.0);
+
+            // Current body & velocity vector
+            var bx = toPxX(s.orbX);
+            var by = toPxY(s.orbY);
+            ctx.fillStyle = cTeal;
+            ctx.beginPath();
+            ctx.arc(bx, by, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = cTeal;
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx + s.orbVx * 1.4, by - s.orbVy * 1.4);
+            ctx.stroke();
+            ctx.restore();
+        } else if (id === 'math-lorenz') {
+            plotBounds.xMin = -26;
+            plotBounds.xMax = 26;
+            plotBounds.yMin = 0;
+            plotBounds.yMax = 55;
+
+            drawAxesAndGrid('x(t)', 'z(t)');
+            drawSeries(s.lorTrailA, function (pt) { return pt.x; }, function (pt) { return pt.z; }, cCyan, 1.6);
+            drawSeries(s.lorTrailB, function (pt) { return pt.x; }, function (pt) { return pt.z; }, cCrimson, 1.3);
+        } else if (id === 'cs-shannon') {
+            plotBounds.xMin = 0;
+            plotBounds.xMax = 1;
+            plotBounds.yMin = 0;
+            plotBounds.yMax = 1.15;
+
+            drawAxesAndGrid('Probability p', 'Entropy H(p) [bits]');
+
+            var curvePts = [];
+            for (var k = 1; k <= 99; k++) {
+                var pv = k / 100;
+                var hv = -(pv * Math.log2(pv) + (1 - pv) * Math.log2(1 - pv));
+                curvePts.push({ p: pv, h: hv });
+            }
+            drawSeries(curvePts, function (pt) { return pt.p; }, function (pt) { return pt.h; }, cCyan, 2.3);
+
+            var curP = p.prob;
+            var curH = -(curP * Math.log2(curP) + (1 - curP) * Math.log2(1 - curP));
+            ctx.save();
+            ctx.fillStyle = cTeal;
+            ctx.beginPath();
+            ctx.arc(toPxX(curP), toPxY(curH), 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        } else if (id === 'ir-2026-nn') {
+            plotBounds.xMin = 0;
+            plotBounds.xMax = 10;
+            plotBounds.yMin = 0;
+            plotBounds.yMax = 10;
+
+            drawAxesAndGrid('Coordinate Distance d\u2080', 'Effective Path / Delay');
+
+            var linePts = [];
+            var curvedPts = [];
+            var ratio = 1 / (1 + p.alphaCurv * p.rhoInfo);
+            for (var step = 0; step <= 50; step++) {
+                var d0 = (step / 50) * 10;
+                linePts.push({ d: d0, val: d0 });
+                // Localized density well around d0 = 5.0 contracts geodesic near core
+                var wellFactor = 1 - (1 - ratio) * Math.exp(-Math.pow((d0 - 5.0) / 2.2, 2));
+                curvedPts.push({ d: d0, val: d0 * wellFactor });
+            }
+
+            drawSeries(linePts, function (pt) { return pt.d; }, function (pt) { return pt.val; }, cMuted, 1.5);
+            drawSeries(curvedPts, function (pt) { return pt.d; }, function (pt) { return pt.val; }, cCyan, 2.4);
+
+            // Highlight density core at d0 = 5.0
+            ctx.save();
+            ctx.fillStyle = cCrimson;
+            ctx.beginPath();
+            ctx.arc(toPxX(5.0), toPxY(5.0 * ratio), 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Crosshair overlay if pointer is over canvas
+        if (state.cursor.active) {
+            var cxPx = state.cursor.x;
+            var cyPx = state.cursor.y;
+            ctx.save();
+            ctx.strokeStyle = state.isDark ? 'rgba(226, 232, 240, 0.35)' : 'rgba(15, 23, 42, 0.35)';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(cxPx, plotBounds.top);
+            ctx.lineTo(cxPx, plotH - plotBounds.bottom);
+            ctx.moveTo(plotBounds.left, cyPx);
+            ctx.lineTo(plotW - plotBounds.right, cyPx);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    /* =========================================================
+       6. TRANSPORT, POINTER CROSSHAIR & RESPONSIVE PANE SWITCHING
+       ========================================================= */
+    var playPauseBtn = document.getElementById('btn-play-pause');
+    var stepBtn = document.getElementById('btn-step');
+    var resetBtn = document.getElementById('btn-reset');
+
+    playPauseBtn.addEventListener('click', function () {
+        state.running = !state.running;
+        playPauseBtn.textContent = state.running ? 'Pause' : 'Play';
+    });
+
+    stepBtn.addEventListener('click', function () {
+        state.running = false;
+        playPauseBtn.textContent = 'Play';
+        advanceSimulationStep();
+        renderPlot();
+    });
+
+    resetBtn.addEventListener('click', function () {
+        resetSimulationState();
+        updateWorkspaceTable();
+        renderPlot();
+    });
+
+    canvas.addEventListener('mousemove', function (e) {
+        var rect = canvas.getBoundingClientRect();
+        var px = e.clientX - rect.left;
+        var py = e.clientY - rect.top;
+        state.cursor.active = true;
+        state.cursor.x = px;
+        state.cursor.y = py;
+        state.cursor.plotX = fromPxX(px);
+        state.cursor.plotY = fromPxY(py);
+        cursorReadoutEl.textContent = 'x: ' + state.cursor.plotX.toFixed(2) + ' | y: ' + state.cursor.plotY.toFixed(2);
+    });
+
+    canvas.addEventListener('mouseleave', function () {
+        state.cursor.active = false;
+        cursorReadoutEl.textContent = 'CURSOR: hover plot';
+    });
+
+    treeFilterInput.addEventListener('input', function (e) {
+        state.treeFilter = e.target.value;
+        buildModelTree();
+    });
+
+    toggleTreeBtn.addEventListener('click', function () {
+        state.treeCollapsed = !state.treeCollapsed;
+        mainGrid.classList.toggle('tree-collapsed', state.treeCollapsed);
+        toggleTreeBtn.setAttribute('aria-expanded', state.treeCollapsed ? 'false' : 'true');
+        toggleTreeBtn.textContent = state.treeCollapsed ? '\u00bb' : '\u00ab';
+        window.setTimeout(resizeCanvas, 50);
+    });
+
+    // Responsive pane switching for narrow screens
+    var mobilePaneBtns = document.querySelectorAll('.mobile-pane-btn');
+    var paneMap = {
+        tree: document.getElementById('pane-tree'),
+        centre: document.getElementById('pane-centre'),
+        right: document.getElementById('pane-right')
+    };
+
+    function setMobilePane(paneKey) {
+        state.mobilePane = paneKey;
+        for (var i = 0; i < mobilePaneBtns.length; i++) {
+            var mb = mobilePaneBtns[i];
+            mb.setAttribute('aria-pressed', mb.getAttribute('data-pane') === paneKey ? 'true' : 'false');
+        }
+        Object.keys(paneMap).forEach(function (k) {
+            paneMap[k].classList.toggle('is-mobile-active', k === paneKey);
+        });
+        if (paneKey === 'centre') {
+            window.setTimeout(resizeCanvas, 30);
+        }
+    }
+
+    for (var mIdx = 0; mIdx < mobilePaneBtns.length; mIdx++) {
+        mobilePaneBtns[mIdx].addEventListener('click', function (e) {
+            setMobilePane(e.currentTarget.getAttribute('data-pane'));
+        });
+    }
+
+    /* =========================================================
+       7. MAIN ANIMATION LOOP & BOOT
+       ========================================================= */
+    var lastFrameTime = 0;
+    var stepAccumulator = 0;
+
+    function loop(now) {
+        if (!lastFrameTime) lastFrameTime = now;
+        var elapsed = Math.min(100, now - lastFrameTime);
+        lastFrameTime = now;
+
+        if (state.running && !reducedMotion.matches) {
+            stepAccumulator += elapsed;
+            while (stepAccumulator >= 30) {
+                advanceSimulationStep();
+                stepAccumulator -= 30;
+            }
+        }
+
+        renderPlot();
+        window.requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', resizeCanvas, { passive: true });
+
+    window.addEventListener('DOMContentLoaded', function () {
+        applyTheme('auto');
+        resetSimulationState();
+        buildModelTree();
+        buildModelInspector();
+        resizeCanvas();
+        window.requestAnimationFrame(loop);
+    });
+})();
+    </script>
+</body>
+</html>
