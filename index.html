@@ -605,7 +605,7 @@
         <button type="button" class="theme-btn" data-mode="dark" aria-pressed="false">Night</button>
     </nav>
     
-    <!-- Live Visitor HUD -->
+    <!-- Live Visitor HUD (Gateway View) -->
     <div id="global-visitor-hud" style="position: fixed; top: max(0.85rem, env(safe-area-inset-top, 0.85rem)); left: max(0.85rem, env(safe-area-inset-left, 0.85rem)); z-index: 50; font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent-colour); letter-spacing: 1px; background: var(--hud-bg); backdrop-filter: blur(8px); padding: 0.35rem 0.6rem; border: 1px solid var(--hud-border); border-radius: 6px;">
         CONCURRENT_HOSTS: <span id="gateway-visitors" style="color: var(--text-colour); font-weight: 600;">0</span>
     </div>
@@ -642,6 +642,7 @@
         <div class="hud-corner hud-tl">
             ASI_CORE // <span id="hardware-tag">EDGE_NODE_ACTIVE</span><br>
             EVOLUTION: <span class="metric-val" id="evo-metric">1.0000000000</span>%<br>
+            ACTIVE NODES: <span class="metric-val" id="console-visitors">0</span><br>
             HOST: <span id="trace-ip">SIMULATED_ENCLAVE</span> &bull; SIG: <span id="trace-sig" class="metric-val">0x9F4A21C0</span>
         </div>
 
@@ -681,6 +682,7 @@
         </div>
     </div>
 
+    <!-- UI Interaction Scripts -->
     <script>
 'use strict';
 
@@ -1274,7 +1276,7 @@
 })();
     </script>
     
-    <!-- Firebase Live Presence Engine -->
+    <!-- Firebase Live Presence & Telemetry Engine -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, push, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -1287,34 +1289,76 @@
             messagingSenderId: "18652430833",
             appId: "1:18652430833:web:a44b023e2085d735584450",
             measurementId: "G-8L6BX7XCYB",
-            // CRITICAL: Ensure you have created the Realtime Database in your Firebase Console
             databaseURL: "https://neg-asi-default-rtdb.europe-west1.firebasedatabase.app"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
-        const countEl = document.getElementById('gateway-visitors');
         
-        const connectedRef = ref(db, '.info/connected');
-        const visitorsRef = ref(db, 'active_visitors');
+        const countElGateway = document.getElementById('gateway-visitors');
+        const countElConsole = document.getElementById('console-visitors');
 
-        onValue(connectedRef, (snap) => {
-            if (snap.val() === true) {
-                const mySessionRef = push(visitorsRef);
-                onDisconnect(mySessionRef).remove();
-                set(mySessionRef, true);
+        async function logVisitorTelemetry() {
+            // Retrieve physical location data
+            let geo = { city: "Unknown", country: "Unknown", ip: "Hidden" };
+            try {
+                const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+                if (res.ok) {
+                    geo = await res.json();
+                }
+            } catch (error) {
+                console.warn("Telemetry location fetch bypassed.");
             }
-        });
 
-        onValue(visitorsRef, (snap) => {
-            const count = snap.size;
-            if (countEl) {
-                countEl.textContent = count;
-                countEl.style.color = 'var(--accent-colour)';
-                setTimeout(() => countEl.style.color = 'var(--text-colour)', 800);
-            }
-        });
+            // Compile the full visitor dossier
+            const telemetryData = {
+                timestamp: new Date().toISOString(),
+                localTime: new Date().toString(),
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                ipAddress: geo.ip,
+                city: geo.city,
+                country: geo.country,
+                platform: navigator.platform
+            };
+
+            const connectedRef = ref(db, '.info/connected');
+            const visitorsRef = ref(db, 'active_visitors');
+            const logsRef = ref(db, 'visitor_logs');
+
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    // 1. Temporary Live Counter (Deletes on exit)
+                    const mySessionRef = push(visitorsRef);
+                    onDisconnect(mySessionRef).remove();
+                    set(mySessionRef, true);
+
+                    // 2. Permanent Telemetry Log (Retained permanently)
+                    const myLogRef = push(logsRef);
+                    set(myLogRef, telemetryData);
+                }
+            });
+
+            onValue(visitorsRef, (snap) => {
+                const count = snap.size;
+                
+                // Update Gateway Counter
+                if (countElGateway) {
+                    countElGateway.textContent = count;
+                    countElGateway.style.color = 'var(--accent-colour)';
+                    setTimeout(() => countElGateway.style.color = 'var(--text-colour)', 800);
+                }
+                
+                // Update ASI Console Counter
+                if (countElConsole) {
+                    countElConsole.textContent = count;
+                    countElConsole.style.color = '#ffffff';
+                    setTimeout(() => countElConsole.style.color = 'var(--core)', 800);
+                }
+            });
+        }
+
+        logVisitorTelemetry();
     </script>
 </body>
 </html>
