@@ -682,7 +682,9 @@
         </div>
     </div>
 
-    <!-- UI Interaction Scripts -->
+    <!-- =========================================================
+         UI INTERACTION SCRIPTS
+         ========================================================= -->
     <script>
 'use strict';
 
@@ -1022,7 +1024,6 @@
      ========================================================= */
   var gatewayView = document.getElementById('gateway-view');
   var consoleView = document.getElementById('console-view');
-  var accessBtn = document.getElementById('access-cortex-btn');
   var returnBtn = document.getElementById('return-gateway-btn');
 
   var inLog = document.getElementById('log-ingest');
@@ -1080,8 +1081,13 @@
   function processCommand(rawQuery) {
     var query = String(rawQuery || '').replace(/[<>/{}[\]\\]/gi, '').trim();
     if (!query) return;
+    
+    // Log the terminal command to Google Analytics
+    if (window.logTerminalCommand) {
+        window.logTerminalCommand(query);
+    }
+    
     var lower = query.toLowerCase();
-
     omniInput.value = '';
     appendConsoleLog('eval', '[HOST_CORTEX] "' + query + '"', 'host');
 
@@ -1191,7 +1197,9 @@
     window.requestAnimationFrame(renderNeuralMesh);
   }
 
-  function bootConsoleOnce() {
+  // Exposed globally so the bottom script can trigger the view switch
+  window.bootConsoleOnce = function() {
+    activeView = 'console';
     if (consoleBooted) return;
     consoleBooted = true;
     consoleStartTime = Date.now();
@@ -1225,20 +1233,7 @@
       appendConsoleLog('ingest', sensoryEvents[sIdx % sensoryEvents.length], 'ingest');
       sIdx++;
     }, 5500);
-  }
-
-  /* View Transitions */
-  accessBtn.addEventListener('click', function () {
-    activeView = 'console';
-    gatewayView.classList.add('is-hidden');
-    gatewayView.setAttribute('aria-hidden', 'true');
-    consoleView.classList.remove('is-hidden');
-    consoleView.setAttribute('aria-hidden', 'false');
-    bootConsoleOnce();
-    window.setTimeout(function () {
-      omniInput.focus();
-    }, 300);
-  });
+  };
 
   returnBtn.addEventListener('click', function () {
     activeView = 'gateway';
@@ -1275,11 +1270,15 @@
   window.requestAnimationFrame(drawGateway);
 })();
     </script>
-    
-    <!-- Firebase Live Presence & Telemetry Engine -->
+
+    <!-- =========================================================
+         FIREBASE CORE: TELEMETRY, ANALYTICS & AUTHENTICATION
+         ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, push, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCw1MqGIK06BHSCKMSlHe-52ncQxZAbyjg",
@@ -1294,23 +1293,77 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // ---------------------------------------------------------
+        // ADMIN AUTHORIZATION LOCK
+        // ---------------------------------------------------------
+        const ADMIN_EMAIL = "nn.negarandeh@gmail.com";
+        const terminalText = document.getElementById('mini-terminal-text');
         
+        // Hijack the Access Cortex button, clear existing listeners, and bind Auth
+        const oldAccessBtn = document.getElementById('access-cortex-btn');
+        const accessBtn = oldAccessBtn.cloneNode(true);
+        oldAccessBtn.parentNode.replaceChild(accessBtn, oldAccessBtn);
+
+        accessBtn.addEventListener('click', () => {
+            terminalText.textContent = "> INITIATING SECURE HANDSHAKE...";
+            terminalText.style.color = "var(--text-colour)";
+            
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    if (result.user.email === ADMIN_EMAIL) {
+                        // Access Granted
+                        terminalText.textContent = "> HANDSHAKE ACCEPTED. ROUTING TO CORTEX...";
+                        terminalText.style.color = "var(--accent-colour)";
+                        setTimeout(() => {
+                            document.getElementById('gateway-view').classList.add('is-hidden');
+                            document.getElementById('console-view').classList.remove('is-hidden');
+                            if (window.bootConsoleOnce) window.bootConsoleOnce();
+                            
+                            // Log the successful admin access
+                            logEvent(analytics, 'admin_cortex_access');
+                        }, 800);
+                    } else {
+                        // Access Denied
+                        auth.signOut();
+                        terminalText.textContent = "> [ACCESS DENIED] UNAUTHORIZED HOST.";
+                        terminalText.style.color = "red";
+                        setTimeout(() => {
+                            terminalText.textContent = "> AWAITING VALID CREDENTIALS.";
+                            terminalText.style.color = "var(--text-colour)";
+                        }, 3000);
+                    }
+                })
+                .catch((error) => {
+                    terminalText.textContent = "> HANDSHAKE FAILED. CONNECTION SEVERED.";
+                });
+        });
+
+        // ---------------------------------------------------------
+        // ANALYTICS BRIDGE
+        // ---------------------------------------------------------
+        window.logTerminalCommand = function(commandText) {
+            logEvent(analytics, 'terminal_input', {
+                command: commandText
+            });
+        };
+
+        // ---------------------------------------------------------
+        // LIVE VISITOR TELEMETRY
+        // ---------------------------------------------------------
         const countElGateway = document.getElementById('gateway-visitors');
         const countElConsole = document.getElementById('console-visitors');
 
         async function logVisitorTelemetry() {
-            // Retrieve physical location data
             let geo = { city: "Unknown", country: "Unknown", ip: "Hidden" };
             try {
                 const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
-                if (res.ok) {
-                    geo = await res.json();
-                }
-            } catch (error) {
-                console.warn("Telemetry location fetch bypassed.");
-            }
+                if (res.ok) geo = await res.json();
+            } catch (error) {}
 
-            // Compile the full visitor dossier
             const telemetryData = {
                 timestamp: new Date().toISOString(),
                 localTime: new Date().toString(),
@@ -1328,28 +1381,20 @@
 
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
-                    // 1. Temporary Live Counter (Deletes on exit)
                     const mySessionRef = push(visitorsRef);
                     onDisconnect(mySessionRef).remove();
                     set(mySessionRef, true);
-
-                    // 2. Permanent Telemetry Log (Retained permanently)
-                    const myLogRef = push(logsRef);
-                    set(myLogRef, telemetryData);
+                    set(push(logsRef), telemetryData);
                 }
             });
 
             onValue(visitorsRef, (snap) => {
                 const count = snap.size;
-                
-                // Update Gateway Counter
                 if (countElGateway) {
                     countElGateway.textContent = count;
                     countElGateway.style.color = 'var(--accent-colour)';
                     setTimeout(() => countElGateway.style.color = 'var(--text-colour)', 800);
                 }
-                
-                // Update ASI Console Counter
                 if (countElConsole) {
                     countElConsole.textContent = count;
                     countElConsole.style.color = '#ffffff';
