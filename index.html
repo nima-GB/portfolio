@@ -1278,7 +1278,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, push, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCw1MqGIK06BHSCKMSlHe-52ncQxZAbyjg",
@@ -1298,48 +1298,50 @@
         const provider = new GoogleAuthProvider();
 
         // ---------------------------------------------------------
-        // ADMIN AUTHORIZATION LOCK
+        // ADMIN AUTHORIZATION LOCK (REDIRECT METHOD)
         // ---------------------------------------------------------
         const ADMIN_EMAIL = "nn.negarandeh@gmail.com";
         const terminalText = document.getElementById('mini-terminal-text');
         
-        // Hijack the Access Cortex button, clear existing listeners, and bind Auth
+        // Hijack the Access Cortex button
         const oldAccessBtn = document.getElementById('access-cortex-btn');
         const accessBtn = oldAccessBtn.cloneNode(true);
         oldAccessBtn.parentNode.replaceChild(accessBtn, oldAccessBtn);
 
+        // 1. Check if the user just returned from the Google login screen
+        getRedirectResult(auth).then((result) => {
+            if (result) {
+                if (result.user.email === ADMIN_EMAIL) {
+                    // Access Granted
+                    terminalText.textContent = "> HANDSHAKE ACCEPTED. ROUTING TO CORTEX...";
+                    terminalText.style.color = "var(--accent-colour)";
+                    setTimeout(() => {
+                        document.getElementById('gateway-view').classList.add('is-hidden');
+                        document.getElementById('console-view').classList.remove('is-hidden');
+                        if (window.bootConsoleOnce) window.bootConsoleOnce();
+                        logEvent(analytics, 'admin_cortex_access');
+                    }, 800);
+                } else {
+                    // Access Denied
+                    auth.signOut();
+                    terminalText.textContent = "> [ACCESS DENIED] UNAUTHORIZED HOST.";
+                    terminalText.style.color = "red";
+                    setTimeout(() => {
+                        terminalText.textContent = "> AWAITING VALID CREDENTIALS.";
+                        terminalText.style.color = "var(--text-colour)";
+                    }, 4000);
+                }
+            }
+        }).catch((error) => {
+            terminalText.textContent = "> HANDSHAKE FAILED. CONNECTION SEVERED.";
+            terminalText.style.color = "red";
+        });
+
+        // 2. Trigger the redirect when the button is clicked
         accessBtn.addEventListener('click', () => {
-            terminalText.textContent = "> INITIATING SECURE HANDSHAKE...";
+            terminalText.textContent = "> ROUTING TO SECURE AUTHENTICATION ENCLAVE...";
             terminalText.style.color = "var(--text-colour)";
-            
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    if (result.user.email === ADMIN_EMAIL) {
-                        // Access Granted
-                        terminalText.textContent = "> HANDSHAKE ACCEPTED. ROUTING TO CORTEX...";
-                        terminalText.style.color = "var(--accent-colour)";
-                        setTimeout(() => {
-                            document.getElementById('gateway-view').classList.add('is-hidden');
-                            document.getElementById('console-view').classList.remove('is-hidden');
-                            if (window.bootConsoleOnce) window.bootConsoleOnce();
-                            
-                            // Log the successful admin access
-                            logEvent(analytics, 'admin_cortex_access');
-                        }, 800);
-                    } else {
-                        // Access Denied
-                        auth.signOut();
-                        terminalText.textContent = "> [ACCESS DENIED] UNAUTHORIZED HOST.";
-                        terminalText.style.color = "red";
-                        setTimeout(() => {
-                            terminalText.textContent = "> AWAITING VALID CREDENTIALS.";
-                            terminalText.style.color = "var(--text-colour)";
-                        }, 3000);
-                    }
-                })
-                .catch((error) => {
-                    terminalText.textContent = "> HANDSHAKE FAILED. CONNECTION SEVERED.";
-                });
+            signInWithRedirect(auth, provider);
         });
 
         // ---------------------------------------------------------
